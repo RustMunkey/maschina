@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignore": ["**/routeTree.gen.ts", "**/routeTree.gen.js"]
+    "ignore": ["**/routeTree.gen.ts", "**/routeTree.gen.js", "apps/**"]
   },
   "overrides": [
     {
