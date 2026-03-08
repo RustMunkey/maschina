@@ -1,9 +1,15 @@
-import { describe, it, expect, beforeAll } from "vitest";
-import { createAccessToken, verifyAccessToken, createRefreshToken, verifyRefreshToken, hashToken } from "../jwt.js";
+import { beforeAll, describe, expect, it } from "vitest";
 import { InvalidTokenError } from "../errors.js";
+import {
+  createAccessToken,
+  createRefreshToken,
+  hashToken,
+  verifyAccessToken,
+  verifyRefreshToken,
+} from "../jwt.js";
 
 beforeAll(() => {
-  process.env["JWT_SECRET"] = "test-secret-that-is-at-least-32-chars-long!!";
+  process.env.JWT_SECRET = "test-secret-that-is-at-least-32-chars-long!!";
 });
 
 describe("createAccessToken / verifyAccessToken", () => {
@@ -35,7 +41,7 @@ describe("createAccessToken / verifyAccessToken", () => {
       role: "owner",
       plan: "access",
     });
-    const tampered = token.slice(0, -5) + "XXXXX";
+    const tampered = `${token.slice(0, -5)}XXXXX`;
     await expect(verifyAccessToken(tampered)).rejects.toThrow(InvalidTokenError);
   });
 });

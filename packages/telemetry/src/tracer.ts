@@ -1,4 +1,11 @@
-import { trace, context, propagation, type Span, type Tracer, SpanStatusCode } from "@opentelemetry/api";
+import {
+  type Span,
+  SpanStatusCode,
+  type Tracer,
+  context,
+  propagation,
+  trace,
+} from "@opentelemetry/api";
 
 // ─── Tracer factory ───────────────────────────────────────────────────────────
 

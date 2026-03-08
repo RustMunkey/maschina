@@ -1,12 +1,12 @@
-import { db, users, verificationTokens, userPasswords } from "@maschina/db";
-import { and, eq, gt } from "@maschina/db";
 import { createHash } from "node:crypto";
-import { hashPassword } from "./password.js";
-import { generateSecureToken } from "./jwt.js";
+import { db, userPasswords, users, verificationTokens } from "@maschina/db";
+import { and, eq, gt } from "@maschina/db";
 import { AuthError } from "./errors.js";
+import { generateSecureToken } from "./jwt.js";
+import { hashPassword } from "./password.js";
 
-const EMAIL_VERIFY_EXPIRY_MS = 24 * 60 * 60 * 1000;      // 24 hours
-const PASSWORD_RESET_EXPIRY_MS = 60 * 60 * 1000;           // 1 hour
+const EMAIL_VERIFY_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+const PASSWORD_RESET_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 
 function hashVerificationToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");

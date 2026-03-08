@@ -6,13 +6,13 @@ export const auditLogs = pgTable("audit_logs", {
   userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
   orgId: uuid("org_id"),
 
-  action: text("action").notNull(),       // "user.created" | "agent.deployed" | "key.revoked" etc.
-  resource: text("resource").notNull(),   // "user" | "agent" | "api_key" | "subscription"
+  action: text("action").notNull(), // "user.created" | "agent.deployed" | "key.revoked" etc.
+  resource: text("resource").notNull(), // "user" | "agent" | "api_key" | "subscription"
   resourceId: text("resource_id"),
 
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
-  metadata: jsonb("metadata"),            // before/after state, extra context
+  metadata: jsonb("metadata"), // before/after state, extra context
 
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

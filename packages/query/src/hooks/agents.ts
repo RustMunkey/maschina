@@ -1,5 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@maschina/api-client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export interface Agent {
   id: string;
@@ -90,7 +90,6 @@ export function useRunAgent() {
   return useMutation({
     mutationFn: ({ id, input }: { id: string; input: Record<string, unknown> }) =>
       api.post<AgentRun>(`/agents/${id}/run`, input),
-    onSuccess: (_data, { id }) =>
-      qc.invalidateQueries({ queryKey: [...AGENTS_KEY, id, "runs"] }),
+    onSuccess: (_data, { id }) => qc.invalidateQueries({ queryKey: [...AGENTS_KEY, id, "runs"] }),
   });
 }

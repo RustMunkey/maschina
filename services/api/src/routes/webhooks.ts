@@ -1,6 +1,6 @@
+import { constructWebhookEvent, handleWebhookEvent } from "@maschina/billing";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { constructWebhookEvent, handleWebhookEvent } from "@maschina/billing";
 
 const app = new Hono();
 
@@ -14,7 +14,7 @@ app.post("/stripe", async (c) => {
   // Read raw body as text — required for Stripe signature verification
   const rawBody = await c.req.text();
 
-  let event;
+  let event: unknown;
   try {
     event = constructWebhookEvent(rawBody, signature);
   } catch (err) {

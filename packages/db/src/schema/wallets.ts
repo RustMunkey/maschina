@@ -9,7 +9,9 @@ export const walletNetworkEnum = pgEnum("wallet_network", [
 
 export const walletAddresses = pgTable("wallet_addresses", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   orgId: uuid("org_id"),
 
   network: walletNetworkEnum("network").notNull(),

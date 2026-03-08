@@ -3,7 +3,9 @@ import { users } from "./users.js";
 
 export const reputationScores = pgTable("reputation_scores", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   agentId: uuid("agent_id"),
 
   // composite score 0–100
@@ -24,10 +26,12 @@ export const reputationScores = pgTable("reputation_scores", {
 
 export const reputationEvents = pgTable("reputation_events", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   agentId: uuid("agent_id"),
 
-  event: text("event").notNull(),  // "run_success" | "run_failure" | "dispute_resolved"
+  event: text("event").notNull(), // "run_success" | "run_failure" | "dispute_resolved"
   delta: numeric("delta", { precision: 5, scale: 2 }).notNull(),
   scoreBefore: numeric("score_before", { precision: 5, scale: 2 }).notNull(),
   scoreAfter: numeric("score_after", { precision: 5, scale: 2 }).notNull(),

@@ -25,8 +25,8 @@ export function PasswordReset({ resetUrl, expiresInHours = 1 }: Props) {
         <Container style={container}>
           <Heading style={h1}>Reset your password</Heading>
           <Text style={text}>
-            We received a request to reset the password for your Maschina account.
-            Click the button below to choose a new password.
+            We received a request to reset the password for your Maschina account. Click the button
+            below to choose a new password.
           </Text>
           <Section style={buttonContainer}>
             <Button href={resetUrl} style={button}>
@@ -34,8 +34,8 @@ export function PasswordReset({ resetUrl, expiresInHours = 1 }: Props) {
             </Button>
           </Section>
           <Text style={footer}>
-            This link expires in {expiresInHours} hour{expiresInHours !== 1 ? "s" : ""}.
-            If you did not request a password reset, you can safely ignore this email.
+            This link expires in {expiresInHours} hour{expiresInHours !== 1 ? "s" : ""}. If you did
+            not request a password reset, you can safely ignore this email.
           </Text>
         </Container>
       </Body>

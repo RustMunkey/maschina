@@ -1,6 +1,6 @@
-import type { Context } from "hono";
 import type { PlanTier } from "@maschina/plans";
 import type { QuotaCheckResult } from "@maschina/usage";
+import type { Context } from "hono";
 
 // ─── Per-request context variables ───────────────────────────────────────────
 // Set by auth middleware, readable in all downstream handlers via c.var.*
@@ -10,12 +10,12 @@ export interface RequestUser {
   email: string;
   role: string;
   tier: PlanTier;
-  sessionId?: string;   // set for JWT auth
-  apiKeyId?: string;    // set for API key auth
+  sessionId?: string; // set for JWT auth
+  apiKeyId?: string; // set for API key auth
 }
 
 export type Variables = {
-  user:  RequestUser;
+  user: RequestUser;
   quota: QuotaCheckResult | null;
 };
 

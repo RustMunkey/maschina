@@ -3,8 +3,8 @@ import { boolean, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-c
 // Idempotent log of all Stripe webhook events
 export const billingEvents = pgTable("billing_events", {
   id: uuid("id").primaryKey().defaultRandom(),
-  stripeEventId: text("stripe_event_id").notNull().unique(),  // idempotency key
-  type: text("type").notNull(),        // "invoice.paid" | "customer.subscription.updated" etc.
+  stripeEventId: text("stripe_event_id").notNull().unique(), // idempotency key
+  type: text("type").notNull(), // "invoice.paid" | "customer.subscription.updated" etc.
   payload: jsonb("payload").notNull(),
   processed: boolean("processed").notNull().default(false),
   processedAt: timestamp("processed_at", { withTimezone: true }),

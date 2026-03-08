@@ -1,35 +1,35 @@
-import { Hono } from "hono";
-import { HTTPException } from "hono/http-exception";
 import { createHmac } from "node:crypto";
+import {
+  createEmailVerificationToken,
+  createPasswordResetToken,
+  createSession,
+  hashPassword,
+  resetPassword,
+  revokeSession,
+  rotateSession,
+  validatePasswordStrength,
+  verifyEmail,
+  verifyPassword,
+} from "@maschina/auth";
 import { db } from "@maschina/db";
-import { users, userPasswords } from "@maschina/db";
+import { userPasswords, users } from "@maschina/db";
 import { eq } from "@maschina/db";
 import {
-  hashPassword,
-  verifyPassword,
-  validatePasswordStrength,
-  createSession,
-  rotateSession,
-  revokeSession,
-  createEmailVerificationToken,
-  verifyEmail,
-  createPasswordResetToken,
-  resetPassword,
-} from "@maschina/auth";
-import {
-  assertValid,
-  sanitizeText,
-  RegisterSchema,
   LoginSchema,
   RefreshSchema,
+  RegisterSchema,
   RequestPasswordResetSchema,
   ResetPasswordSchema,
   VerifyEmailSchema,
+  assertValid,
+  sanitizeText,
 } from "@maschina/validation";
+import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
+import type { Variables } from "../context.js";
+import { env } from "../env.js";
 import { requireAuth } from "../middleware/auth.js";
 import { authRateLimit, strictLimit } from "../middleware/ratelimit.js";
-import { env } from "../env.js";
-import type { Variables } from "../context.js";
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -38,9 +38,7 @@ const app = new Hono<{ Variables: Variables }>();
 // this index becomes the only way to look up by email. Until then it satisfies
 // the NOT NULL constraint and supports future-proof lookup queries.
 function emailIndex(email: string): string {
-  return createHmac("sha256", env.JWT_SECRET)
-    .update(email.toLowerCase().trim())
-    .digest("hex");
+  return createHmac("sha256", env.JWT_SECRET).update(email.toLowerCase().trim()).digest("hex");
 }
 
 // POST /auth/register
@@ -60,17 +58,18 @@ app.post("/register", authRateLimit, async (c) => {
     .where(eq(users.emailIndex, idx))
     .limit(1);
 
-  if (existing) throw new HTTPException(409, { message: "An account with that email already exists" });
+  if (existing)
+    throw new HTTPException(409, { message: "An account with that email already exists" });
 
   const passwordHash = await hashPassword(input.password);
 
   const [user] = await db
     .insert(users)
     .values({
-      email:      input.email,
+      email: input.email,
       emailIndex: idx,
-      name:       input.name ? sanitizeText(input.name) : null,
-      role:       "owner",
+      name: input.name ? sanitizeText(input.name) : null,
+      role: "owner",
     })
     .returning({ id: users.id, email: users.email, role: users.role });
 
@@ -80,10 +79,10 @@ app.post("/register", authRateLimit, async (c) => {
   // A row is only created when the user upgrades via Stripe Checkout.
 
   const tokens = await createSession({
-    userId:    user.id,
-    email:     user.email,
-    role:      user.role as any,
-    plan:      "access",
+    userId: user.id,
+    email: user.email,
+    role: user.role as any,
+    plan: "access",
     userAgent: c.req.header("User-Agent"),
     ipAddress: c.req.header("CF-Connecting-IP") ?? c.req.header("X-Forwarded-For"),
   });
@@ -136,10 +135,10 @@ app.post("/login", authRateLimit, async (c) => {
     .limit(1);
 
   const tokens = await createSession({
-    userId:    user.id,
-    email:     user.email,
-    role:      user.role as any,
-    plan:      (sub?.tier ?? "access") as any,
+    userId: user.id,
+    email: user.email,
+    role: user.role as any,
+    plan: (sub?.tier ?? "access") as any,
     userAgent: c.req.header("User-Agent"),
     ipAddress: c.req.header("CF-Connecting-IP") ?? c.req.header("X-Forwarded-For"),
   });
@@ -201,7 +200,8 @@ app.post("/reset-password", strictLimit, async (c) => {
   const input = assertValid(ResetPasswordSchema, body);
 
   const strengthResult = validatePasswordStrength(input.newPassword);
-  if (!strengthResult.valid) throw new HTTPException(400, { message: strengthResult.reason ?? "Password too weak" });
+  if (!strengthResult.valid)
+    throw new HTTPException(400, { message: strengthResult.reason ?? "Password too weak" });
 
   await resetPassword(input.token, input.newPassword).catch(() => {
     throw new HTTPException(400, { message: "Invalid or expired reset token" });

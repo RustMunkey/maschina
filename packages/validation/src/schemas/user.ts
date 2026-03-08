@@ -22,11 +22,7 @@ export const UpdateNotificationPrefsSchema = z.object({
 // ─── API Key schemas ──────────────────────────────────────────────────────────
 
 export const CreateApiKeySchema = z.object({
-  name: z
-    .string()
-    .min(1, "Name is required")
-    .max(64, "Name too long")
-    .trim(),
+  name: z.string().min(1, "Name is required").max(64, "Name too long").trim(),
   monthlyLimit: z.number().int().positive().max(10_000_000).optional(),
   expiresAt: z
     .string()

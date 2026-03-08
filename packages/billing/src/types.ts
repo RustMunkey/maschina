@@ -15,9 +15,9 @@ export type SubscriptionStatus =
 export interface CreditPackage {
   id: string;
   name: string;
-  tokens: number;          // model tokens granted
-  priceUsd: number;        // price in cents
-  stripePriceId: string;   // pre-created in Stripe dashboard
+  tokens: number; // model tokens granted
+  priceUsd: number; // price in cents
+  stripePriceId: string; // pre-created in Stripe dashboard
 }
 
 // Standard credit packs — expand as needed
@@ -26,22 +26,22 @@ export const CREDIT_PACKAGES: CreditPackage[] = [
     id: "tokens_1m",
     name: "1M Tokens",
     tokens: 1_000_000,
-    priceUsd: 1000,  // $10.00
-    stripePriceId: process.env["STRIPE_CREDIT_PRICE_1M"] ?? "",
+    priceUsd: 1000, // $10.00
+    stripePriceId: process.env.STRIPE_CREDIT_PRICE_1M ?? "",
   },
   {
     id: "tokens_5m",
     name: "5M Tokens",
     tokens: 5_000_000,
-    priceUsd: 4000,  // $40.00
-    stripePriceId: process.env["STRIPE_CREDIT_PRICE_5M"] ?? "",
+    priceUsd: 4000, // $40.00
+    stripePriceId: process.env.STRIPE_CREDIT_PRICE_5M ?? "",
   },
   {
     id: "tokens_20m",
     name: "20M Tokens",
     tokens: 20_000_000,
-    priceUsd: 12000,  // $120.00
-    stripePriceId: process.env["STRIPE_CREDIT_PRICE_20M"] ?? "",
+    priceUsd: 12000, // $120.00
+    stripePriceId: process.env.STRIPE_CREDIT_PRICE_20M ?? "",
   },
 ];
 

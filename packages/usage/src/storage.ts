@@ -1,7 +1,7 @@
 import { db } from "@maschina/db";
 import { files } from "@maschina/db";
 import { eq, sql } from "@maschina/db";
-import { getPlan, type PlanTier } from "@maschina/plans";
+import { type PlanTier, getPlan } from "@maschina/plans";
 
 // ─── Storage quota ────────────────────────────────────────────────────────────
 // Storage is a snapshot, not a counter — it's the sum of all files currently
@@ -29,7 +29,7 @@ export interface StorageQuotaResult {
   allowed: boolean;
   usedBytes: number;
   usedGb: number;
-  limitGb: number;     // -1 = unlimited
+  limitGb: number; // -1 = unlimited
   remainingGb: number; // -1 = unlimited
   percentageUsed: number;
 }

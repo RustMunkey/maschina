@@ -6,14 +6,22 @@ import type { PlanTier, QuotaKey, QuotaStatus } from "./types.js";
 function resolveLimit(tier: PlanTier, key: QuotaKey): number {
   const plan = getPlan(tier);
   switch (key) {
-    case "agentExecutions": return plan.monthlyAgentExecutions;
-    case "apiCalls":        return plan.monthlyApiCalls;
-    case "modelTokens":     return plan.monthlyModelTokens;
-    case "storageGb":       return plan.storageGb;
-    case "agents":          return plan.maxAgents;
-    case "apiKeys":         return plan.maxApiKeys;
-    case "teamMembers":     return plan.maxTeamMembers;
-    case "connectors":      return plan.maxConnectors;
+    case "agentExecutions":
+      return plan.monthlyAgentExecutions;
+    case "apiCalls":
+      return plan.monthlyApiCalls;
+    case "modelTokens":
+      return plan.monthlyModelTokens;
+    case "storageGb":
+      return plan.storageGb;
+    case "agents":
+      return plan.maxAgents;
+    case "apiKeys":
+      return plan.maxApiKeys;
+    case "teamMembers":
+      return plan.maxTeamMembers;
+    case "connectors":
+      return plan.maxConnectors;
   }
 }
 
@@ -73,13 +81,13 @@ export function getAllQuotas(
 
 export const QUOTA_LABELS: Record<QuotaKey, string> = {
   agentExecutions: "Agent executions",
-  apiCalls:        "API calls",
-  modelTokens:     "Model tokens",
-  storageGb:       "Storage",
-  agents:          "Agents",
-  apiKeys:         "API keys",
-  teamMembers:     "Team members",
-  connectors:      "Connectors",
+  apiCalls: "API calls",
+  modelTokens: "Model tokens",
+  storageGb: "Storage",
+  agents: "Agents",
+  apiKeys: "API keys",
+  teamMembers: "Team members",
+  connectors: "Connectors",
 };
 
 export function formatLimit(limit: number, key: QuotaKey): string {

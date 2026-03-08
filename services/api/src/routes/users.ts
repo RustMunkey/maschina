@@ -1,23 +1,23 @@
-import { Hono } from "hono";
-import { HTTPException } from "hono/http-exception";
-import { db } from "@maschina/db";
-import { users, sessions } from "@maschina/db";
-import { eq, and, ne } from "@maschina/db";
 import { revokeAllSessions } from "@maschina/auth";
+import { verifyPassword } from "@maschina/auth";
+import { db } from "@maschina/db";
+import { sessions, users } from "@maschina/db";
+import { and, eq, ne } from "@maschina/db";
 import {
-  assertValid,
-  sanitizeText,
-  projectUser,
-  projectSession,
+  DeleteAccountSchema,
+  RequestDataExportSchema,
   UpdateProfileSchema,
   UpdateTrainingConsentSchema,
-  RequestDataExportSchema,
-  DeleteAccountSchema,
+  assertValid,
+  projectSession,
+  projectUser,
+  sanitizeText,
 } from "@maschina/validation";
-import { verifyPassword } from "@maschina/auth";
+import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
+import type { Variables } from "../context.js";
 import { requireAuth } from "../middleware/auth.js";
 import { trackApiCall } from "../middleware/quota.js";
-import type { Variables } from "../context.js";
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -29,13 +29,13 @@ app.get("/me", async (c) => {
 
   const [user] = await db
     .select({
-      id:              users.id,
-      email:           users.email,
-      name:            users.name,
-      avatarUrl:       users.avatarUrl,
-      role:            users.role,
+      id: users.id,
+      email: users.email,
+      name: users.name,
+      avatarUrl: users.avatarUrl,
+      role: users.role,
       emailVerified: users.emailVerified,
-      createdAt:       users.createdAt,
+      createdAt: users.createdAt,
     })
     .from(users)
     .where(eq(users.id, id))
@@ -56,19 +56,15 @@ app.patch("/me", async (c) => {
   if (input.name !== undefined) updates.name = sanitizeText(input.name);
   if (input.avatarUrl !== undefined) updates.avatarUrl = input.avatarUrl;
 
-  const [updated] = await db
-    .update(users)
-    .set(updates)
-    .where(eq(users.id, id))
-    .returning({
-      id:              users.id,
-      email:           users.email,
-      name:            users.name,
-      avatarUrl:       users.avatarUrl,
-      role:            users.role,
-      emailVerified: users.emailVerified,
-      createdAt:       users.createdAt,
-    });
+  const [updated] = await db.update(users).set(updates).where(eq(users.id, id)).returning({
+    id: users.id,
+    email: users.email,
+    name: users.name,
+    avatarUrl: users.avatarUrl,
+    role: users.role,
+    emailVerified: users.emailVerified,
+    createdAt: users.createdAt,
+  });
 
   return c.json(projectUser(updated));
 });
@@ -79,7 +75,7 @@ app.get("/me/sessions", async (c) => {
 
   const rows = await db
     .select({
-      id:        sessions.id,
+      id: sessions.id,
       tokenHash: sessions.tokenHash,
       userAgent: sessions.userAgent,
       ipAddress: sessions.ipAddress,
@@ -98,9 +94,7 @@ app.delete("/me/sessions/:id", async (c) => {
   const user = c.get("user");
   const sessionId = c.req.param("id");
 
-  await db
-    .delete(sessions)
-    .where(and(eq(sessions.id, sessionId), eq(sessions.userId, user.id)));
+  await db.delete(sessions).where(and(eq(sessions.id, sessionId), eq(sessions.userId, user.id)));
 
   return c.json({ success: true });
 });
@@ -115,17 +109,17 @@ app.patch("/me/training-consent", async (c) => {
   await db
     .insert(trainingConsent)
     .values({
-      userId:        id,
-      consentGiven:  input.consentGiven,
+      userId: id,
+      consentGiven: input.consentGiven,
       consentVersion: input.policyVersion,
-      dataFromDate:  new Date(),
+      dataFromDate: new Date(),
     })
     .onConflictDoUpdate({
       target: trainingConsent.userId,
       set: {
-        consentGiven:   input.consentGiven,
+        consentGiven: input.consentGiven,
         consentVersion: input.policyVersion,
-        revokedAt:      input.consentGiven ? null : new Date(),
+        revokedAt: input.consentGiven ? null : new Date(),
       },
     });
 
@@ -150,7 +144,14 @@ app.post("/me/export", async (c) => {
 
   // TODO: enqueue export job → packages/jobs → generates JSON/CSV → uploads to S3 → emails link
 
-  return c.json({ success: true, requestId: request.id, message: "Export started — you'll receive an email when it's ready" }, 202);
+  return c.json(
+    {
+      success: true,
+      requestId: request.id,
+      message: "Export started — you'll receive an email when it's ready",
+    },
+    202,
+  );
 });
 
 // DELETE /users/me  — GDPR Article 17, account deletion
@@ -172,10 +173,7 @@ app.delete("/me", async (c) => {
   if (!valid) throw new HTTPException(401, { message: "Incorrect password" });
 
   // Soft delete — GDPR erasure job handles PII wipe asynchronously
-  await db
-    .update(users)
-    .set({ deletedAt: new Date() })
-    .where(eq(users.id, id));
+  await db.update(users).set({ deletedAt: new Date() }).where(eq(users.id, id));
 
   await revokeAllSessions(id);
 

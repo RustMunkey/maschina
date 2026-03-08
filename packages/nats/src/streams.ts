@@ -88,7 +88,12 @@ export async function ensureStreams(): Promise<void> {
         // A legacy stream claims these subjects — purge it and retry.
         for await (const s of jsm.streams.list()) {
           const overlaps = (s.config.subjects ?? []).some((sub) =>
-            cfg.subjects.some((cs) => sub === cs || sub.startsWith(cs.replace(">", "")) || cs.startsWith(sub.replace(">", "")))
+            cfg.subjects.some(
+              (cs) =>
+                sub === cs ||
+                sub.startsWith(cs.replace(">", "")) ||
+                cs.startsWith(sub.replace(">", "")),
+            ),
           );
           if (overlaps && s.config.name !== cfg.name) {
             await jsm.streams.delete(s.config.name);

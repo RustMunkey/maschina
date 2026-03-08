@@ -1,7 +1,7 @@
-import { createMiddleware } from "hono/factory";
-import { HTTPException } from "hono/http-exception";
 import { resolveAuth } from "@maschina/auth";
 import { can } from "@maschina/plans";
+import { createMiddleware } from "hono/factory";
+import { HTTPException } from "hono/http-exception";
 import type { Variables } from "../context.js";
 
 // ─── Auth middleware ──────────────────────────────────────────────────────────
@@ -21,12 +21,12 @@ export const requireAuth = createMiddleware<{ Variables: Variables }>(async (c, 
   }
 
   c.set("user", {
-    id:        ctx.userId,
-    email:     ctx.email,
-    role:      ctx.role,
-    tier:      ctx.plan,
+    id: ctx.userId,
+    email: ctx.email,
+    role: ctx.role,
+    tier: ctx.plan,
     sessionId: ctx.sessionId,
-    apiKeyId:  ctx.apiKeyId,
+    apiKeyId: ctx.apiKeyId,
   });
 
   await next();
@@ -40,12 +40,12 @@ export const optionalAuth = createMiddleware<{ Variables: Variables }>(async (c,
     const ctx = await resolveAuth(c.req.raw.headers).catch(() => null);
     if (ctx) {
       c.set("user", {
-        id:        ctx.userId,
-        email:     ctx.email,
-        role:      ctx.role,
-        tier:      ctx.plan,
+        id: ctx.userId,
+        email: ctx.email,
+        role: ctx.role,
+        tier: ctx.plan,
         sessionId: ctx.sessionId,
-        apiKeyId:  ctx.apiKeyId,
+        apiKeyId: ctx.apiKeyId,
       });
     }
   }
@@ -66,7 +66,9 @@ export function requireRole(...roles: string[]) {
 
 // ─── Feature gate ─────────────────────────────────────────────────────────────
 
-export function requireFeature(feature: Parameters<typeof can.useMaschinaModel>[0] extends infer T ? keyof typeof can : never) {
+export function requireFeature(
+  feature: Parameters<typeof can.useMaschinaModel>[0] extends infer T ? keyof typeof can : never,
+) {
   return createMiddleware<{ Variables: Variables }>(async (c, next) => {
     const user = c.get("user");
     if (!user) throw new HTTPException(401, { message: "Unauthorized" });

@@ -4,9 +4,9 @@ import { getQdrant } from "./client.js";
 
 export const COLLECTIONS = {
   /** Agent system prompts and descriptions — for semantic agent search */
-  agentEmbeddings:    "agent_embeddings",
+  agentEmbeddings: "agent_embeddings",
   /** User-uploaded document chunks — for per-user RAG */
-  documentChunks:     "document_chunks",
+  documentChunks: "document_chunks",
   /** Marketplace listing embeddings — semantic marketplace search */
   marketplaceListings: "marketplace_listings",
 } as const;
@@ -31,7 +31,7 @@ export async function ensureCollections(): Promise<void> {
     } catch {
       await client.createCollection(name, {
         vectors: {
-          size:     DEFAULT_VECTOR_SIZE,
+          size: DEFAULT_VECTOR_SIZE,
           distance: "Cosine",
         },
         optimizers_config: {

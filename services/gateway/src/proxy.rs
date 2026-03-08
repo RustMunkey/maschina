@@ -195,10 +195,10 @@ async fn bridge_ws(
     let client_to_upstream = async {
         while let Some(Ok(msg)) = client_rx.next().await {
             let fwd = match msg {
-                AxumMsg::Text(t) => TungsteniteMsg::Text(t.into()),
-                AxumMsg::Binary(b) => TungsteniteMsg::Binary(b.into()),
-                AxumMsg::Ping(p) => TungsteniteMsg::Ping(p.into()),
-                AxumMsg::Pong(p) => TungsteniteMsg::Pong(p.into()),
+                AxumMsg::Text(t) => TungsteniteMsg::Text(t),
+                AxumMsg::Binary(b) => TungsteniteMsg::Binary(b),
+                AxumMsg::Ping(p) => TungsteniteMsg::Ping(p),
+                AxumMsg::Pong(p) => TungsteniteMsg::Pong(p),
                 AxumMsg::Close(_) => break,
             };
             if upstream_tx.send(fwd).await.is_err() {
@@ -210,10 +210,10 @@ async fn bridge_ws(
     let upstream_to_client = async {
         while let Some(Ok(msg)) = upstream_rx.next().await {
             let fwd = match msg {
-                TungsteniteMsg::Text(t) => AxumMsg::Text(t.into()),
-                TungsteniteMsg::Binary(b) => AxumMsg::Binary(b.into()),
-                TungsteniteMsg::Ping(p) => AxumMsg::Ping(p.into()),
-                TungsteniteMsg::Pong(p) => AxumMsg::Pong(p.into()),
+                TungsteniteMsg::Text(t) => AxumMsg::Text(t),
+                TungsteniteMsg::Binary(b) => AxumMsg::Binary(b),
+                TungsteniteMsg::Ping(p) => AxumMsg::Ping(p),
+                TungsteniteMsg::Pong(p) => AxumMsg::Pong(p),
                 TungsteniteMsg::Close(_) | TungsteniteMsg::Frame(_) => break,
             };
             if client_tx.send(fwd).await.is_err() {

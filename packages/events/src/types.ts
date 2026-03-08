@@ -26,39 +26,39 @@ export interface EventEnvelope<T = unknown> {
 // ─── Agent events ─────────────────────────────────────────────────────────────
 
 export interface AgentRunQueuedData {
-  runId:   string;
+  runId: string;
   agentId: string;
-  userId:  string;
-  tier:    string;
+  userId: string;
+  tier: string;
 }
 
 export interface AgentRunStartedData {
-  runId:   string;
+  runId: string;
   agentId: string;
-  userId:  string;
+  userId: string;
 }
 
 export interface AgentRunCompletedData {
-  runId:        string;
-  agentId:      string;
-  userId:       string;
-  inputTokens:  number;
+  runId: string;
+  agentId: string;
+  userId: string;
+  inputTokens: number;
   outputTokens: number;
-  durationMs:   number;
+  durationMs: number;
 }
 
 export interface AgentRunFailedData {
-  runId:        string;
-  agentId:      string;
-  userId:       string;
-  errorCode:    string;
+  runId: string;
+  agentId: string;
+  userId: string;
+  errorCode: string;
   errorMessage: string;
 }
 
 export interface AgentRunTimedOutData {
-  runId:       string;
-  agentId:     string;
-  userId:      string;
+  runId: string;
+  agentId: string;
+  userId: string;
   timeoutSecs: number;
 }
 
@@ -66,54 +66,54 @@ export interface AgentRunTimedOutData {
 
 export interface UserRegisteredData {
   userId: string;
-  email:  string;
+  email: string;
 }
 
 export interface UserEmailVerifiedData {
   userId: string;
-  email:  string;
+  email: string;
 }
 
 export interface UserDeletedData {
   userId: string;
-  email:  string;
+  email: string;
 }
 
 // ─── Billing / Subscription events ───────────────────────────────────────────
 
 export interface SubscriptionCreatedData {
-  userId:         string;
+  userId: string;
   subscriptionId: string;
-  tier:           string;
-  interval:       "monthly" | "annual";
-  periodEnd:      string;
+  tier: string;
+  interval: "monthly" | "annual";
+  periodEnd: string;
 }
 
 export interface SubscriptionUpdatedData {
-  userId:         string;
+  userId: string;
   subscriptionId: string;
-  oldTier:        string;
-  newTier:        string;
-  interval:       "monthly" | "annual";
-  periodEnd:      string;
+  oldTier: string;
+  newTier: string;
+  interval: "monthly" | "annual";
+  periodEnd: string;
 }
 
 export interface SubscriptionCanceledData {
-  userId:         string;
+  userId: string;
   subscriptionId: string;
-  tier:           string;
-  cancelAt:       string;
+  tier: string;
+  cancelAt: string;
 }
 
 export interface PaymentFailedData {
-  userId:   string;
+  userId: string;
   invoiceId: string;
   amountCents: number;
-  reason:   string;
+  reason: string;
 }
 
 export interface CreditPurchasedData {
-  userId:      string;
+  userId: string;
   amountCents: number;
   newBalanceCents: number;
 }
@@ -121,38 +121,38 @@ export interface CreditPurchasedData {
 // ─── Usage / Quota events ─────────────────────────────────────────────────────
 
 export interface QuotaWarningData {
-  userId:          string;
-  quotaType:       string;
-  used:            number;
-  limit:           number;
-  percentageUsed:  number;
-  resetsAt:        string;
+  userId: string;
+  quotaType: string;
+  used: number;
+  limit: number;
+  percentageUsed: number;
+  resetsAt: string;
 }
 
 export interface QuotaExceededData {
-  userId:    string;
+  userId: string;
   quotaType: string;
-  used:      number;
-  limit:     number;
-  resetsAt:  string;
+  used: number;
+  limit: number;
+  resetsAt: string;
 }
 
 // ─── Notification events ──────────────────────────────────────────────────────
 
 export interface NotificationRequestedData {
-  userId:   string;
-  type:     string;
+  userId: string;
+  type: string;
   channels: Array<"email" | "in_app" | "push">;
-  payload:  Record<string, unknown>;
+  payload: Record<string, unknown>;
 }
 
 // ─── System events ────────────────────────────────────────────────────────────
 
 export interface SystemAnnouncementData {
-  title:    string;
-  body:     string;
+  title: string;
+  body: string;
   severity: "info" | "warning" | "critical";
-  targetTiers?: string[];  // null = all tiers
+  targetTiers?: string[]; // null = all tiers
 }
 
 // ─── Subject registry ─────────────────────────────────────────────────────────
@@ -161,26 +161,26 @@ export interface SystemAnnouncementData {
 
 export const Subjects = {
   // Agent
-  AgentRunQueued:    "maschina.agent.run.queued",
-  AgentRunStarted:   "maschina.agent.run.started",
+  AgentRunQueued: "maschina.agent.run.queued",
+  AgentRunStarted: "maschina.agent.run.started",
   AgentRunCompleted: "maschina.agent.run.completed",
-  AgentRunFailed:    "maschina.agent.run.failed",
-  AgentRunTimedOut:  "maschina.agent.run.timed_out",
+  AgentRunFailed: "maschina.agent.run.failed",
+  AgentRunTimedOut: "maschina.agent.run.timed_out",
 
   // User
-  UserRegistered:    "maschina.user.registered",
+  UserRegistered: "maschina.user.registered",
   UserEmailVerified: "maschina.user.email.verified",
-  UserDeleted:       "maschina.user.deleted",
+  UserDeleted: "maschina.user.deleted",
 
   // Billing
-  SubscriptionCreated:  "maschina.billing.subscription.created",
-  SubscriptionUpdated:  "maschina.billing.subscription.updated",
+  SubscriptionCreated: "maschina.billing.subscription.created",
+  SubscriptionUpdated: "maschina.billing.subscription.updated",
   SubscriptionCanceled: "maschina.billing.subscription.canceled",
-  PaymentFailed:        "maschina.billing.payment.failed",
-  CreditPurchased:      "maschina.billing.credit.purchased",
+  PaymentFailed: "maschina.billing.payment.failed",
+  CreditPurchased: "maschina.billing.credit.purchased",
 
   // Usage
-  QuotaWarning:  "maschina.usage.quota.warning",
+  QuotaWarning: "maschina.usage.quota.warning",
   QuotaExceeded: "maschina.usage.quota.exceeded",
 
   // Notifications
@@ -190,31 +190,31 @@ export const Subjects = {
   SystemAnnouncement: "maschina.system.announcement",
 } as const;
 
-export type Subject = typeof Subjects[keyof typeof Subjects];
+export type Subject = (typeof Subjects)[keyof typeof Subjects];
 
 // ─── Typed event map ──────────────────────────────────────────────────────────
 // Maps each subject to its payload type for end-to-end type safety.
 
 export interface EventMap {
-  [Subjects.AgentRunQueued]:    AgentRunQueuedData;
-  [Subjects.AgentRunStarted]:   AgentRunStartedData;
+  [Subjects.AgentRunQueued]: AgentRunQueuedData;
+  [Subjects.AgentRunStarted]: AgentRunStartedData;
   [Subjects.AgentRunCompleted]: AgentRunCompletedData;
-  [Subjects.AgentRunFailed]:    AgentRunFailedData;
-  [Subjects.AgentRunTimedOut]:  AgentRunTimedOutData;
+  [Subjects.AgentRunFailed]: AgentRunFailedData;
+  [Subjects.AgentRunTimedOut]: AgentRunTimedOutData;
 
-  [Subjects.UserRegistered]:    UserRegisteredData;
+  [Subjects.UserRegistered]: UserRegisteredData;
   [Subjects.UserEmailVerified]: UserEmailVerifiedData;
-  [Subjects.UserDeleted]:       UserDeletedData;
+  [Subjects.UserDeleted]: UserDeletedData;
 
-  [Subjects.SubscriptionCreated]:  SubscriptionCreatedData;
-  [Subjects.SubscriptionUpdated]:  SubscriptionUpdatedData;
+  [Subjects.SubscriptionCreated]: SubscriptionCreatedData;
+  [Subjects.SubscriptionUpdated]: SubscriptionUpdatedData;
   [Subjects.SubscriptionCanceled]: SubscriptionCanceledData;
-  [Subjects.PaymentFailed]:        PaymentFailedData;
-  [Subjects.CreditPurchased]:      CreditPurchasedData;
+  [Subjects.PaymentFailed]: PaymentFailedData;
+  [Subjects.CreditPurchased]: CreditPurchasedData;
 
-  [Subjects.QuotaWarning]:  QuotaWarningData;
+  [Subjects.QuotaWarning]: QuotaWarningData;
   [Subjects.QuotaExceeded]: QuotaExceededData;
 
   [Subjects.NotificationRequested]: NotificationRequestedData;
-  [Subjects.SystemAnnouncement]:    SystemAnnouncementData;
+  [Subjects.SystemAnnouncement]: SystemAnnouncementData;
 }

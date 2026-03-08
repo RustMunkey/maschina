@@ -31,10 +31,7 @@ export interface SearchHit<P = Record<string, unknown>> {
 /**
  * Upsert a single vector point into a collection.
  */
-export async function upsertVector(
-  collection: CollectionName,
-  point: VectorPoint,
-): Promise<void> {
+export async function upsertVector(collection: CollectionName, point: VectorPoint): Promise<void> {
   await upsertVectors(collection, [point]);
 }
 
@@ -48,8 +45,8 @@ export async function upsertVectors(
   if (points.length === 0) return;
 
   const qdrantPoints: PointStruct[] = points.map((p) => ({
-    id:      p.id,
-    vector:  p.vector,
+    id: p.id,
+    vector: p.vector,
     payload: p.payload,
   }));
 
@@ -65,16 +62,16 @@ export async function searchVectors<P = Record<string, unknown>>(
   opts: SearchOptions = {},
 ): Promise<SearchHit<P>[]> {
   const results = await getQdrant().search(collection, {
-    vector:          queryVector,
-    limit:           opts.limit ?? 10,
-    filter:          opts.filter as any,
+    vector: queryVector,
+    limit: opts.limit ?? 10,
+    filter: opts.filter as any,
     score_threshold: opts.scoreThreshold,
-    with_payload:    opts.withPayload ?? true,
+    with_payload: opts.withPayload ?? true,
   });
 
   return results.map((r) => ({
-    id:      String(r.id),
-    score:   r.score,
+    id: String(r.id),
+    score: r.score,
     payload: (r.payload ?? {}) as P,
   }));
 }
@@ -85,7 +82,7 @@ export async function searchVectors<P = Record<string, unknown>>(
 export async function deleteVector(collection: CollectionName, id: string): Promise<void> {
   await getQdrant().delete(collection, {
     points: [id],
-    wait:   true,
+    wait: true,
   });
 }
 
@@ -98,6 +95,6 @@ export async function deleteVectorsByFilter(
 ): Promise<void> {
   await getQdrant().delete(collection, {
     filter: filter as any,
-    wait:   true,
+    wait: true,
   });
 }

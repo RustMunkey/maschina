@@ -1,10 +1,10 @@
 import {
-  connect,
-  credsAuthenticator,
-  type NatsConnection,
   type JetStreamClient,
   type JetStreamManager,
+  type NatsConnection,
   StringCodec,
+  connect,
+  credsAuthenticator,
 } from "nats";
 
 // ─── Connection singleton ─────────────────────────────────────────────────────
@@ -33,18 +33,18 @@ export async function getJsm(): Promise<JetStreamManager> {
 // ─── Connect ──────────────────────────────────────────────────────────────────
 
 export async function connectNats(servers?: string | string[]): Promise<NatsConnection> {
-  const urls = servers ?? process.env["NATS_URL"] ?? "nats://localhost:4222";
+  const urls = servers ?? process.env.NATS_URL ?? "nats://localhost:4222";
 
   // Synadia/NGS credential support.
   // Set NATS_CREDS to the raw content of your .creds file (fly secrets set NATS_CREDS="$(cat path.creds)")
   // Or NATS_CREDS_FILE to a local file path for dev.
   let authenticator: ReturnType<typeof credsAuthenticator> | undefined;
-  const credContent = process.env["NATS_CREDS"];
-  const credFile    = process.env["NATS_CREDS_FILE"];
+  const credContent = process.env.NATS_CREDS;
+  const credFile = process.env.NATS_CREDS_FILE;
   if (credContent) {
     authenticator = credsAuthenticator(new TextEncoder().encode(credContent));
   } else if (credFile) {
-    const { readFileSync } = await import("fs");
+    const { readFileSync } = await import("node:fs");
     authenticator = credsAuthenticator(readFileSync(credFile));
   }
 
@@ -52,10 +52,10 @@ export async function connectNats(servers?: string | string[]): Promise<NatsConn
     servers: urls,
     authenticator,
     reconnect: true,
-    maxReconnectAttempts: -1,       // infinite retries
-    reconnectTimeWait: 2000,        // 2s between attempts
-    pingInterval: 30_000,           // 30s keepalive
-    name: process.env["SERVICE_NAME"] ?? "maschina-service",
+    maxReconnectAttempts: -1, // infinite retries
+    reconnectTimeWait: 2000, // 2s between attempts
+    pingInterval: 30_000, // 30s keepalive
+    name: process.env.SERVICE_NAME ?? "maschina-service",
   });
 
   _js = _nc.jetstream();

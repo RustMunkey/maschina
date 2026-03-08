@@ -8,7 +8,7 @@ import * as sqliteSchema from "./schema/sqlite/index.js";
 const require = createRequire(import.meta.url);
 
 function createClient() {
-  const url = process.env["DATABASE_URL"] ?? "file:./dev.db";
+  const url = process.env.DATABASE_URL ?? "file:./dev.db";
 
   if (url.startsWith("file:")) {
     const { drizzle } = require("drizzle-orm/better-sqlite3");
@@ -36,6 +36,6 @@ export const db: any = createClient();
 export type Db = ReturnType<typeof createClient>;
 
 export function isSQLite(): boolean {
-  const url = process.env["DATABASE_URL"] ?? "file:./dev.db";
+  const url = process.env.DATABASE_URL ?? "file:./dev.db";
   return url.startsWith("file:");
 }

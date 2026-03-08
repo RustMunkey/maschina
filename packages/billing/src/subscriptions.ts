@@ -1,10 +1,10 @@
 import { db } from "@maschina/db";
-import { subscriptions, plans } from "@maschina/db";
+import { plans, subscriptions } from "@maschina/db";
 import { eq } from "@maschina/db";
+import type { PlanTier } from "@maschina/plans";
 import { getStripe } from "./client.js";
 import { getOrCreateStripeCustomer } from "./customers.js";
 import type { BillingInterval, CheckoutResult, PortalResult, SubscriptionResult } from "./types.js";
-import type { PlanTier } from "@maschina/plans";
 
 // ─── Resolve Stripe price for a plan tier + interval ─────────────────────────
 
@@ -12,7 +12,7 @@ async function getPriceId(tier: PlanTier, interval: BillingInterval): Promise<st
   const [plan] = await db
     .select({
       monthly: plans.stripePriceIdMonthly,
-      annual:  plans.stripePriceIdAnnual,
+      annual: plans.stripePriceIdAnnual,
     })
     .from(plans)
     .where(eq(plans.tier, tier))
@@ -58,7 +58,8 @@ export async function createSubscriptionCheckout(opts: {
     billing_address_collection: "auto",
   });
 
-  return { checkoutUrl: session.url!, sessionId: session.id };
+  if (!session.url) throw new Error("Stripe did not return a checkout URL");
+  return { checkoutUrl: session.url, sessionId: session.id };
 }
 
 // ─── Upgrade / downgrade (immediate proration via Stripe) ─────────────────────

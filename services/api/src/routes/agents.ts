@@ -1,23 +1,23 @@
-import { Hono } from "hono";
-import { HTTPException } from "hono/http-exception";
 import { db } from "@maschina/db";
 import { agents } from "@maschina/db";
 import { and, eq, isNull } from "@maschina/db";
-import {
-  assertValid,
-  sanitizeText,
-  projectAgent,
-  CreateAgentSchema,
-  UpdateAgentSchema,
-  RunAgentSchema,
-} from "@maschina/validation";
-import { requireAuth, requireFeature } from "../middleware/auth.js";
-import { trackApiCall, requireQuota } from "../middleware/quota.js";
-import { recordAgentExecution } from "@maschina/usage";
+import { Subjects } from "@maschina/events";
 import { dispatchAgentRun } from "@maschina/jobs";
 import { publishSafe } from "@maschina/nats";
-import { Subjects } from "@maschina/events";
+import { recordAgentExecution } from "@maschina/usage";
+import {
+  CreateAgentSchema,
+  RunAgentSchema,
+  UpdateAgentSchema,
+  assertValid,
+  projectAgent,
+  sanitizeText,
+} from "@maschina/validation";
+import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 import type { Variables } from "../context.js";
+import { requireAuth, requireFeature } from "../middleware/auth.js";
+import { requireQuota, trackApiCall } from "../middleware/quota.js";
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -46,7 +46,9 @@ app.post("/", requireQuota("agent_execution", 0), async (c) => {
   const plan = getPlan(user.tier);
   if (plan.maxAgents !== -1) {
     const [{ count }] = await db
-      .select({ count: db.$count(agents, and(eq(agents.userId, user.id), isNull(agents.deletedAt))) })
+      .select({
+        count: db.$count(agents, and(eq(agents.userId, user.id), isNull(agents.deletedAt))),
+      })
       .from(agents);
     if (Number(count) >= plan.maxAgents) {
       throw new HTTPException(403, {
@@ -58,13 +60,13 @@ app.post("/", requireQuota("agent_execution", 0), async (c) => {
   const [agent] = await db
     .insert(agents)
     .values({
-      userId:      user.id,
-      name:        sanitizeText(input.name),
+      userId: user.id,
+      name: sanitizeText(input.name),
       description: input.description ? sanitizeText(input.description) : null,
-      type:        input.type,
-      status:      "idle",
-      config:      input.config,
-      version:     1,
+      type: input.type,
+      status: "idle",
+      config: input.config,
+      version: 1,
     })
     .returning();
 
@@ -95,9 +97,9 @@ app.patch("/:id", async (c) => {
   const input = assertValid(UpdateAgentSchema, body);
 
   const updates: Partial<typeof agents.$inferInsert> = { updatedAt: new Date() };
-  if (input.name !== undefined)        updates.name = sanitizeText(input.name);
+  if (input.name !== undefined) updates.name = sanitizeText(input.name);
   if (input.description !== undefined) updates.description = sanitizeText(input.description);
-  if (input.config !== undefined)      updates.config = input.config;
+  if (input.config !== undefined) updates.config = input.config;
 
   const [updated] = await db
     .update(agents)
@@ -155,39 +157,41 @@ app.post(
       .insert(agentRuns)
       .values({
         agentId,
-        userId:       user.id,
-        status:       "queued",
+        userId: user.id,
+        status: "queued",
         inputPayload: input.input ?? {},
       })
       .returning({ id: agentRuns.id });
 
     // Dispatch job to NATS JetStream — daemon picks it up
     await dispatchAgentRun({
-      runId:        run.id,
+      runId: run.id,
       agentId,
-      userId:       user.id,
-      tier:         user.tier,
+      userId: user.id,
+      tier: user.tier,
       inputPayload: input.input ?? {},
-      timeoutSecs:  300,
+      timeoutSecs: 300,
     });
 
     // Publish event (fire-and-forget — realtime service fans this out to WebSocket clients)
     publishSafe(Subjects.AgentRunQueued, {
-      runId:   run.id,
+      runId: run.id,
       agentId,
-      userId:  user.id,
-      tier:    user.tier,
+      userId: user.id,
+      tier: user.tier,
     });
 
     // Record usage (fire-and-forget)
-    recordAgentExecution({ userId: user.id, agentId, apiKeyId: user.apiKeyId }).catch(console.error);
+    recordAgentExecution({ userId: user.id, agentId, apiKeyId: user.apiKeyId }).catch(
+      console.error,
+    );
 
     return c.json(
       {
         success: true,
-        runId:   run.id,
+        runId: run.id,
         agentId,
-        status:  "queued",
+        status: "queued",
         message: "Agent run queued. Connect to /realtime for live status updates.",
       },
       202,

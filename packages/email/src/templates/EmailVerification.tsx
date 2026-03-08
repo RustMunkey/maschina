@@ -25,8 +25,7 @@ export function EmailVerification({ verificationUrl, expiresInHours = 24 }: Prop
         <Container style={container}>
           <Heading style={h1}>Verify your email</Heading>
           <Text style={text}>
-            Click the button below to verify your email address and activate your
-            Maschina account.
+            Click the button below to verify your email address and activate your Maschina account.
           </Text>
           <Section style={buttonContainer}>
             <Button href={verificationUrl} style={button}>
@@ -34,8 +33,8 @@ export function EmailVerification({ verificationUrl, expiresInHours = 24 }: Prop
             </Button>
           </Section>
           <Text style={footer}>
-            This link expires in {expiresInHours} hours. If you did not create an
-            account, you can safely ignore this email.
+            This link expires in {expiresInHours} hours. If you did not create an account, you can
+            safely ignore this email.
           </Text>
         </Container>
       </Body>

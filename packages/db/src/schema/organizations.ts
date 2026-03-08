@@ -15,8 +15,12 @@ export const organizations = pgTable("organizations", {
 
 export const organizationMembers = pgTable("organization_members", {
   id: uuid("id").primaryKey().defaultRandom(),
-  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
-  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  orgId: uuid("org_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   role: orgRoleEnum("role").notNull().default("member"),
   invitedByUserId: uuid("invited_by_user_id").references(() => users.id, { onDelete: "set null" }),
   joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
@@ -24,8 +28,12 @@ export const organizationMembers = pgTable("organization_members", {
 
 export const organizationInvites = pgTable("organization_invites", {
   id: uuid("id").primaryKey().defaultRandom(),
-  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
-  invitedByUserId: uuid("invited_by_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  orgId: uuid("org_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  invitedByUserId: uuid("invited_by_user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   email: text("email").notNull(),
   role: orgRoleEnum("role").notNull().default("member"),
   token: text("token").notNull().unique(),

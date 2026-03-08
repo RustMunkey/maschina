@@ -1,6 +1,6 @@
-import type { ErrorHandler } from "hono";
-import { ValidationError } from "@maschina/validation";
 import { QuotaExceededError } from "@maschina/usage";
+import { ValidationError } from "@maschina/validation";
+import type { ErrorHandler } from "hono";
 
 // ─── Global error handler ─────────────────────────────────────────────────────
 // Converts typed errors from our packages into consistent HTTP responses.
@@ -16,11 +16,11 @@ export const errorHandler: ErrorHandler = (err, c) => {
   if (err instanceof QuotaExceededError) {
     return c.json(
       {
-        error:    "quota_exceeded",
-        message:  err.message,
-        type:     err.quotaType,
-        used:     err.result.used,
-        limit:    err.result.limit,
+        error: "quota_exceeded",
+        message: err.message,
+        type: err.quotaType,
+        used: err.result.used,
+        limit: err.result.limit,
         resetsAt: err.result.resetsAt,
       },
       429,
@@ -42,5 +42,8 @@ export const errorHandler: ErrorHandler = (err, c) => {
 // ─── Not found handler ────────────────────────────────────────────────────────
 
 export function notFound(c: any) {
-  return c.json({ error: "not_found", message: `Route ${c.req.method} ${c.req.path} not found` }, 404);
+  return c.json(
+    { error: "not_found", message: `Route ${c.req.method} ${c.req.path} not found` },
+    404,
+  );
 }

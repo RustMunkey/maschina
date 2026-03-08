@@ -22,7 +22,9 @@ export const agentStatusEnum = pgEnum("agent_status", [
 
 export const agents = pgTable("agents", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
 
   name: text("name").notNull(),
   type: agentTypeEnum("type").notNull(),
@@ -38,10 +40,14 @@ export const agents = pgTable("agents", {
 
 export const agentRuns = pgTable("agent_runs", {
   id: uuid("id").primaryKey().defaultRandom(),
-  agentId: uuid("agent_id").notNull().references(() => agents.id, { onDelete: "cascade" }),
-  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  agentId: uuid("agent_id")
+    .notNull()
+    .references(() => agents.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
 
-  phase: text("phase").notNull(),  // SCAN | EVALUATE | EXECUTE | ANALYZE | SCALE
+  phase: text("phase").notNull(), // SCAN | EVALUATE | EXECUTE | ANALYZE | SCALE
   status: text("status").notNull().default("running"),
   result: jsonb("result"),
   error: text("error"),

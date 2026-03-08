@@ -7,7 +7,6 @@
  * Sending is no-op until RESEND_API_KEY is configured (deferred until domain).
  */
 
-import { AckPolicy, DeliverPolicy } from "@maschina/nats";
 import {
   sendAgentCompleted,
   sendBillingReceipt,
@@ -15,7 +14,6 @@ import {
   sendPasswordReset,
   sendPaymentFailed,
 } from "@maschina/email";
-import { getJs, getJsm } from "@maschina/nats";
 import type {
   EmailAgentCompletedJob,
   EmailBillingReceiptJob,
@@ -24,13 +22,15 @@ import type {
   EmailPaymentFailedJob,
   EmailVerificationJob,
 } from "@maschina/jobs";
+import { AckPolicy, DeliverPolicy } from "@maschina/nats";
+import { getJs, getJsm } from "@maschina/nats";
 import { env } from "../env.js";
 
 const STREAM = "MASCHINA_JOBS";
 const CONSUMER_NAME = "api-email-worker";
 const FILTER_SUBJECT = "maschina.jobs.email.>";
 
-const APP_URL = process.env["APP_URL"] ?? "http://localhost:5173";
+const APP_URL = process.env.APP_URL ?? "http://localhost:5173";
 
 export async function startEmailWorker(): Promise<void> {
   const jsm = await getJsm();

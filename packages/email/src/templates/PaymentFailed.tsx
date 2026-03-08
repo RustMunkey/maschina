@@ -27,17 +27,15 @@ export function PaymentFailed({ amountCents, updatePaymentUrl }: Props) {
         <Container style={container}>
           <Heading style={h1}>Payment failed</Heading>
           <Text style={text}>
-            We were unable to collect your payment of <strong>${dollars}</strong>.
-            Please update your payment method to keep your Maschina subscription active.
+            We were unable to collect your payment of <strong>${dollars}</strong>. Please update
+            your payment method to keep your Maschina subscription active.
           </Text>
           <Section style={buttonContainer}>
             <Button href={updatePaymentUrl} style={button}>
               Update payment method
             </Button>
           </Section>
-          <Text style={footer}>
-            If you have questions, reply to this email or contact support.
-          </Text>
+          <Text style={footer}>If you have questions, reply to this email or contact support.</Text>
         </Container>
       </Body>
     </Html>

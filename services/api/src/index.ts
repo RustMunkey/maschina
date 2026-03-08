@@ -13,7 +13,7 @@ initTelemetry({ serviceName: "maschina-api", serviceVersion: "0.0.0" });
 
 async function start() {
   // Connect to NATS and ensure streams exist before accepting traffic
-  await connectNats(process.env["NATS_URL"] ?? "nats://localhost:4222");
+  await connectNats(process.env.NATS_URL ?? "nats://localhost:4222");
   await ensureStreams();
   console.log("[api] NATS connected");
 
@@ -24,7 +24,7 @@ async function start() {
 
   const server = serve({
     fetch: app.fetch,
-    port:  env.PORT,
+    port: env.PORT,
   });
 
   console.log(`[api] Maschina API running on http://localhost:${env.PORT} (${env.NODE_ENV})`);
@@ -34,10 +34,7 @@ async function start() {
   async function shutdown(signal: string) {
     console.log(`[api] ${signal} received — shutting down gracefully...`);
     server.close(async () => {
-      await Promise.allSettled([
-        disconnectNats(),
-        closeRedis(),
-      ]);
+      await Promise.allSettled([disconnectNats(), closeRedis()]);
       console.log("[api] Shutdown complete.");
       process.exit(0);
     });
@@ -49,7 +46,7 @@ async function start() {
   }
 
   process.on("SIGTERM", () => shutdown("SIGTERM"));
-  process.on("SIGINT",  () => shutdown("SIGINT"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
 
   return app;
 }

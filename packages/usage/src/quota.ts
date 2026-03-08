@@ -1,10 +1,10 @@
-import { incr, get, set, pipeline, secondsUntilEndOfMonth } from "@maschina/cache";
-import { getPlan, type PlanTier } from "@maschina/plans";
+import { get, incr, pipeline, secondsUntilEndOfMonth, set } from "@maschina/cache";
 import { db } from "@maschina/db";
 import { usageRollups } from "@maschina/db";
 import { and, eq, gte } from "@maschina/db";
-import { getCurrentPeriod } from "./period.js";
+import { type PlanTier, getPlan } from "@maschina/plans";
 import { quotaKey } from "./keys.js";
+import { getCurrentPeriod } from "./period.js";
 import type { QuotaCheckResult, UsageEventType } from "./types.js";
 
 // ─── Map usage event types to plan quota fields ───────────────────────────────
@@ -12,11 +12,16 @@ import type { QuotaCheckResult, UsageEventType } from "./types.js";
 function planLimitForType(tier: PlanTier, type: UsageEventType): number {
   const plan = getPlan(tier);
   switch (type) {
-    case "agent_execution":  return plan.monthlyAgentExecutions;
-    case "api_call":         return plan.monthlyApiCalls;
-    case "model_inference":  return plan.monthlyModelTokens;
-    case "storage_read":     return -1;  // storage ops not quota-limited by count
-    case "storage_write":    return -1;
+    case "agent_execution":
+      return plan.monthlyAgentExecutions;
+    case "api_call":
+      return plan.monthlyApiCalls;
+    case "model_inference":
+      return plan.monthlyModelTokens;
+    case "storage_read":
+      return -1; // storage ops not quota-limited by count
+    case "storage_write":
+      return -1;
   }
 }
 
@@ -32,7 +37,7 @@ async function getCurrentUsage(
   const cached = await get(key);
 
   // Cache hit — Redis is the source of truth for real-time enforcement
-  if (cached !== null) return parseInt(cached, 10);
+  if (cached !== null) return Number.parseInt(cached, 10);
 
   // Cold start (first request after deploy, Redis flush, or new user):
   // hydrate from PostgreSQL rollup checkpoint, then seed Redis
@@ -65,8 +70,8 @@ export async function checkQuota(
   type: UsageEventType,
   amount = 1,
 ): Promise<QuotaCheckResult> {
-  const period  = getCurrentPeriod();
-  const limit   = planLimitForType(tier, type);
+  const period = getCurrentPeriod();
+  const limit = planLimitForType(tier, type);
 
   // Unlimited (enterprise or non-quota'd types)
   if (limit === -1) {
@@ -110,9 +115,7 @@ export async function incrementQuota(
 ): Promise<void> {
   const { key: periodKey, resetsAt } = getCurrentPeriod();
   const key = quotaKey(userId, type, periodKey);
-  const ttl = Math.ceil(
-    (new Date(resetsAt).getTime() - Date.now()) / 1000,
-  );
+  const ttl = Math.ceil((new Date(resetsAt).getTime() - Date.now()) / 1000);
 
   // INCRBY is atomic — safe under concurrent requests
   const pipe = pipeline();
@@ -157,10 +160,10 @@ export function buildRateLimitHeaders(
   type: UsageEventType,
 ): Record<string, string> {
   return {
-    "X-RateLimit-Limit":     result.limit === -1 ? "unlimited" : String(result.limit),
+    "X-RateLimit-Limit": result.limit === -1 ? "unlimited" : String(result.limit),
     "X-RateLimit-Remaining": result.remaining === -1 ? "unlimited" : String(result.remaining),
-    "X-RateLimit-Used":      String(result.used),
-    "X-RateLimit-Reset":     String(Math.floor(new Date(result.resetsAt).getTime() / 1000)),
-    "X-Quota-Type":          type,
+    "X-RateLimit-Used": String(result.used),
+    "X-RateLimit-Reset": String(Math.floor(new Date(result.resetsAt).getTime() / 1000)),
+    "X-Quota-Type": type,
   };
 }

@@ -1,7 +1,7 @@
-import { Hono } from "hono";
-import { db } from "@maschina/db";
 import { getRedis } from "@maschina/cache";
+import { db } from "@maschina/db";
 import { sql } from "@maschina/db";
+import { Hono } from "hono";
 
 const app = new Hono();
 

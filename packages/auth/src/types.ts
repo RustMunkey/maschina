@@ -4,7 +4,7 @@ export type AuthMethod = "jwt" | "api_key";
 export type KeyEnvironment = "live" | "test";
 
 export interface JwtPayload {
-  sub: string;       // userId
+  sub: string; // userId
   email: string;
   role: UserRole;
   plan: PlanTier;
@@ -14,7 +14,7 @@ export interface JwtPayload {
 }
 
 export interface RefreshTokenPayload {
-  sub: string;       // userId
+  sub: string; // userId
   sessionId: string;
   iat?: number;
   exp?: number;
@@ -42,7 +42,7 @@ export interface ApiKeyValidation {
 export interface TokenPair {
   accessToken: string;
   refreshToken: string;
-  expiresIn: number;  // seconds
+  expiresIn: number; // seconds
 }
 
 export interface PasswordValidation {

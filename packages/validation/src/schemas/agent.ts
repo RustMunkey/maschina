@@ -2,30 +2,13 @@ import { z } from "zod";
 
 // ─── Agent schemas ────────────────────────────────────────────────────────────
 
-const AgentTypeSchema = z.enum([
-  "signal",
-  "analysis",
-  "execution",
-  "optimization",
-  "reporting",
-]);
+const AgentTypeSchema = z.enum(["signal", "analysis", "execution", "optimization", "reporting"]);
 
 export const CreateAgentSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Name is required")
-    .max(128, "Name too long")
-    .trim(),
-  description: z
-    .string()
-    .max(1024, "Description too long")
-    .trim()
-    .optional(),
+  name: z.string().min(1, "Name is required").max(128, "Name too long").trim(),
+  description: z.string().max(1024, "Description too long").trim().optional(),
   type: AgentTypeSchema.default("signal"),
-  config: z
-    .record(z.unknown())
-    .optional()
-    .default({}),
+  config: z.record(z.unknown()).optional().default({}),
 });
 
 export const UpdateAgentSchema = z.object({
@@ -39,12 +22,10 @@ export const RunAgentSchema = z.object({
   timeout: z
     .number()
     .int()
-    .min(1_000)            // 1 second minimum
-    .max(3_600_000)        // 1 hour maximum
-    .default(300_000),     // 5 minutes default
-  sandboxType: z
-    .enum(["seccomp", "seatbelt", "wasi"])
-    .optional(),
+    .min(1_000) // 1 second minimum
+    .max(3_600_000) // 1 hour maximum
+    .default(300_000), // 5 minutes default
+  sandboxType: z.enum(["seccomp", "seatbelt", "wasi"]).optional(),
   dryRun: z.boolean().default(false),
 });
 
@@ -53,7 +34,7 @@ export const RunAgentSchema = z.object({
 export const CreateConnectorSchema = z.object({
   definitionId: z.string().uuid("Invalid connector definition ID"),
   name: z.string().min(1).max(128).trim(),
-  credentials: z.record(z.string()),   // encrypted server-side before DB storage
+  credentials: z.record(z.string()), // encrypted server-side before DB storage
 });
 
 export const UpdateConnectorSchema = z.object({
@@ -78,14 +59,8 @@ export const CreateWebhookSchema = z.object({
     .string()
     .url()
     .refine((u) => u.startsWith("https://"), "Webhook URL must be HTTPS"),
-  events: z
-    .array(z.enum(WEBHOOK_EVENTS))
-    .min(1, "At least one event required"),
-  secret: z
-    .string()
-    .min(16, "Secret must be at least 16 characters")
-    .max(256)
-    .optional(),
+  events: z.array(z.enum(WEBHOOK_EVENTS)).min(1, "At least one event required"),
+  secret: z.string().min(16, "Secret must be at least 16 characters").max(256).optional(),
   description: z.string().max(256).trim().optional(),
 });
 

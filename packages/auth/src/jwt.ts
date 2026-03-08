@@ -1,5 +1,5 @@
-import { SignJWT, jwtVerify } from "jose";
 import { createHash, randomBytes } from "node:crypto";
+import { SignJWT, jwtVerify } from "jose";
 import { InvalidTokenError } from "./errors.js";
 import type { JwtPayload, RefreshTokenPayload, TokenPair } from "./types.js";
 
@@ -10,7 +10,7 @@ const ISSUER = "maschina";
 const AUDIENCE = "maschina:api";
 
 function jwtSecret(): Uint8Array {
-  const secret = process.env["JWT_SECRET"];
+  const secret = process.env.JWT_SECRET;
   if (!secret || secret.length < 32) {
     throw new Error("JWT_SECRET must be set and at least 32 characters");
   }
@@ -18,9 +18,9 @@ function jwtSecret(): Uint8Array {
 }
 
 function refreshSecret(): Uint8Array {
-  const secret = process.env["JWT_REFRESH_SECRET"] ?? process.env["JWT_SECRET"];
+  const secret = process.env.JWT_REFRESH_SECRET ?? process.env.JWT_SECRET;
   if (!secret) throw new Error("JWT_REFRESH_SECRET is not set");
-  return new TextEncoder().encode(secret + ":refresh");
+  return new TextEncoder().encode(`${secret}:refresh`);
 }
 
 // ─── Access tokens ────────────────────────────────────────────────────────────

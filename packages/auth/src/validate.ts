@@ -1,9 +1,14 @@
-import { db, apiKeys, users, subscriptions, plans } from "@maschina/db";
+import { apiKeys, db, plans, subscriptions, users } from "@maschina/db";
 import type { ApiKey } from "@maschina/db";
 import { and, eq, gt, isNull, or } from "@maschina/db";
 import { compareApiKeyHash, isValidKeyFormat } from "./api-key.js";
+import {
+  ApiKeyExpiredError,
+  ApiKeyRevokedError,
+  InvalidApiKeyError,
+  InvalidTokenError,
+} from "./errors.js";
 import { verifyAccessToken } from "./jwt.js";
-import { InvalidApiKeyError, InvalidTokenError, ApiKeyExpiredError, ApiKeyRevokedError } from "./errors.js";
 import type { AuthContext, PlanTier, UserRole } from "./types.js";
 
 // ─── Validate JWT access token ────────────────────────────────────────────────

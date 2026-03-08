@@ -1,5 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@maschina/api-client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export interface ApiKey {
   id: string;

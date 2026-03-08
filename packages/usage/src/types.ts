@@ -26,8 +26,8 @@ export interface RecordUsageInput {
 export interface QuotaCheckResult {
   allowed: boolean;
   used: number;
-  limit: number;       // -1 = unlimited
-  remaining: number;   // -1 = unlimited; 0 = at limit
+  limit: number; // -1 = unlimited
+  remaining: number; // -1 = unlimited; 0 = at limit
   percentageUsed: number;
   /** "ok" | "warning" (≥80%) | "exceeded" (≥100%) */
   status: "ok" | "warning" | "exceeded";
@@ -47,7 +47,7 @@ export interface PeriodUsage {
 
 export interface UsageSummary {
   userId: string;
-  period: string;     // "2026-03"
+  period: string; // "2026-03"
   periodStart: Date;
   periodEnd: Date;
   usage: PeriodUsage;
@@ -60,7 +60,7 @@ export interface UsageSummary {
 export interface RateLimitHeaders {
   "X-RateLimit-Limit": string;
   "X-RateLimit-Remaining": string;
-  "X-RateLimit-Reset": string;         // Unix timestamp
+  "X-RateLimit-Reset": string; // Unix timestamp
   "X-RateLimit-Used": string;
   "X-Quota-Type": string;
 }

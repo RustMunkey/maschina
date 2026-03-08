@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { hasRole, hasPlan, requireRole, planFeatures } from "../rbac.js";
+import { describe, expect, it } from "vitest";
 import { InsufficientRoleError } from "../errors.js";
+import { hasPlan, hasRole, planFeatures, requireRole } from "../rbac.js";
 import type { AuthContext } from "../types.js";
 
 const ctx = (role: AuthContext["role"], plan: AuthContext["plan"]): AuthContext => ({

@@ -12,14 +12,16 @@ export const usageEventTypeEnum = pgEnum("usage_event_type", [
 
 export const usageEvents = pgTable("usage_events", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   apiKeyId: uuid("api_key_id").references(() => apiKeys.id, { onDelete: "set null" }),
 
   type: usageEventTypeEnum("type").notNull(),
   units: integer("units").notNull().default(1),
-  model: text("model"),         // which model was used (if applicable)
-  agentId: text("agent_id"),    // which agent (if applicable)
-  metadata: text("metadata"),   // JSON string for extra context
+  model: text("model"), // which model was used (if applicable)
+  agentId: text("agent_id"), // which agent (if applicable)
+  metadata: text("metadata"), // JSON string for extra context
 
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -27,7 +29,9 @@ export const usageEvents = pgTable("usage_events", {
 // Monthly rollup for fast quota checks
 export const usageRollups = pgTable("usage_rollups", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   type: usageEventTypeEnum("type").notNull(),
   periodStart: timestamp("period_start", { withTimezone: true }).notNull(),
   periodEnd: timestamp("period_end", { withTimezone: true }).notNull(),

@@ -1,5 +1,5 @@
 import { db } from "@maschina/db";
-import { creditTransactions, creditBalances } from "@maschina/db";
+import { creditBalances, creditTransactions } from "@maschina/db";
 import { eq, sql } from "@maschina/db";
 import { getStripe } from "./client.js";
 import { CREDIT_PACKAGES, type CheckoutResult } from "./types.js";
@@ -17,7 +17,8 @@ export async function createCreditCheckout(opts: {
 }): Promise<CheckoutResult> {
   const pkg = CREDIT_PACKAGES.find((p) => p.id === opts.packageId);
   if (!pkg) throw new Error(`Unknown credit package: ${opts.packageId}`);
-  if (!pkg.stripePriceId) throw new Error(`Stripe price not configured for package: ${opts.packageId}`);
+  if (!pkg.stripePriceId)
+    throw new Error(`Stripe price not configured for package: ${opts.packageId}`);
 
   const session = await getStripe().checkout.sessions.create({
     customer: opts.stripeCustomerId,
@@ -34,7 +35,8 @@ export async function createCreditCheckout(opts: {
     },
   });
 
-  return { checkoutUrl: session.url!, sessionId: session.id };
+  if (!session.url) throw new Error("Stripe did not return a checkout URL");
+  return { checkoutUrl: session.url, sessionId: session.id };
 }
 
 // ─── Credit ledger operations ─────────────────────────────────────────────────
@@ -74,16 +76,16 @@ export async function addCredits(opts: {
       .from(creditBalances)
       .where(eq(creditBalances.userId, opts.userId));
 
-    const balance = updated!.balance;
+    const balance = updated?.balance;
 
     // Append to ledger (append-only, never update)
     await tx.insert(creditTransactions).values({
-      userId:                opts.userId,
-      type:                  "purchase",
-      amount:                opts.tokens,
-      balanceAfter:          balance,
+      userId: opts.userId,
+      type: "purchase",
+      amount: opts.tokens,
+      balanceAfter: balance,
       stripePaymentIntentId: opts.stripePaymentIntentId,
-      description:           opts.description,
+      description: opts.description,
     });
 
     return balance;
@@ -117,11 +119,11 @@ export async function consumeCredits(opts: {
       .where(eq(creditBalances.userId, opts.userId));
 
     await tx.insert(creditTransactions).values({
-      userId:       opts.userId,
-      type:         "usage",
-      amount:       -consumed,
-      balanceAfter: updated!.balance,
-      description:  opts.description,
+      userId: opts.userId,
+      type: "usage",
+      amount: -consumed,
+      balanceAfter: updated?.balance,
+      description: opts.description,
     });
   });
 

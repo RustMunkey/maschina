@@ -1,8 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
+  compareApiKeyHash,
   generateApiKey,
   hashApiKey,
-  compareApiKeyHash,
   isValidKeyFormat,
   parseKeyEnvironment,
 } from "../api-key.js";

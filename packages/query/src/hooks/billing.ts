@@ -1,5 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@maschina/api-client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export interface Subscription {
   id: string;
@@ -42,8 +42,7 @@ export function useCredits() {
 
 export function useCreateCheckout() {
   return useMutation({
-    mutationFn: (input: CheckoutInput) =>
-      api.post<CheckoutResponse>("/billing/checkout", input),
+    mutationFn: (input: CheckoutInput) => api.post<CheckoutResponse>("/billing/checkout", input),
     onSuccess: (data) => {
       window.location.href = data.url;
     },

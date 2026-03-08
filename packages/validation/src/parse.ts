@@ -1,4 +1,4 @@
-import type { ZodType, ZodTypeDef, ZodError } from "zod";
+import type { ZodError, ZodType, ZodTypeDef } from "zod";
 
 // ─── Safe parse helpers ───────────────────────────────────────────────────────
 // All HTTP boundary parsing should go through here.

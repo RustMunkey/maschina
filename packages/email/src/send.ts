@@ -15,7 +15,7 @@ import { EmailVerification } from "./templates/EmailVerification.js";
 import { PasswordReset } from "./templates/PasswordReset.js";
 import { PaymentFailed } from "./templates/PaymentFailed.js";
 
-const ENABLED = !!process.env["RESEND_API_KEY"];
+const ENABLED = !!process.env.RESEND_API_KEY;
 
 async function send(opts: {
   to: string;

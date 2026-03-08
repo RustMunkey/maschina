@@ -40,12 +40,12 @@ export function requireSelfOrAdmin(ctx: AuthContext, resourceUserId: string): vo
 
 // Plan-based feature gates
 export const planFeatures = {
-  canUseApiKeys:           (plan: PlanTier) => hasPlan(plan, "m1"),
+  canUseApiKeys: (plan: PlanTier) => hasPlan(plan, "m1"),
   canDeployMultipleAgents: (plan: PlanTier) => hasPlan(plan, "m1"),
-  canInviteTeamMembers:    (plan: PlanTier) => hasPlan(plan, "teams"),
-  canAccessAnalytics:      (plan: PlanTier) => hasPlan(plan, "m1"),
-  canAccessCompliance:     (plan: PlanTier) => hasPlan(plan, "enterprise"),
-  canUseCustomConnectors:  (plan: PlanTier) => hasPlan(plan, "m5"),
-  hasUnlimitedAgents:      (plan: PlanTier) => hasPlan(plan, "enterprise"),
-  hasPrioritySupport:      (plan: PlanTier) => hasPlan(plan, "m5"),
+  canInviteTeamMembers: (plan: PlanTier) => hasPlan(plan, "teams"),
+  canAccessAnalytics: (plan: PlanTier) => hasPlan(plan, "m1"),
+  canAccessCompliance: (plan: PlanTier) => hasPlan(plan, "enterprise"),
+  canUseCustomConnectors: (plan: PlanTier) => hasPlan(plan, "m5"),
+  hasUnlimitedAgents: (plan: PlanTier) => hasPlan(plan, "enterprise"),
+  hasPrioritySupport: (plan: PlanTier) => hasPlan(plan, "m5"),
 } as const;

@@ -1,11 +1,6 @@
 // Public types for the Maschina TypeScript SDK
 
-export type AgentType =
-  | "signal"
-  | "analysis"
-  | "execution"
-  | "optimization"
-  | "reporting";
+export type AgentType = "signal" | "analysis" | "execution" | "optimization" | "reporting";
 
 export type AgentStatus =
   | "idle"
@@ -17,13 +12,7 @@ export type AgentStatus =
   | "error"
   | "archived";
 
-export type RunStatus =
-  | "queued"
-  | "executing"
-  | "completed"
-  | "failed"
-  | "timeout"
-  | "canceled";
+export type RunStatus = "queued" | "executing" | "completed" | "failed" | "timeout" | "canceled";
 
 export interface Agent {
   id: string;

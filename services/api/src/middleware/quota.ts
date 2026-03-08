@@ -1,8 +1,8 @@
-import { createMiddleware } from "hono/factory";
-import { enforceQuota, buildRateLimitHeaders, recordApiCall } from "@maschina/usage";
 import { can } from "@maschina/plans";
-import type { Variables } from "../context.js";
+import { buildRateLimitHeaders, enforceQuota, recordApiCall } from "@maschina/usage";
 import type { UsageEventType } from "@maschina/usage";
+import { createMiddleware } from "hono/factory";
+import type { Variables } from "../context.js";
 
 // ─── Quota middleware ─────────────────────────────────────────────────────────
 // Checks the user's quota for a given action type.

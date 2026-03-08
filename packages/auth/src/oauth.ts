@@ -1,6 +1,6 @@
+import { randomUUID } from "node:crypto";
 import { db, oauthAccounts, users } from "@maschina/db";
 import { and, eq } from "@maschina/db";
-import { randomUUID } from "node:crypto";
 
 export interface OAuthProfile {
   provider: string;

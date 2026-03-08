@@ -5,7 +5,9 @@ export const fileVisibilityEnum = pgEnum("file_visibility", ["private", "org", "
 
 export const files = pgTable("files", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   orgId: uuid("org_id"),
 
   filename: text("filename").notNull(),
@@ -18,7 +20,7 @@ export const files = pgTable("files", {
   url: text("url"),
 
   visibility: fileVisibilityEnum("visibility").notNull().default("private"),
-  purpose: text("purpose"),  // "agent_artifact" | "model_checkpoint" | "report" | "avatar"
+  purpose: text("purpose"), // "agent_artifact" | "model_checkpoint" | "report" | "avatar"
 
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),

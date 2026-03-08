@@ -1,9 +1,9 @@
+import { get } from "@maschina/cache";
 import { db } from "@maschina/db";
 import { usageEvents, usageRollups } from "@maschina/db";
-import { get } from "@maschina/cache";
 import { and, eq, gte, lt, sql } from "@maschina/db";
-import { getCurrentPeriod, getPeriodForDate } from "./period.js";
 import { quotaKey } from "./keys.js";
+import { getCurrentPeriod, getPeriodForDate } from "./period.js";
 import type { UsageEventType } from "./types.js";
 
 // ─── Nightly reconciliation ───────────────────────────────────────────────────
@@ -40,7 +40,7 @@ export async function reconcileUserUsage(
     let totalUnits: number;
 
     if (cached !== null) {
-      totalUnits = parseInt(cached, 10);
+      totalUnits = Number.parseInt(cached, 10);
     } else {
       // Redis cold — sum from raw events (slower but accurate)
       const [agg] = await db
@@ -64,9 +64,9 @@ export async function reconcileUserUsage(
         userId,
         type,
         periodStart: period.start,
-        periodEnd:   period.end,
+        periodEnd: period.end,
         totalUnits,
-        updatedAt:   new Date(),
+        updatedAt: new Date(),
       })
       .onConflictDoUpdate({
         target: [usageRollups.userId, usageRollups.type, usageRollups.periodStart],
@@ -89,12 +89,7 @@ export async function reconcileAllUsers(
   const activeUsers = await db
     .selectDistinct({ userId: usageEvents.userId })
     .from(usageEvents)
-    .where(
-      and(
-        gte(usageEvents.createdAt, period.start),
-        lt(usageEvents.createdAt, period.end),
-      ),
-    );
+    .where(and(gte(usageEvents.createdAt, period.start), lt(usageEvents.createdAt, period.end)));
 
   for (const { userId } of activeUsers) {
     await reconcileUserUsage(userId, period);

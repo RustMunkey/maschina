@@ -23,13 +23,13 @@ export type Jurisdiction = (typeof SUPPORTED_JURISDICTIONS)[number];
 // Free tier: opted IN by default (user can opt out) — mirrors Cursor/ChatGPT free tier
 // Paid tiers: opted OUT by default (user can opt in) — respects paying customers' expectation of privacy
 export const DEFAULT_TRAINING_CONSENT: Record<string, boolean> = {
-  access:     true,   // free tier: opted in by default (can opt out)
-  m1:         false,
-  m5:         false,
-  m10:        false,
-  teams:      false,
+  access: true, // free tier: opted in by default (can opt out)
+  m1: false,
+  m5: false,
+  m10: false,
+  teams: false,
   enterprise: false,
-  internal:   false,  // team never contributes training data
+  internal: false, // team never contributes training data
 };
 
 // ─── What data is eligible for training ───────────────────────────────────────
@@ -48,29 +48,29 @@ export interface TrainingDataConfig {
 // What gets collected per tier when consent is given
 export const TRAINING_DATA_SCOPE: Record<string, TrainingDataConfig> = {
   free: {
-    includeAgentRuns:    true,
-    includeModelChats:   false,  // free tier doesn't use Maschina model
-    includeCorrections:  true,
-    includeApiPatterns:  false,  // free tier has no API keys
+    includeAgentRuns: true,
+    includeModelChats: false, // free tier doesn't use Maschina model
+    includeCorrections: true,
+    includeApiPatterns: false, // free tier has no API keys
   },
   operator: {
-    includeAgentRuns:    true,
-    includeModelChats:   true,
-    includeCorrections:  true,
-    includeApiPatterns:  true,
+    includeAgentRuns: true,
+    includeModelChats: true,
+    includeCorrections: true,
+    includeApiPatterns: true,
   },
   pro: {
-    includeAgentRuns:    true,
-    includeModelChats:   true,
-    includeCorrections:  true,
-    includeApiPatterns:  true,
+    includeAgentRuns: true,
+    includeModelChats: true,
+    includeCorrections: true,
+    includeApiPatterns: true,
   },
   enterprise: {
     // Enterprise gets individually negotiated data agreements — all off by default
-    includeAgentRuns:    false,
-    includeModelChats:   false,
-    includeCorrections:  false,
-    includeApiPatterns:  false,
+    includeAgentRuns: false,
+    includeModelChats: false,
+    includeCorrections: false,
+    includeApiPatterns: false,
   },
 };
 

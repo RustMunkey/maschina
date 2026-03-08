@@ -8,6 +8,30 @@
   "files": {
     "ignore": ["**/routeTree.gen.ts", "**/routeTree.gen.js"]
   },
+  "overrides": [
+    {
+      "include": ["packages/ui/src/components/ui/**"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "useFocusableInteractive": "off",
+            "useSemanticElements": "off"
+          },
+          "security": { "noDangerouslySetInnerHtml": "off" },
+          "suspicious": { "noArrayIndexKey": "off" },
+          "correctness": { "useExhaustiveDependencies": "off" }
+        }
+      }
+    },
+    {
+      "include": ["packages/*/src/**/*.ts", "packages/*/src/**/*.tsx", "services/*/src/**/*.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": { "noExplicitAny": "off" }
+        }
+      }
+    }
+  ],
   "organizeImports": {
     "enabled": true
   },

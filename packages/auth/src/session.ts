@@ -1,7 +1,7 @@
+import { randomUUID } from "node:crypto";
 import { db } from "@maschina/db";
 import { sessions } from "@maschina/db";
 import { and, eq, gt, lt } from "@maschina/db";
-import { randomUUID } from "node:crypto";
 import { SessionExpiredError } from "./errors.js";
 import { createTokenPair, hashToken, verifyRefreshToken } from "./jwt.js";
 import type { JwtPayload, PlanTier, TokenPair, UserRole } from "./types.js";
@@ -102,8 +102,12 @@ export async function rotateSession(
     plan: (sub?.tier ?? "access") as PlanTier,
   };
 
-  const { accessToken, refreshToken: newRefreshToken, refreshTokenHash, expiresIn } =
-    await createTokenPair(newPayload, newSessionId);
+  const {
+    accessToken,
+    refreshToken: newRefreshToken,
+    refreshTokenHash,
+    expiresIn,
+  } = await createTokenPair(newPayload, newSessionId);
 
   await db.insert(sessions).values({
     id: newSessionId,

@@ -1,7 +1,7 @@
-import { checkQuota, buildRateLimitHeaders } from "./quota.js";
-import { recordApiCall } from "./record.js";
 import type { PlanTier } from "@maschina/plans";
-import type { UsageEventType, QuotaCheckResult } from "./types.js";
+import { buildRateLimitHeaders, checkQuota } from "./quota.js";
+import { recordApiCall } from "./record.js";
+import type { QuotaCheckResult, UsageEventType } from "./types.js";
 
 // ─── Quota enforcement middleware ─────────────────────────────────────────────
 // Framework-agnostic context shape — adapt to Hono/Fastify in services/api.
@@ -21,7 +21,7 @@ export class QuotaExceededError extends Error {
   constructor(type: UsageEventType, result: QuotaCheckResult) {
     super(
       `Quota exceeded for ${type}. Used ${result.used}/${result.limit}. ` +
-      `Resets at ${result.resetsAt}.`,
+        `Resets at ${result.resetsAt}.`,
     );
     this.name = "QuotaExceededError";
     this.quotaType = type;

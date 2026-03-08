@@ -22,18 +22,18 @@ export interface PricingRates {
 
 // Standard rates — apply to all tiers equally when drawing from balance
 export const PRICING_RATES: PricingRates = {
-  modelTokensPer1k:  0.2,   // $0.002 / 1k tokens = $2.00 / 1M tokens
-  agentExecution:    1,     // $0.01 per agent run
-  apiCall:           0.01,  // $0.0001 per API call (basically free, counted for abuse)
-  storageGbPerMonth: 10,    // $0.10/GB/month (similar to S3 standard)
+  modelTokensPer1k: 0.2, // $0.002 / 1k tokens = $2.00 / 1M tokens
+  agentExecution: 1, // $0.01 per agent run
+  apiCall: 0.01, // $0.0001 per API call (basically free, counted for abuse)
+  storageGbPerMonth: 10, // $0.10/GB/month (similar to S3 standard)
 };
 
 // Minimum prepaid balance top-up — matches Anthropic's $5 minimum
 export const MIN_TOPUP_CENTS = 500; // $5.00
 
 // Auto-recharge threshold and amount defaults
-export const DEFAULT_RECHARGE_THRESHOLD_CENTS = 500;  // recharge when balance < $5
-export const DEFAULT_RECHARGE_AMOUNT_CENTS     = 2000; // charge $20 on recharge
+export const DEFAULT_RECHARGE_THRESHOLD_CENTS = 500; // recharge when balance < $5
+export const DEFAULT_RECHARGE_AMOUNT_CENTS = 2000; // charge $20 on recharge
 
 /**
  * Calculate the cost in cents for a given usage amount.
@@ -59,15 +59,40 @@ export function calculateCost(
 
 export interface TopUpOption {
   id: string;
-  displayAmount: string;    // "$10"
+  displayAmount: string; // "$10"
   cents: number;
-  stripePriceId: string;    // one-time price pre-created in Stripe dashboard
+  stripePriceId: string; // one-time price pre-created in Stripe dashboard
 }
 
 export const TOPUP_OPTIONS: TopUpOption[] = [
-  { id: "topup_5",   displayAmount: "$5",   cents: 500,   stripePriceId: process.env["STRIPE_TOPUP_500"]   ?? "" },
-  { id: "topup_10",  displayAmount: "$10",  cents: 1000,  stripePriceId: process.env["STRIPE_TOPUP_1000"]  ?? "" },
-  { id: "topup_20",  displayAmount: "$20",  cents: 2000,  stripePriceId: process.env["STRIPE_TOPUP_2000"]  ?? "" },
-  { id: "topup_50",  displayAmount: "$50",  cents: 5000,  stripePriceId: process.env["STRIPE_TOPUP_5000"]  ?? "" },
-  { id: "topup_100", displayAmount: "$100", cents: 10000, stripePriceId: process.env["STRIPE_TOPUP_10000"] ?? "" },
+  {
+    id: "topup_5",
+    displayAmount: "$5",
+    cents: 500,
+    stripePriceId: process.env.STRIPE_TOPUP_500 ?? "",
+  },
+  {
+    id: "topup_10",
+    displayAmount: "$10",
+    cents: 1000,
+    stripePriceId: process.env.STRIPE_TOPUP_1000 ?? "",
+  },
+  {
+    id: "topup_20",
+    displayAmount: "$20",
+    cents: 2000,
+    stripePriceId: process.env.STRIPE_TOPUP_2000 ?? "",
+  },
+  {
+    id: "topup_50",
+    displayAmount: "$50",
+    cents: 5000,
+    stripePriceId: process.env.STRIPE_TOPUP_5000 ?? "",
+  },
+  {
+    id: "topup_100",
+    displayAmount: "$100",
+    cents: 10000,
+    stripePriceId: process.env.STRIPE_TOPUP_10000 ?? "",
+  },
 ];

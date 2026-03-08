@@ -11,10 +11,10 @@ export type JobQueue = "agent" | "email" | "billing" | "analytics" | "maintenanc
 
 export interface AgentExecuteJob {
   type: "agent.execute";
-  runId:       string;
-  agentId:     string;
-  userId:      string;
-  tier:        string;
+  runId: string;
+  agentId: string;
+  userId: string;
+  tier: string;
   inputPayload: unknown;
   timeoutSecs: number;
 }
@@ -24,39 +24,39 @@ export interface AgentExecuteJob {
 export interface EmailVerificationJob {
   type: "email.verification";
   userId: string;
-  email:  string;
-  token:  string;
+  email: string;
+  token: string;
 }
 
 export interface EmailPasswordResetJob {
   type: "email.password_reset";
   userId: string;
-  email:  string;
-  token:  string;
+  email: string;
+  token: string;
 }
 
 export interface EmailBillingReceiptJob {
   type: "email.billing_receipt";
-  userId:      string;
-  email:       string;
-  invoiceId:   string;
+  userId: string;
+  email: string;
+  invoiceId: string;
   amountCents: number;
-  periodEnd:   string;
+  periodEnd: string;
 }
 
 export interface EmailAgentCompletedJob {
   type: "email.agent_completed";
-  userId:   string;
-  email:    string;
-  runId:    string;
-  agentId:  string;
+  userId: string;
+  email: string;
+  runId: string;
+  agentId: string;
   agentName: string;
 }
 
 export interface EmailPaymentFailedJob {
   type: "email.payment_failed";
-  userId:   string;
-  email:    string;
+  userId: string;
+  email: string;
   invoiceId: string;
   amountCents: number;
 }
@@ -103,22 +103,13 @@ export type EmailJob =
   | EmailAgentCompletedJob
   | EmailPaymentFailedJob;
 
-export type BillingJob =
-  | BillingReconcileJob
-  | BillingUsageReportJob;
+export type BillingJob = BillingReconcileJob | BillingUsageReportJob;
 
 export type AnalyticsJob = AnalyticsFlushJob;
 
-export type MaintenanceJob =
-  | MaintenancePruneSessionsJob
-  | MaintenancePruneTokensJob;
+export type MaintenanceJob = MaintenancePruneSessionsJob | MaintenancePruneTokensJob;
 
-export type Job =
-  | AgentJob
-  | EmailJob
-  | BillingJob
-  | AnalyticsJob
-  | MaintenanceJob;
+export type Job = AgentJob | EmailJob | BillingJob | AnalyticsJob | MaintenanceJob;
 
 // ─── Subject helpers ──────────────────────────────────────────────────────────
 

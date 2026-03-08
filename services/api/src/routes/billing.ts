@@ -1,26 +1,26 @@
+import {
+  MIN_TOPUP_CENTS,
+  TOPUP_OPTIONS,
+  cancelSubscription,
+  changeSubscriptionTier,
+  createCreditCheckout,
+  createPortalSession,
+  createSubscriptionCheckout,
+  getCreditBalance,
+  getOrCreateStripeCustomer,
+} from "@maschina/billing";
+import { db } from "@maschina/db";
+import { creditTransactions, plans, subscriptions } from "@maschina/db";
+import { desc, eq } from "@maschina/db";
+import { isCustomPricing, isValidTier } from "@maschina/plans";
+import { assertValid } from "@maschina/validation";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { db } from "@maschina/db";
-import { subscriptions, plans, creditTransactions } from "@maschina/db";
-import { eq, desc } from "@maschina/db";
-import {
-  createSubscriptionCheckout,
-  changeSubscriptionTier,
-  cancelSubscription,
-  createPortalSession,
-  getCreditBalance,
-  createCreditCheckout,
-  getOrCreateStripeCustomer,
-  TOPUP_OPTIONS,
-  MIN_TOPUP_CENTS,
-} from "@maschina/billing";
-import { isValidTier, isCustomPricing } from "@maschina/plans";
-import { assertValid } from "@maschina/validation";
 import { z } from "zod";
+import type { Variables } from "../context.js";
+import { env } from "../env.js";
 import { requireAuth } from "../middleware/auth.js";
 import { trackApiCall } from "../middleware/quota.js";
-import { env } from "../env.js";
-import type { Variables } from "../context.js";
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -32,13 +32,13 @@ app.get("/subscription", async (c) => {
 
   const [sub] = await db
     .select({
-      status:             subscriptions.status,
-      interval:           subscriptions.interval,
+      status: subscriptions.status,
+      interval: subscriptions.interval,
       currentPeriodStart: subscriptions.currentPeriodStart,
-      currentPeriodEnd:   subscriptions.currentPeriodEnd,
-      cancelAtPeriodEnd:  subscriptions.cancelAtPeriodEnd,
-      planName:           plans.name,
-      tier:               plans.tier,
+      currentPeriodEnd: subscriptions.currentPeriodEnd,
+      cancelAtPeriodEnd: subscriptions.cancelAtPeriodEnd,
+      planName: plans.name,
+      tier: plans.tier,
     })
     .from(subscriptions)
     .innerJoin(plans, eq(subscriptions.planId, plans.id))
@@ -48,13 +48,13 @@ app.get("/subscription", async (c) => {
   if (!sub) return c.json({ tier: "access", status: "active", message: "No paid subscription" });
 
   return c.json({
-    tier:               sub.tier,
-    planName:           sub.planName,
-    status:             sub.status,
-    interval:           sub.interval,
+    tier: sub.tier,
+    planName: sub.planName,
+    status: sub.status,
+    interval: sub.interval,
     currentPeriodStart: sub.currentPeriodStart,
-    currentPeriodEnd:   sub.currentPeriodEnd,
-    cancelAtPeriodEnd:  sub.cancelAtPeriodEnd,
+    currentPeriodEnd: sub.currentPeriodEnd,
+    cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
   });
 });
 
@@ -63,10 +63,10 @@ app.post("/checkout", async (c) => {
   const user = c.get("user");
   const body = assertValid(
     z.object({
-      tier:       z.string(),
-      interval:   z.enum(["monthly", "annual"]).default("monthly"),
+      tier: z.string(),
+      interval: z.enum(["monthly", "annual"]).default("monthly"),
       successUrl: z.string().url(),
-      cancelUrl:  z.string().url(),
+      cancelUrl: z.string().url(),
     }),
     await c.req.json().catch(() => null),
   );
@@ -79,12 +79,12 @@ app.post("/checkout", async (c) => {
   }
 
   const result = await createSubscriptionCheckout({
-    userId:     user.id,
-    email:      user.email,
-    tier:       body.tier,
-    interval:   body.interval as "monthly" | "annual",
+    userId: user.id,
+    email: user.email,
+    tier: body.tier,
+    interval: body.interval as "monthly" | "annual",
     successUrl: body.successUrl,
-    cancelUrl:  body.cancelUrl,
+    cancelUrl: body.cancelUrl,
   });
 
   return c.json(result);
@@ -95,7 +95,7 @@ app.post("/change", async (c) => {
   const user = c.get("user");
   const body = assertValid(
     z.object({
-      tier:     z.string(),
+      tier: z.string(),
       interval: z.enum(["monthly", "annual"]).default("monthly"),
     }),
     await c.req.json().catch(() => null),
@@ -106,8 +106,8 @@ app.post("/change", async (c) => {
   }
 
   const result = await changeSubscriptionTier({
-    userId:   user.id,
-    newTier:  body.tier,
+    userId: user.id,
+    newTier: body.tier,
     interval: body.interval as "monthly" | "annual",
   });
 
@@ -118,7 +118,10 @@ app.post("/change", async (c) => {
 app.post("/cancel", async (c) => {
   const { id } = c.get("user");
   await cancelSubscription(id);
-  return c.json({ success: true, message: "Subscription will cancel at the end of the current period" });
+  return c.json({
+    success: true,
+    message: "Subscription will cancel at the end of the current period",
+  });
 });
 
 // POST /billing/portal — Stripe Customer Portal for self-serve management
@@ -159,9 +162,9 @@ app.post("/topup", async (c) => {
   const user = c.get("user");
   const body = assertValid(
     z.object({
-      optionId:   z.string(),
+      optionId: z.string(),
       successUrl: z.string().url(),
-      cancelUrl:  z.string().url(),
+      cancelUrl: z.string().url(),
     }),
     await c.req.json().catch(() => null),
   );
@@ -169,11 +172,11 @@ app.post("/topup", async (c) => {
   const stripeCustomerId = await getOrCreateStripeCustomer(user.id, user.email);
 
   const result = await createCreditCheckout({
-    userId:          user.id,
+    userId: user.id,
     stripeCustomerId,
-    packageId:       body.optionId,
-    successUrl:      body.successUrl,
-    cancelUrl:       body.cancelUrl,
+    packageId: body.optionId,
+    successUrl: body.successUrl,
+    cancelUrl: body.cancelUrl,
   });
 
   return c.json(result);
@@ -185,12 +188,12 @@ app.get("/history", async (c) => {
 
   const rows = await db
     .select({
-      id:          creditTransactions.id,
-      type:        creditTransactions.type,
-      amount:      creditTransactions.amount,
+      id: creditTransactions.id,
+      type: creditTransactions.type,
+      amount: creditTransactions.amount,
       balanceAfter: creditTransactions.balanceAfter,
       description: creditTransactions.description,
-      createdAt:   creditTransactions.createdAt,
+      createdAt: creditTransactions.createdAt,
     })
     .from(creditTransactions)
     .where(eq(creditTransactions.userId, id))
@@ -201,7 +204,7 @@ app.get("/history", async (c) => {
   return c.json(
     rows.map((r: TxRow) => ({
       ...r,
-      amountFormatted:      `${(r.amount ?? 0) >= 0 ? "+" : ""}$${((r.amount ?? 0) / 100).toFixed(2)}`,
+      amountFormatted: `${(r.amount ?? 0) >= 0 ? "+" : ""}$${((r.amount ?? 0) / 100).toFixed(2)}`,
       balanceAfterFormatted: `$${((r.balanceAfter ?? 0) / 100).toFixed(2)}`,
     })),
   );

@@ -12,50 +12,50 @@ export type NotificationType =
   | "system_announcement";
 
 export interface NotificationPayload {
-  type:     NotificationType;
-  userId:   string;
+  type: NotificationType;
+  userId: string;
   channels: NotificationChannel[];
-  data:     Record<string, unknown>;
+  data: Record<string, unknown>;
 }
 
 // Per-type payload shapes — used by email templates and in-app rendering
 
 export interface AgentRunCompletedPayload {
-  runId:     string;
-  agentId:   string;
+  runId: string;
+  agentId: string;
   agentName: string;
   durationMs: number;
 }
 
 export interface AgentRunFailedPayload {
-  runId:      string;
-  agentId:    string;
-  agentName:  string;
-  errorCode:  string;
+  runId: string;
+  agentId: string;
+  agentName: string;
+  errorCode: string;
 }
 
 export interface QuotaWarningPayload {
-  quotaType:      string;
+  quotaType: string;
   percentageUsed: number;
-  resetsAt:       string;
+  resetsAt: string;
 }
 
 export interface QuotaExceededPayload {
   quotaType: string;
-  resetsAt:  string;
+  resetsAt: string;
   upgradeUrl: string;
 }
 
 export interface PaymentFailedPayload {
-  invoiceId:   string;
+  invoiceId: string;
   amountCents: number;
-  retryDate:   string;
-  portalUrl:   string;
+  retryDate: string;
+  portalUrl: string;
 }
 
 export interface TeamInvitePayload {
   inviterName: string;
-  orgName:     string;
-  inviteUrl:   string;
-  expiresAt:   string;
+  orgName: string;
+  inviteUrl: string;
+  expiresAt: string;
 }

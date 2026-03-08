@@ -4,7 +4,7 @@ import type { PasswordValidation } from "./types.js";
 // OWASP-recommended argon2id config
 const ARGON2_OPTIONS: argon2.Options = {
   type: argon2.argon2id,
-  memoryCost: 65536,  // 64 MiB
+  memoryCost: 65536, // 64 MiB
   timeCost: 3,
   parallelism: 4,
 };

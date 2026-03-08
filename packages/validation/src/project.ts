@@ -6,7 +6,7 @@
 
 export interface PublicUser {
   id: string;
-  email: string;           // decrypted; never the raw encrypted bytes or emailIndex
+  email: string; // decrypted; never the raw encrypted bytes or emailIndex
   name: string | null;
   avatarUrl: string | null;
   role: string;
@@ -42,7 +42,7 @@ export function projectUser(row: {
 export interface PublicApiKey {
   id: string;
   name: string;
-  keyPrefix: string;     // e.g. "msk_live_abc123" — first 12 chars only
+  keyPrefix: string; // e.g. "msk_live_abc123" — first 12 chars only
   monthlyLimit: number | null;
   usageCount: number;
   lastUsedAt: Date | null;
@@ -55,7 +55,7 @@ export function projectApiKey(row: {
   id: string;
   name: string;
   keyPrefix: string;
-  keyHash: string;       // NEVER exposed
+  keyHash: string; // NEVER exposed
   monthlyLimit: number | null;
   usageCount: number;
   lastUsedAt: Date | null;
@@ -81,7 +81,7 @@ export function projectApiKey(row: {
 export interface PublicSession {
   id: string;
   userAgent: string | null;
-  ipAddress: string | null;  // may be null if encrypted and caller lacks decrypt permission
+  ipAddress: string | null; // may be null if encrypted and caller lacks decrypt permission
   expiresAt: Date;
   createdAt: Date;
   isCurrent: boolean;
@@ -90,7 +90,7 @@ export interface PublicSession {
 export function projectSession(
   row: {
     id: string;
-    tokenHash: string;   // NEVER exposed
+    tokenHash: string; // NEVER exposed
     userAgent: string | null;
     ipAddress: string | null;
     expiresAt: Date;
@@ -128,7 +128,7 @@ export function projectAgent(row: {
   type: string;
   status: string;
   version: number;
-  config: unknown;        // encrypted in DB — only expose if caller has permission
+  config: unknown; // encrypted in DB — only expose if caller has permission
   configIv: string | null; // NEVER exposed
   resultStorageKey: string | null; // internal S3 key, NEVER exposed
   createdAt: Date;
@@ -163,7 +163,7 @@ export function projectSubscription(row: {
   currentPeriodEnd: Date;
   cancelAtPeriodEnd: boolean;
   stripeSubscriptionId: string | null; // NEVER exposed
-  stripeCustomerId: string | null;     // NEVER exposed
+  stripeCustomerId: string | null; // NEVER exposed
   plan: { name: string; tier: string };
 }): PublicSubscription {
   return {

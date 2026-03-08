@@ -17,11 +17,7 @@ export async function get(key: string): Promise<string | null> {
   return r().get(key);
 }
 
-export async function set(
-  key: string,
-  value: string,
-  ttlSeconds?: number,
-): Promise<void> {
+export async function set(key: string, value: string, ttlSeconds?: number): Promise<void> {
   if (ttlSeconds) {
     await r().set(key, value, "EX", ttlSeconds);
   } else {
@@ -71,11 +67,7 @@ export async function getJson<T>(key: string): Promise<T | null> {
   }
 }
 
-export async function setJson<T>(
-  key: string,
-  value: T,
-  ttlSeconds?: number,
-): Promise<void> {
+export async function setJson<T>(key: string, value: T, ttlSeconds?: number): Promise<void> {
   await set(key, JSON.stringify(value), ttlSeconds);
 }
 
@@ -103,9 +95,7 @@ export async function publish(channel: string, message: string): Promise<void> {
 /** Seconds until the end of the current UTC month — used for quota key TTLs. */
 export function secondsUntilEndOfMonth(): number {
   const now = new Date();
-  const endOfMonth = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0),
-  );
+  const endOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0));
   return Math.ceil((endOfMonth.getTime() - now.getTime()) / 1000);
 }
 

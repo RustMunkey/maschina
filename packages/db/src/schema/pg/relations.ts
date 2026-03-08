@@ -1,40 +1,46 @@
 import { relations } from "drizzle-orm";
-import { users, userPasswords } from "./users.js";
-import { sessions, oauthAccounts, verificationTokens } from "./auth.js";
+import { agentRuns, agents } from "./agents.js";
+import { apiKeys } from "./api_keys.js";
+import { oauthAccounts, sessions, verificationTokens } from "./auth.js";
+import { billingEvents } from "./billing_events.js";
+import { connectors } from "./connectors.js";
+import { creditBalances, creditTransactions } from "./credits.js";
+import { jobs } from "./jobs.js";
+import {
+  featureFlagOverrides,
+  featureFlags,
+  files,
+  reputationScores,
+  walletAddresses,
+} from "./misc.js";
+import { notifications } from "./notifications.js";
 import { organizations } from "./organizations.js";
 import { plans } from "./plans.js";
 import { subscriptions as subs } from "./subscriptions.js";
-import { apiKeys } from "./api_keys.js";
 import { usageEvents, usageRollups } from "./usage.js";
-import { creditBalances, creditTransactions } from "./credits.js";
-import { agents, agentRuns } from "./agents.js";
-import { jobs } from "./jobs.js";
-import { billingEvents } from "./billing_events.js";
-import { webhooks, webhookDeliveries } from "./webhooks.js";
-import { notifications } from "./notifications.js";
-import { connectors } from "./connectors.js";
-import { walletAddresses, files, featureFlags, featureFlagOverrides, reputationScores } from "./misc.js";
+import { userPasswords, users } from "./users.js";
+import { webhookDeliveries, webhooks } from "./webhooks.js";
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 
 export const usersRelations = relations(users, ({ one, many }) => ({
-  password:       one(userPasswords, { fields: [users.id], references: [userPasswords.userId] }),
-  sessions:       many(sessions),
-  oauthAccounts:  many(oauthAccounts),
-  subscription:   one(subs, { fields: [users.id], references: [subs.userId] }),
-  apiKeys:        many(apiKeys),
-  agents:         many(agents),
-  agentRuns:      many(agentRuns),
-  usageEvents:    many(usageEvents),
-  usageRollups:   many(usageRollups),
+  password: one(userPasswords, { fields: [users.id], references: [userPasswords.userId] }),
+  sessions: many(sessions),
+  oauthAccounts: many(oauthAccounts),
+  subscription: one(subs, { fields: [users.id], references: [subs.userId] }),
+  apiKeys: many(apiKeys),
+  agents: many(agents),
+  agentRuns: many(agentRuns),
+  usageEvents: many(usageEvents),
+  usageRollups: many(usageRollups),
   creditBalances: many(creditBalances),
-  jobs:           many(jobs),
-  webhooks:       many(webhooks),
-  notifications:  many(notifications),
-  connectors:     many(connectors),
-  wallets:        many(walletAddresses),
-  files:          many(files),
-  reputation:     many(reputationScores),
+  jobs: many(jobs),
+  webhooks: many(webhooks),
+  notifications: many(notifications),
+  connectors: many(connectors),
+  wallets: many(walletAddresses),
+  files: many(files),
+  reputation: many(reputationScores),
 }));
 
 export const userPasswordsRelations = relations(userPasswords, ({ one }) => ({
@@ -69,7 +75,7 @@ export const subscriptionsRelations = relations(subs, ({ one }) => ({
 // ─── API Keys ─────────────────────────────────────────────────────────────────
 
 export const apiKeysRelations = relations(apiKeys, ({ one, many }) => ({
-  user:        one(users, { fields: [apiKeys.userId], references: [users.id] }),
+  user: one(users, { fields: [apiKeys.userId], references: [users.id] }),
   usageEvents: many(usageEvents),
 }));
 
@@ -82,13 +88,13 @@ export const agentsRelations = relations(agents, ({ one, many }) => ({
 
 export const agentRunsRelations = relations(agentRuns, ({ one }) => ({
   agent: one(agents, { fields: [agentRuns.agentId], references: [agents.id] }),
-  user:  one(users,  { fields: [agentRuns.userId],  references: [users.id] }),
+  user: one(users, { fields: [agentRuns.userId], references: [users.id] }),
 }));
 
 // ─── Usage ────────────────────────────────────────────────────────────────────
 
 export const usageEventsRelations = relations(usageEvents, ({ one }) => ({
-  user:   one(users,   { fields: [usageEvents.userId],   references: [users.id] }),
+  user: one(users, { fields: [usageEvents.userId], references: [users.id] }),
   apiKey: one(apiKeys, { fields: [usageEvents.apiKeyId], references: [apiKeys.id] }),
 }));
 
@@ -119,7 +125,7 @@ export const jobsRelations = relations(jobs, ({ one }) => ({
 // ─── Webhooks ─────────────────────────────────────────────────────────────────
 
 export const webhooksRelations = relations(webhooks, ({ one, many }) => ({
-  user:       one(users, { fields: [webhooks.userId], references: [users.id] }),
+  user: one(users, { fields: [webhooks.userId], references: [users.id] }),
   deliveries: many(webhookDeliveries),
 }));
 

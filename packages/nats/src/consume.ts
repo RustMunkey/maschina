@@ -1,6 +1,6 @@
-import { AckPolicy, DeliverPolicy, type ConsumerConfig } from "nats";
-import { getNats, getJs, getJsm, sc } from "./client.js";
 import type { EventEnvelope, EventMap, Subject } from "@maschina/events";
+import { AckPolicy, type ConsumerConfig, DeliverPolicy } from "nats";
+import { getJs, getJsm, getNats, sc } from "./client.js";
 
 // ─── Consumer options ─────────────────────────────────────────────────────────
 
@@ -36,10 +36,10 @@ export async function subscribe<S extends Subject>(
   const js = await getJs();
 
   const config: Partial<ConsumerConfig> = {
-    durable_name:    opts.durable,
-    ack_policy:      AckPolicy.Explicit,
-    deliver_policy:  opts.deliverPolicy ?? DeliverPolicy.New,
-    filter_subject:  opts.filterSubject ?? subject,
+    durable_name: opts.durable,
+    ack_policy: AckPolicy.Explicit,
+    deliver_policy: opts.deliverPolicy ?? DeliverPolicy.New,
+    filter_subject: opts.filterSubject ?? subject,
     max_ack_pending: opts.maxAckPending ?? 100,
   };
 
@@ -72,7 +72,7 @@ export async function subscribe<S extends Subject>(
 
 export interface PullConsumerOptions {
   durable: string;
-  stream:  string;
+  stream: string;
   filterSubject?: string;
   /** How many messages to fetch per batch */
   batchSize?: number;
@@ -84,23 +84,23 @@ export interface PulledMessage<T = unknown> {
   envelope: EventEnvelope<T>;
   ack: () => void;
   nak: (delayMs?: number) => void;
-  term: () => void;  // permanently discard — goes to dead letter
+  term: () => void; // permanently discard — goes to dead letter
 }
 
 export async function createPullConsumer(opts: PullConsumerOptions): Promise<{
   fetch: () => AsyncIterable<PulledMessage>;
 }> {
   const jsm = await getJsm();
-  const js  = await getJs();
+  const js = await getJs();
 
   try {
     await jsm.consumers.add(opts.stream, {
-      durable_name:   opts.durable,
-      ack_policy:     AckPolicy.Explicit,
+      durable_name: opts.durable,
+      ack_policy: AckPolicy.Explicit,
       deliver_policy: DeliverPolicy.All,
       ...(opts.filterSubject !== undefined && { filter_subject: opts.filterSubject }),
-      max_deliver:    5,       // max retry attempts before dead-lettering
-      ack_wait:       30_000_000_000, // 30s in nanoseconds — must ack within this
+      max_deliver: 5, // max retry attempts before dead-lettering
+      ack_wait: 30_000_000_000, // 30s in nanoseconds — must ack within this
     });
   } catch (err: any) {
     if (!err?.message?.includes("consumer name already in use")) throw err;
@@ -112,15 +112,15 @@ export async function createPullConsumer(opts: PullConsumerOptions): Promise<{
     fetch: async function* () {
       const messages = await consumer.fetch({
         max_messages: opts.batchSize ?? 10,
-        expires:      opts.maxWaitMs ?? 5000,
+        expires: opts.maxWaitMs ?? 5000,
       });
 
       for await (const msg of messages) {
         const envelope = JSON.parse(sc.decode(msg.data)) as EventEnvelope;
         yield {
           envelope,
-          ack:  () => msg.ack(),
-          nak:  (delayMs = 5000) => msg.nak(delayMs),
+          ack: () => msg.ack(),
+          nak: (delayMs = 5000) => msg.nak(delayMs),
           term: () => msg.term(),
         };
       }

@@ -14,8 +14,8 @@ export const jobs = pgTable("jobs", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
 
-  queue: text("queue").notNull(),          // "agent", "email", "billing", "analytics"
-  type: text("type").notNull(),            // "agent.execute" | "email.send" | "invoice.generate"
+  queue: text("queue").notNull(), // "agent", "email", "billing", "analytics"
+  type: text("type").notNull(), // "agent.execute" | "email.send" | "invoice.generate"
   payload: jsonb("payload").notNull(),
   status: jobStatusEnum("status").notNull().default("pending"),
 

@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import { api } from "@maschina/api-client";
+import { useQuery } from "@tanstack/react-query";
 
 export interface UsageSummary {
   tier: string;
@@ -30,7 +30,6 @@ export function useUsageSummary() {
 export function useUsageEvents(metric?: string) {
   return useQuery({
     queryKey: ["usage", "events", metric],
-    queryFn: () =>
-      api.get<UsageEvent[]>(`/usage${metric ? `?metric=${metric}` : ""}`),
+    queryFn: () => api.get<UsageEvent[]>(`/usage${metric ? `?metric=${metric}` : ""}`),
   });
 }

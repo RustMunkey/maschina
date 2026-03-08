@@ -4,7 +4,7 @@ let _client: Resend | null = null;
 
 export function getResend(): Resend {
   if (!_client) {
-    const key = process.env["RESEND_API_KEY"];
+    const key = process.env.RESEND_API_KEY;
     if (!key) {
       throw new Error("RESEND_API_KEY is not set");
     }
@@ -13,5 +13,4 @@ export function getResend(): Resend {
   return _client;
 }
 
-export const FROM_ADDRESS =
-  process.env["EMAIL_FROM"] ?? "Maschina <noreply@maschina.dev>";
+export const FROM_ADDRESS = process.env.EMAIL_FROM ?? "Maschina <noreply@maschina.dev>";

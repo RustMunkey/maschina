@@ -1,14 +1,14 @@
-import { Hono } from "hono";
-import { HTTPException } from "hono/http-exception";
+import { generateApiKey, hashApiKey } from "@maschina/auth";
 import { db } from "@maschina/db";
 import { apiKeys } from "@maschina/db";
 import { and, eq, isNull } from "@maschina/db";
-import { generateApiKey, hashApiKey } from "@maschina/auth";
 import { getPlan } from "@maschina/plans";
-import { assertValid, projectApiKey, CreateApiKeySchema } from "@maschina/validation";
+import { CreateApiKeySchema, assertValid, projectApiKey } from "@maschina/validation";
+import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
+import type { Variables } from "../context.js";
 import { requireAuth, requireFeature } from "../middleware/auth.js";
 import { trackApiCall } from "../middleware/quota.js";
-import type { Variables } from "../context.js";
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -36,7 +36,9 @@ app.post("/", async (c) => {
   const plan = getPlan(user.tier);
   if (plan.maxApiKeys !== -1) {
     const [{ count }] = await db
-      .select({ count: db.$count(apiKeys, and(eq(apiKeys.userId, user.id), eq(apiKeys.isActive, true))) })
+      .select({
+        count: db.$count(apiKeys, and(eq(apiKeys.userId, user.id), eq(apiKeys.isActive, true))),
+      })
       .from(apiKeys);
     if (Number(count) >= plan.maxApiKeys) {
       throw new HTTPException(403, {
@@ -51,22 +53,25 @@ app.post("/", async (c) => {
   const [created] = await db
     .insert(apiKeys)
     .values({
-      userId:       user.id,
-      name:         input.name,
+      userId: user.id,
+      name: input.name,
       keyHash,
-      keyPrefix:    prefix,
+      keyPrefix: prefix,
       monthlyLimit: input.monthlyLimit ?? null,
-      expiresAt:    input.expiresAt ?? null,
-      isActive:     true,
+      expiresAt: input.expiresAt ?? null,
+      isActive: true,
     })
     .returning();
 
   // Return the full key ONCE — never shown again after this response
-  return c.json({
-    ...projectApiKey(created),
-    key,  // shown only on creation
-    warning: "Save this key — it will not be shown again.",
-  }, 201);
+  return c.json(
+    {
+      ...projectApiKey(created),
+      key, // shown only on creation
+      warning: "Save this key — it will not be shown again.",
+    },
+    201,
+  );
 });
 
 // DELETE /keys/:id

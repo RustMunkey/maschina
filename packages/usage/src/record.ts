@@ -26,14 +26,14 @@ export async function recordUsage(input: RecordUsageInput): Promise<void> {
 
 async function appendEvent(input: RecordUsageInput): Promise<void> {
   await db.insert(usageEvents).values({
-    userId:       input.userId,
-    apiKeyId:     input.apiKeyId,
-    type:         input.type,
-    units:        input.units,
-    inputTokens:  input.inputTokens,
+    userId: input.userId,
+    apiKeyId: input.apiKeyId,
+    type: input.type,
+    units: input.units,
+    inputTokens: input.inputTokens,
     outputTokens: input.outputTokens,
-    model:        input.model,
-    agentId:      input.agentId,
+    model: input.model,
+    agentId: input.agentId,
   });
 }
 
@@ -52,14 +52,14 @@ export async function recordModelInference(opts: {
   const units = opts.inputTokens + opts.outputTokens;
 
   await recordUsage({
-    userId:       opts.userId,
-    type:         "model_inference",
+    userId: opts.userId,
+    type: "model_inference",
     units,
-    inputTokens:  opts.inputTokens,
+    inputTokens: opts.inputTokens,
     outputTokens: opts.outputTokens,
-    model:        opts.model,
-    apiKeyId:     opts.apiKeyId,
-    agentId:      opts.agentId,
+    model: opts.model,
+    apiKeyId: opts.apiKeyId,
+    agentId: opts.agentId,
   });
 }
 
@@ -71,10 +71,10 @@ export async function recordAgentExecution(opts: {
   apiKeyId?: string;
 }): Promise<void> {
   await recordUsage({
-    userId:   opts.userId,
-    type:     "agent_execution",
-    units:    1,
-    agentId:  opts.agentId,
+    userId: opts.userId,
+    type: "agent_execution",
+    units: 1,
+    agentId: opts.agentId,
     apiKeyId: opts.apiKeyId,
   });
 }
@@ -86,9 +86,9 @@ export async function recordApiCall(opts: {
   apiKeyId?: string;
 }): Promise<void> {
   await recordUsage({
-    userId:   opts.userId,
-    type:     "api_call",
-    units:    1,
+    userId: opts.userId,
+    type: "api_call",
+    units: 1,
     apiKeyId: opts.apiKeyId,
   });
 }

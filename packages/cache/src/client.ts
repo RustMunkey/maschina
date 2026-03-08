@@ -5,7 +5,7 @@ let _client: RedisType | null = null;
 export function getRedis(): RedisType {
   if (_client) return _client;
 
-  const url = process.env["REDIS_URL"] ?? "redis://localhost:6379";
+  const url = process.env.REDIS_URL ?? "redis://localhost:6379";
 
   const client = new (Redis as any)(url, {
     maxRetriesPerRequest: 3,

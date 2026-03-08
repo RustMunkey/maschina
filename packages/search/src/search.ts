@@ -32,17 +32,17 @@ export async function search<T = Record<string, unknown>>(
   const idx = client.index(index);
 
   const resp: SearchResponse<T> = await idx.search<T>(query, {
-    limit:  opts.limit ?? 20,
+    limit: opts.limit ?? 20,
     offset: opts.offset ?? 0,
     filter: opts.filter,
-    sort:   opts.sort,
+    sort: opts.sort,
   });
 
   return {
-    hits:              resp.hits,
-    total:             resp.estimatedTotalHits ?? resp.hits.length,
-    query:             resp.query,
-    processingTimeMs:  resp.processingTimeMs,
+    hits: resp.hits,
+    total: resp.estimatedTotalHits ?? resp.hits.length,
+    query: resp.query,
+    processingTimeMs: resp.processingTimeMs,
   };
 }
 

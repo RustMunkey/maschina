@@ -1,12 +1,4 @@
-import {
-  Body,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Preview,
-  Text,
-} from "@react-email/components";
+import { Body, Container, Head, Heading, Html, Preview, Text } from "@react-email/components";
 import * as React from "react";
 
 interface Props {
@@ -26,9 +18,7 @@ export function BillingReceipt({ amountCents, description, invoiceUrl, periodEnd
       <Body style={main}>
         <Container style={container}>
           <Heading style={h1}>Payment receipt</Heading>
-          <Text style={text}>
-            Thank you for your payment. Here is your receipt.
-          </Text>
+          <Text style={text}>Thank you for your payment. Here is your receipt.</Text>
           <Text style={text}>
             <strong>Amount:</strong> ${dollars}
             <br />

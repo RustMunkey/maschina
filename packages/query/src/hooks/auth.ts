@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, token } from "@maschina/api-client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export interface LoginInput {
   email: string;

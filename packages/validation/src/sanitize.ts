@@ -3,6 +3,7 @@
 // Does NOT use a DOM — server-side only, no browser dependencies.
 
 const NULL_BYTE_RE = /\0/g;
+// biome-ignore lint/suspicious/noControlCharactersInRegex: intentional — strips dangerous control chars from user input
 const CONTROL_CHAR_RE = /[\x01-\x08\x0b\x0c\x0e-\x1f\x7f]/g;
 const HTML_TAG_RE = /<[^>]*>/g;
 const HTML_ENTITY_RE = /&(?:#\d+|#x[\da-f]+|[a-z]+);/gi;
@@ -13,11 +14,11 @@ const HTML_ENTITY_RE = /&(?:#\d+|#x[\da-f]+|[a-z]+);/gi;
  */
 export function sanitizeText(input: string): string {
   return input
-    .replace(NULL_BYTE_RE, "")           // null bytes crash some parsers
-    .replace(CONTROL_CHAR_RE, "")        // control chars except \t \n \r
-    .replace(HTML_TAG_RE, "")            // strip all HTML tags
-    .replace(HTML_ENTITY_RE, "")         // strip HTML entities
-    .normalize("NFC")                    // normalize unicode (prevent homograph attacks)
+    .replace(NULL_BYTE_RE, "") // null bytes crash some parsers
+    .replace(CONTROL_CHAR_RE, "") // control chars except \t \n \r
+    .replace(HTML_TAG_RE, "") // strip all HTML tags
+    .replace(HTML_ENTITY_RE, "") // strip HTML entities
+    .normalize("NFC") // normalize unicode (prevent homograph attacks)
     .trim();
 }
 
@@ -41,8 +42,8 @@ export function sanitizeFilename(input: string): string {
   const base = input.replace(/[/\\]/g, "_");
   return base
     .replace(NULL_BYTE_RE, "")
-    .replace(/[<>:"|?*]/g, "_")   // Windows forbidden chars
-    .replace(/^\.+/, "")           // no leading dots (hidden files)
+    .replace(/[<>:"|?*]/g, "_") // Windows forbidden chars
+    .replace(/^\.+/, "") // no leading dots (hidden files)
     .trim()
     .slice(0, 255);
 }
@@ -65,12 +66,7 @@ export function sanitizeUrl(input: string): string | null {
  * Enforce hard length limits on a string. Throws if exceeded.
  * Use at validation layer before sanitization.
  */
-export function enforceLength(
-  value: string,
-  field: string,
-  max: number,
-  min = 0,
-): void {
+export function enforceLength(value: string, field: string, max: number, min = 0): void {
   if (value.length < min) throw new Error(`${field} must be at least ${min} characters`);
   if (value.length > max) throw new Error(`${field} must be at most ${max} characters`);
 }
