@@ -21,5 +21,9 @@
   },
   "dependencies": {
     "@maschina/plans": "workspace:*"
+  },
+  "devDependencies": {
+    "@maschina/tsconfig": "workspace:*",
+    "typescript": "^5"
   }
 }
