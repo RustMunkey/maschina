@@ -21,7 +21,7 @@ bytes = "1"
 tokio-tungstenite = { version = "0.21", features = ["native-tls"] }
 futures-util = "0.3"
 # Rate limiting
-governor = "0.7"
+governor = "0.10"
 # Auth
 jsonwebtoken = "9"
 # Serialization
