@@ -1,5 +1,5 @@
 {
   "*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc}": ["biome check --write --no-errors-on-unmatched"],
   "*.py": ["ruff check --fix", "ruff format"],
-  "*.rs": ["rustfmt"]
+  "*.rs": ["rustfmt --edition 2021"]
 }

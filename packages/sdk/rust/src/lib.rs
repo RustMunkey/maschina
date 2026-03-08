@@ -1,4 +1,6 @@
-// maschina-sdk — shared Rust types and traits
-
+pub mod client;
 pub mod error;
 pub mod types;
+
+pub use client::MaschinaClient;
+pub use error::MaschinaError;
