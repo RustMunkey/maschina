@@ -4,10 +4,10 @@ from pydantic import BaseModel
 
 
 class RiskLevel(StrEnum):
-    LOW    = "low"
+    LOW = "low"
     MEDIUM = "medium"
-    HIGH   = "high"
-    BLOCK  = "block"  # Run must not proceed
+    HIGH = "high"
+    BLOCK = "block"  # Run must not proceed
 
 
 class RiskFlag(BaseModel):

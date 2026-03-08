@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 # Lazily import Anthropic only if an API key is configured
 if not settings.use_ollama:
     import anthropic
+
     _anthropic_client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
 else:
     _anthropic_client = None  # type: ignore[assignment]
@@ -25,6 +26,7 @@ else:
 
 def _extract_user_message(input_payload: dict[str, Any]) -> str:
     import json
+
     if "message" in input_payload:
         return str(input_payload["message"])
     return json.dumps(input_payload)
@@ -59,6 +61,7 @@ async def execute(req: RunRequest) -> RunResponse:
         )
     else:
         from maschina_runtime import AgentRunner
+
         runner = AgentRunner(
             client=_anthropic_client,
             system_prompt=req.system_prompt,

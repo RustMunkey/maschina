@@ -42,15 +42,12 @@ class AgentRunner:
                 timeout=float(self.timeout_secs),
             )
         except TimeoutError:
-            raise RuntimeError(
-                f"run {inp.run_id} timed out after {self.timeout_secs}s"
-            )
+            raise RuntimeError(f"run {inp.run_id} timed out after {self.timeout_secs}s")
 
     async def _run_loop(self, inp: RunInput) -> RunResult:
         # Build conversation history
         messages: list[dict[str, Any]] = [
-            {"role": m.role, "content": m.content}
-            for m in inp.history
+            {"role": m.role, "content": m.content} for m in inp.history
         ]
         messages.append({"role": "user", "content": inp.message})
 
@@ -85,10 +82,12 @@ class AgentRunner:
 
             if response.stop_reason == "tool_use":
                 # Add assistant turn with tool_use blocks
-                messages.append({
-                    "role": "assistant",
-                    "content": [b.model_dump() for b in response.content],
-                })
+                messages.append(
+                    {
+                        "role": "assistant",
+                        "content": [b.model_dump() for b in response.content],
+                    }
+                )
 
                 # Execute all tool calls, collect results
                 tool_results: list[dict[str, Any]] = []
@@ -114,11 +113,13 @@ class AgentRunner:
                                 ToolResult(tool_name=block.name, result="", error=str(exc))
                             )
 
-                    tool_results.append({
-                        "type": "tool_result",
-                        "tool_use_id": block.id,
-                        "content": result_text,
-                    })
+                    tool_results.append(
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": block.id,
+                            "content": result_text,
+                        }
+                    )
 
                 # Add tool results as user turn
                 messages.append({"role": "user", "content": tool_results})

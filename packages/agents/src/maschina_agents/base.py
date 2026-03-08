@@ -9,11 +9,12 @@ from maschina_runtime import AgentRunner, RunInput, RunResult, Tool
 
 class AgentType(StrEnum):
     """The five built-in Maschina agent categories."""
-    SIGNAL     = "signal"
-    ANALYSIS   = "analysis"
-    EXECUTION  = "execution"
+
+    SIGNAL = "signal"
+    ANALYSIS = "analysis"
+    EXECUTION = "execution"
     OPTIMIZATION = "optimization"
-    REPORTING  = "reporting"
+    REPORTING = "reporting"
 
 
 class Agent(ABC):

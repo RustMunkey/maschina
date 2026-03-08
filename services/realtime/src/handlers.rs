@@ -78,7 +78,7 @@ async fn handle_ws(mut socket: WebSocket, mut rx: broadcast::Receiver<String>, u
             event = rx.recv() => {
                 match event {
                     Ok(text) => {
-                        if socket.send(Message::Text(text.into())).await.is_err() {
+                        if socket.send(Message::Text(text)).await.is_err() {
                             break;
                         }
                     }

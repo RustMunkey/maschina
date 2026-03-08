@@ -26,7 +26,7 @@ _BLOCKED_PATTERNS = [
 # ─── PII patterns (for output scanning) ──────────────────────────────────────
 
 _PII_PATTERNS = [
-    (re.compile(r"\b\d{3}-\d{2}-\d{4}\b"), "ssn"),               # SSN
+    (re.compile(r"\b\d{3}-\d{2}-\d{4}\b"), "ssn"),  # SSN
     (re.compile(r"\b\d{4}[- ]\d{4}[- ]\d{4}[- ]\d{4}\b"), "cc"),  # credit card
     (re.compile(r"\bpassword\s*[:=]\s*\S+", re.IGNORECASE), "password"),
     (re.compile(r"\bapi[_-]?key\s*[:=]\s*\S+", re.IGNORECASE), "api_key"),
@@ -47,21 +47,25 @@ def check_input(text: str, tier: str = "access") -> RiskResult:
 
     # Length check
     if len(text) > MAX_INPUT_CHARS:
-        flags.append(RiskFlag(
-            code="input_too_long",
-            message=f"Input exceeds {MAX_INPUT_CHARS:,} character limit ({len(text):,} chars)",
-            level=RiskLevel.BLOCK,
-        ))
+        flags.append(
+            RiskFlag(
+                code="input_too_long",
+                message=f"Input exceeds {MAX_INPUT_CHARS:,} character limit ({len(text):,} chars)",
+                level=RiskLevel.BLOCK,
+            )
+        )
         score = 1.0
 
     # Blocked pattern check
     for pattern in _BLOCKED_PATTERNS:
         if pattern.search(text):
-            flags.append(RiskFlag(
-                code="blocked_pattern",
-                message=f"Input contains a blocked pattern: {pattern.pattern[:60]}",
-                level=RiskLevel.BLOCK,
-            ))
+            flags.append(
+                RiskFlag(
+                    code="blocked_pattern",
+                    message=f"Input contains a blocked pattern: {pattern.pattern[:60]}",
+                    level=RiskLevel.BLOCK,
+                )
+            )
             score = max(score, 1.0)
 
     if not flags:
@@ -86,11 +90,13 @@ def check_output(text: str) -> RiskResult:
 
     for pattern, label in _PII_PATTERNS:
         if pattern.search(text):
-            flags.append(RiskFlag(
-                code=f"pii_{label}",
-                message=f"Output may contain sensitive data: {label}",
-                level=RiskLevel.HIGH,
-            ))
+            flags.append(
+                RiskFlag(
+                    code=f"pii_{label}",
+                    message=f"Output may contain sensitive data: {label}",
+                    level=RiskLevel.HIGH,
+                )
+            )
             score = max(score, 0.8)
 
     if not flags:
@@ -121,11 +127,13 @@ def check_quota_pre_run(
         return RiskResult(
             approved=False,
             level=RiskLevel.BLOCK,
-            flags=[RiskFlag(
-                code="quota_exhausted",
-                message="Monthly token quota exhausted",
-                level=RiskLevel.BLOCK,
-            )],
+            flags=[
+                RiskFlag(
+                    code="quota_exhausted",
+                    message="Monthly token quota exhausted",
+                    level=RiskLevel.BLOCK,
+                )
+            ],
             score=1.0,
         )
 
@@ -133,11 +141,13 @@ def check_quota_pre_run(
         return RiskResult(
             approved=True,
             level=RiskLevel.MEDIUM,
-            flags=[RiskFlag(
-                code="quota_low",
-                message=f"Only {remaining:,} tokens remaining this month",
-                level=RiskLevel.MEDIUM,
-            )],
+            flags=[
+                RiskFlag(
+                    code="quota_low",
+                    message=f"Only {remaining:,} tokens remaining this month",
+                    level=RiskLevel.MEDIUM,
+                )
+            ],
             score=0.5,
         )
 
