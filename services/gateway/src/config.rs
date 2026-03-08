@@ -6,7 +6,6 @@ pub struct Config {
     pub api_url: String,
     pub realtime_url: String,
     pub jwt_secret: String,
-    pub nats_url: String,
     pub node_env: String,
 }
 
@@ -26,8 +25,6 @@ impl Config {
                 .unwrap_or_else(|_| "http://localhost:4000".into()),
             jwt_secret: std::env::var("JWT_SECRET")
                 .expect("JWT_SECRET must be set"),
-            nats_url: std::env::var("NATS_URL")
-                .unwrap_or_else(|_| "nats://localhost:4222".into()),
             node_env: std::env::var("NODE_ENV")
                 .unwrap_or_else(|_| "development".into()),
         })

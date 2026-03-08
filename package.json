@@ -3,11 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build":   "turbo build",
-    "dev":     "turbo dev",
-    "test":    "turbo test",
-    "check":   "biome check .",
-    "format":  "biome format --write .",
+    "build":      "turbo build",
+    "dev":        "turbo dev",
+    "test":       "turbo test",
+    "lint":       "biome check .",
+    "typecheck":  "pnpm --filter @maschina/api run build",
+    "check":      "biome check .",
+    "format":     "biome format --write .",
     "clean":   "turbo clean",
 
     "check:rust": "cargo clippy --workspace",

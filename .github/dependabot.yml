@@ -1,106 +1,12 @@
 version: 2
 updates:
-  # pnpm (npm ecosystem)
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 10
-    groups:
-      typescript-deps:
-        patterns:
-          - "@types/*"
-          - "typescript"
-          - "vitest"
-          - "playwright"
-      hono:
-        patterns:
-          - "hono"
-          - "@hono/*"
-      drizzle:
-        patterns:
-          - "drizzle-orm"
-          - "drizzle-kit"
-      opentelemetry:
-        patterns:
-          - "@opentelemetry/*"
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
-
-  # Cargo (Rust)
-  - package-ecosystem: "cargo"
-    directory: "/services/gateway"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 5
-
-  - package-ecosystem: "cargo"
-    directory: "/services/daemon"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 5
-
-  - package-ecosystem: "cargo"
-    directory: "/services/realtime"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 5
-
-  - package-ecosystem: "cargo"
-    directory: "/packages/cli"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 5
-
-  - package-ecosystem: "cargo"
-    directory: "/packages/code"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 5
-
-  # pip (Python)
-  - package-ecosystem: "pip"
-    directory: "/packages/runtime"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 5
-
-  - package-ecosystem: "pip"
-    directory: "/packages/risk"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 5
-
-  - package-ecosystem: "pip"
-    directory: "/services/runtime"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 5
-
-  # GitHub Actions
+  # GitHub Actions only — keeps workflow action versions up to date.
+  # npm/cargo/pip updates are handled manually to avoid PR spam.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 5
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]

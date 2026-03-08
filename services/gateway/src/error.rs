@@ -17,6 +17,7 @@ pub enum GatewayError {
     #[error("bad gateway: {0}")]
     BadGateway(String),
 
+    #[allow(dead_code)]
     #[error("service unavailable")]
     ServiceUnavailable,
 }

@@ -6,7 +6,7 @@ import asyncio
 import logging
 from typing import Any
 
-from maschina_runtime.models import RunInput, RunResult, ToolResult
+from maschina_runtime.models import RunInput, RunResult
 from openai import AsyncOpenAI
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ class OllamaRunner:
                 self._run_loop(inp),
                 timeout=float(self.timeout_secs),
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise RuntimeError(f"run {inp.run_id} timed out after {self.timeout_secs}s")
 
     async def _run_loop(self, inp: RunInput) -> RunResult:

@@ -6,7 +6,7 @@ from typing import Any
 
 import anthropic
 
-from .models import Message, RunInput, RunResult, ToolResult
+from .models import RunInput, RunResult, ToolResult
 from .tools import Tool
 
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ class AgentRunner:
                 self._run_loop(inp),
                 timeout=float(self.timeout_secs),
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise RuntimeError(
                 f"run {inp.run_id} timed out after {self.timeout_secs}s"
             )

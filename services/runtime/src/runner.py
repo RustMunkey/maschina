@@ -3,7 +3,6 @@ Agent execution — delegates to maschina-runtime (the shared execution package)
 and runs risk checks via maschina-risk before and after the LLM call.
 """
 
-import asyncio
 import logging
 from typing import Any
 
@@ -19,7 +18,6 @@ logger = logging.getLogger(__name__)
 # Lazily import Anthropic only if an API key is configured
 if not settings.use_ollama:
     import anthropic
-    from maschina_runtime import AgentRunner
     _anthropic_client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
 else:
     _anthropic_client = None  # type: ignore[assignment]

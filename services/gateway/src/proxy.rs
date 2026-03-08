@@ -19,19 +19,8 @@ fn http_upstream(config: &Config, path: &str, query: Option<&str>) -> String {
         &config.api_url
     };
     match query {
-        Some(q) if !q.is_empty() => format!("{}{}?{}", base, path, q),
-        _ => format!("{}{}", base, path),
-    }
-}
-
-fn ws_upstream(config: &Config, path: &str, query: Option<&str>) -> String {
-    let base = config
-        .realtime_url
-        .replace("https://", "wss://")
-        .replace("http://", "ws://");
-    match query {
-        Some(q) if !q.is_empty() => format!("{}{}?{}", base, path, q),
-        _ => format!("{}{}", base, path),
+        Some(q) if !q.is_empty() => format!("{base}{path}?{q}"),
+        _ => format!("{base}{path}"),
     }
 }
 
@@ -145,8 +134,8 @@ pub async fn proxy_ws(
                 .replace("https://", "wss://")
                 .replace("http://", "ws://");
             match query {
-                Some(q) if !q.is_empty() => format!("{}{}?{}", base, path, q),
-                _ => format!("{}{}", base, path),
+                Some(q) if !q.is_empty() => format!("{base}{path}?{q}"),
+                _ => format!("{base}{path}"),
             }
         };
 
@@ -206,10 +195,10 @@ async fn bridge_ws(
     let client_to_upstream = async {
         while let Some(Ok(msg)) = client_rx.next().await {
             let fwd = match msg {
-                AxumMsg::Text(t) => TungsteniteMsg::Text(t.to_string()),
-                AxumMsg::Binary(b) => TungsteniteMsg::Binary(b.to_vec()),
-                AxumMsg::Ping(p) => TungsteniteMsg::Ping(p.to_vec()),
-                AxumMsg::Pong(p) => TungsteniteMsg::Pong(p.to_vec()),
+                AxumMsg::Text(t) => TungsteniteMsg::Text(t.into()),
+                AxumMsg::Binary(b) => TungsteniteMsg::Binary(b.into()),
+                AxumMsg::Ping(p) => TungsteniteMsg::Ping(p.into()),
+                AxumMsg::Pong(p) => TungsteniteMsg::Pong(p.into()),
                 AxumMsg::Close(_) => break,
             };
             if upstream_tx.send(fwd).await.is_err() {

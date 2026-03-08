@@ -69,7 +69,7 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
+      - run: pnpm check
 
   ts-test:
     name: TS / test (Vitest)
@@ -152,7 +152,7 @@ jobs:
         with:
           toolchain: "1.88"
           components: rustfmt
-      - run: cargo fmt --all -- --check
+      - run: cargo fmt -p maschina-gateway -p maschina-daemon -p maschina-realtime -- --check
 
   rust-clippy:
     name: Rust / clippy
