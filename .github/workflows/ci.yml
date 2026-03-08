@@ -137,7 +137,7 @@ jobs:
       - name: Run migrations
         run: pnpm db:migrate
 
-      - run: pnpm exec vitest run
+      - run: pnpm exec vitest run --coverage
 
   # ── Rust ──────────────────────────────────────────────────────────────────
   # Scoped to server-side crates only. Tauri + CLI binaries are built and

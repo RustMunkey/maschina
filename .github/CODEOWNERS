@@ -3,7 +3,7 @@
 # Last entry wins for a given path.
 # https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
-# Default owner for everything not matched below
+# Default owner — Asher Wilson (founder)
 * @RustMunkey
 
 # Core infrastructure — requires founder sign-off

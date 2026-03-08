@@ -16,5 +16,17 @@ export default defineConfig({
       "packages/ml/**",
     ],
     passWithNoTests: true,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "json-summary"],
+      include: ["packages/*/src/**/*.ts", "services/*/src/**/*.ts"],
+      exclude: ["**/node_modules/**", "**/dist/**", "**/*.test.ts", "**/*.d.ts"],
+      thresholds: {
+        lines: 40,
+        functions: 40,
+        branches: 35,
+        statements: 40,
+      },
+    },
   },
 });
