@@ -1,0 +1,10 @@
+{
+  "name": "@maschina/sdk-python",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "hatch build",
+    "test": "pytest",
+    "clean": "rm -rf dist .pytest_cache __pycache__ .coverage"
+  }
+}

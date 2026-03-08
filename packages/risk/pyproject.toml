@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "maschina-risk"
+version = "0.0.0"
+requires-python = ">=3.12"
+# The closed core risk engine — capital preservation, probability filters,
+# success thresholds, audit trail primitives. Independently auditable.
+dependencies = [
+  "pydantic>=2.9",
+  "numpy>=2.1",
+  "scipy>=1.14",
+  "scikit-learn>=1.5",
+  "structlog>=24.4",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "pytest-cov>=6.0",
+  "hypothesis>=6.115",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/maschina_risk"]

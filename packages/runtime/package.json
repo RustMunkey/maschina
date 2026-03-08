@@ -1,0 +1,12 @@
+{
+  "name": "@maschina/runtime",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "fastapi dev src/maschina_runtime/main.py",
+    "build": "hatch build",
+    "test": "pytest",
+    "clean": "rm -rf dist .pytest_cache __pycache__ .coverage"
+  }
+}

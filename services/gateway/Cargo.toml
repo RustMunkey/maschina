@@ -1,0 +1,39 @@
+[package]
+name = "maschina-gateway"
+version = "0.0.0"
+edition = "2021"
+
+[[bin]]
+name = "maschina-gateway"
+path = "src/main.rs"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+# HTTP / routing
+axum = { version = "0.7", features = ["ws"] }
+tower = "0.5"
+tower-http = { version = "0.5", features = ["cors", "trace", "compression-gzip"] }
+# HTTP client (proxy)
+reqwest = { version = "0.12", features = ["stream", "json"] }
+bytes = "1"
+# WebSocket proxy
+tokio-tungstenite = { version = "0.21", features = ["native-tls"] }
+futures-util = "0.3"
+# Rate limiting
+governor = "0.7"
+# Auth
+jsonwebtoken = "9"
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Observability
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+# Env
+dotenvy = "0.15"
+# Error handling
+anyhow = "1"
+thiserror = "1"
+# IDs
+uuid = { version = "1", features = ["v4"] }

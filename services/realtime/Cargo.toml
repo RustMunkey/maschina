@@ -1,0 +1,39 @@
+[package]
+name = "maschina-realtime"
+version = "0.0.0"
+edition = "2021"
+
+[[bin]]
+name = "maschina-realtime"
+path = "src/main.rs"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+# HTTP / WebSocket / SSE
+axum = { version = "0.7", features = ["ws"] }
+tower = "0.5"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+# Streaming + cancellation
+tokio-stream = { version = "0.1", features = ["sync"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+futures-util = "0.3"
+# NATS JetStream (event fan-out source)
+async-nats = "0.38"
+# Per-user connection registry
+dashmap = "6"
+# Auth
+jsonwebtoken = "9"
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Observability
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+# Env
+dotenvy = "0.15"
+# Error handling
+anyhow = "1"
+thiserror = "1"
+# IDs
+uuid = { version = "1", features = ["v4"] }

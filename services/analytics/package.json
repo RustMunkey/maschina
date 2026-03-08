@@ -1,0 +1,24 @@
+{
+  "name": "@maschina/analytics",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@maschina/types": "workspace:*",
+    "@maschina/db": "workspace:*",
+    "@maschina/events": "workspace:*",
+    "@maschina/cache": "workspace:*",
+    "@maschina/telemetry": "workspace:*"
+  },
+  "devDependencies": {
+    "@maschina/tsconfig": "workspace:*",
+    "@maschina/vitest-config": "workspace:*",
+    "typescript": "^5",
+    "vitest": "^4.0.18"
+  }
+}

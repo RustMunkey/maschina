@@ -1,0 +1,42 @@
+{
+  "name": "@maschina/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13",
+    "@maschina/auth": "workspace:*",
+    "@maschina/billing": "workspace:*",
+    "@maschina/cache": "workspace:*",
+    "@maschina/db": "workspace:*",
+    "@maschina/email": "workspace:*",
+    "@maschina/events": "workspace:*",
+    "@maschina/jobs": "workspace:*",
+    "@maschina/nats": "workspace:*",
+    "@maschina/notifications": "workspace:*",
+    "@maschina/plans": "workspace:*",
+    "@maschina/telemetry": "workspace:*",
+    "@maschina/usage": "workspace:*",
+    "@maschina/validation": "workspace:*",
+    "dotenv": "^17.3.1",
+    "drizzle-orm": "^0.39.3",
+    "hono": "^4.6",
+    "postgres": "^3",
+    "zod": "^3.24"
+  },
+  "devDependencies": {
+    "@maschina/tsconfig": "workspace:*",
+    "@maschina/vitest-config": "workspace:*",
+    "@types/node": "^22",
+    "tsx": "^4.19",
+    "typescript": "^5",
+    "vitest": "^4.0.18"
+  }
+}

@@ -1,0 +1,26 @@
+# CODEOWNERS
+# Owners are automatically requested for review when a PR touches their paths.
+# Last entry wins for a given path.
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything not matched below
+* @RustMunkey
+
+# Core infrastructure — requires founder sign-off
+services/gateway/   @RustMunkey
+services/daemon/    @RustMunkey
+packages/auth/      @RustMunkey
+packages/billing/   @RustMunkey
+packages/plans/     @RustMunkey
+packages/database/  @RustMunkey
+
+# CI/CD and deployment — requires founder sign-off
+.github/            @RustMunkey
+docker/             @RustMunkey
+infra/              @RustMunkey
+
+# Security-sensitive packages
+packages/risk/      @RustMunkey
+
+# Documentation — any team member can approve
+docs/               @RustMunkey

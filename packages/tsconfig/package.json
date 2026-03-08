@@ -1,0 +1,14 @@
+{
+  "name": "@maschina/tsconfig",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./base": "./base.json",
+    "./base.json": "./base.json",
+    "./node": "./node.json",
+    "./node.json": "./node.json",
+    "./nextjs": "./nextjs.json",
+    "./nextjs.json": "./nextjs.json"
+  }
+}

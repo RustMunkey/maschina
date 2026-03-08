@@ -1,0 +1,32 @@
+app            = "maschina-daemon"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  DAEMON_HEALTH_PORT    = "9090"
+  NODE_ENV              = "production"
+  RUST_LOG              = "info"
+  MAX_CONCURRENT_AGENTS = "8"
+  POLL_INTERVAL_MS      = "500"
+  AGENT_TIMEOUT_SECS    = "300"
+
+# Required secrets: DATABASE_URL, REDIS_URL, NATS_URL, RUNTIME_URL, REALTIME_URL
+
+# Daemon is not a public HTTP service — only exposes health + metrics internally
+[http_service]
+  internal_port        = 9090
+  force_https          = false
+  auto_stop_machines   = "stop"
+  auto_start_machines  = true
+  min_machines_running = 1
+  processes            = ["app"]
+
+[[vm]]
+  size   = "shared-cpu-1x"
+  memory = "512mb"
+
+[[metrics]]
+  port = 9090
+  path = "/metrics"

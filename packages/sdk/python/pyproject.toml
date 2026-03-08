@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "maschina-sdk"
+version = "0.0.0"
+requires-python = ">=3.12"
+# Intentionally minimal — public surface for operators building custom agents in Python.
+# Heavy ML/runtime deps stay out of here.
+dependencies = [
+  "pydantic>=2.9",
+  "httpx>=0.28",
+  "anthropic>=0.40",
+  "structlog>=24.4",
+  "typing-extensions>=4.12",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "pytest-cov>=6.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/maschina_sdk"]

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question / design discussion
+    url: https://github.com/RustMunkey/maschina/discussions
+    about: Use Discussions for questions, ideas, and design proposals — not Issues.
+  - name: Security vulnerability
+    url: https://github.com/RustMunkey/maschina/security/advisories/new
+    about: Report security vulnerabilities privately — do not open a public issue.

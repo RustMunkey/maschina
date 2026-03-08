@@ -1,0 +1,19 @@
+{
+  "name": "@maschina/search",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "meilisearch": "^0.47.0"
+  },
+  "devDependencies": {
+    "@maschina/tsconfig": "workspace:*",
+    "typescript": "^5.7.0"
+  }
+}

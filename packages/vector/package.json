@@ -1,0 +1,19 @@
+{
+  "name": "@maschina/vector",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@qdrant/js-client-rest": "^1.13.0"
+  },
+  "devDependencies": {
+    "@maschina/tsconfig": "workspace:*",
+    "typescript": "^5.7.0"
+  }
+}

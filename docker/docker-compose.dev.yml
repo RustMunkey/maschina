@@ -1,0 +1,24 @@
+name: maschina-dev
+
+# Dev override — starts only infrastructure (postgres + redis).
+# Run services locally with pnpm commands for hot reload.
+#
+# Usage: docker compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up -d
+
+services:
+  postgres:
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  redis:
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_dev_data:/data
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:

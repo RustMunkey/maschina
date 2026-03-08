@@ -1,0 +1,123 @@
+name: maschina
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: maschina-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-maschina}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-maschina}
+      POSTGRES_DB: ${POSTGRES_DB:-maschina}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-maschina}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: maschina-redis
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nats:
+    image: nats:2.10-alpine
+    container_name: maschina-nats
+    restart: unless-stopped
+    # JetStream enabled, file storage persisted to volume
+    command: ["-js", "-sd", "/data", "-m", "8222"]
+    ports:
+      - "${NATS_PORT:-4222}:4222"      # client connections
+      - "${NATS_MONITOR_PORT:-8222}:8222"  # HTTP monitoring
+    volumes:
+      - nats_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8222/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.11
+    container_name: maschina-meilisearch
+    restart: unless-stopped
+    environment:
+      MEILI_ENV: development
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-masterkey-change-in-production}
+    ports:
+      - "${MEILI_PORT:-7700}:7700"
+    volumes:
+      - meilisearch_data:/meili_data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:7700/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: maschina-qdrant
+    restart: unless-stopped
+    ports:
+      - "${QDRANT_HTTP_PORT:-6333}:6333"   # REST API
+      - "${QDRANT_GRPC_PORT:-6334}:6334"   # gRPC
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:6333/readyz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  temporal:
+    image: temporalio/auto-setup:latest
+    container_name: maschina-temporal
+    restart: unless-stopped
+    ports:
+      - "${TEMPORAL_PORT:-7233}:7233"
+    environment:
+      - DB=sqlite
+      - TEMPORAL_ADDRESS=temporal:7233
+    volumes:
+      - temporal_data:/etc/temporal
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 7233 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  temporal-ui:
+    image: temporalio/ui:latest
+    container_name: maschina-temporal-ui
+    restart: unless-stopped
+    ports:
+      - "${TEMPORAL_UI_PORT:-8088}:8080"
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+    depends_on:
+      - temporal
+
+volumes:
+  postgres_data:
+  redis_data:
+  nats_data:
+  meilisearch_data:
+  qdrant_data:
+  temporal_data:

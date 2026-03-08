@@ -1,0 +1,23 @@
+{
+  "name": "@maschina/email-service",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@maschina/types": "workspace:*",
+    "@maschina/notifications": "workspace:*",
+    "@maschina/jobs": "workspace:*",
+    "@maschina/events": "workspace:*"
+  },
+  "devDependencies": {
+    "@maschina/tsconfig": "workspace:*",
+    "@maschina/vitest-config": "workspace:*",
+    "typescript": "^5",
+    "vitest": "^4.0.18"
+  }
+}

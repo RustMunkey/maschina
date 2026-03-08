@@ -1,0 +1,25 @@
+[package]
+name = "maschina-sdk"
+version = "0.0.0"
+edition = "2021"
+
+[lib]
+name = "maschina_sdk"
+
+[dependencies]
+# Serialization — core to agent message passing
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Async trait support for agent interfaces
+async-trait = "0.1"
+tokio = { version = "1", features = ["full"] }
+# Error handling
+anyhow = "1"
+thiserror = "1"
+# IDs
+uuid = { version = "1", features = ["v4", "serde"] }
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full", "test-util"] }

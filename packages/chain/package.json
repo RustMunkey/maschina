@@ -1,0 +1,31 @@
+{
+  "name": "@maschina/chain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@maschina/types": "workspace:*",
+    "@maschina/crypto": "workspace:*",
+    "@maschina/treasury": "workspace:*"
+  },
+  "devDependencies": {
+    "@maschina/tsconfig": "workspace:*",
+    "@maschina/vitest-config": "workspace:*",
+    "typescript": "^5",
+    "vitest": "^4.0.18"
+  }
+}

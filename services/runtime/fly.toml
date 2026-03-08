@@ -1,0 +1,35 @@
+app            = "maschina-runtime"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  RUNTIME_PORT         = "8001"
+  NODE_ENV             = "production"
+  DEFAULT_TIMEOUT_SECS = "300"
+  MAX_OUTPUT_TOKENS    = "16384"
+
+# Required secrets: ANTHROPIC_API_KEY
+
+[http_service]
+  internal_port        = 8001
+  force_https          = true
+  auto_stop_machines   = "stop"
+  auto_start_machines  = true
+  min_machines_running = 1
+  processes            = ["app"]
+
+  [http_service.concurrency]
+    type       = "requests"
+    hard_limit = 50
+    soft_limit = 40
+
+# Runtime is compute-heavy — needs real CPU for inference
+[[vm]]
+  size   = "performance-4x"
+  memory = "4gb"
+
+[[metrics]]
+  port = 9091
+  path = "/metrics"

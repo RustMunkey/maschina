@@ -1,0 +1,29 @@
+{
+  "images": [
+    {
+      "filename": "Maschina-watchOS-Default-1024x1024@1x.png",
+      "idiom": "universal",
+      "platform": "watchos",
+      "size": "1024x1024"
+    },
+    { "filename": "Maschina-watchOS-Default-22x22@2x.png", "idiom": "watch", "role": "notificationCenter", "scale": "2x", "subtype": "38mm" },
+    { "filename": "Maschina-watchOS-Default-27.5x27.5@2x.png", "idiom": "watch", "role": "notificationCenter", "scale": "2x", "subtype": "42mm" },
+    { "filename": "Maschina-watchOS-Default-29x29@2x.png", "idiom": "watch", "role": "companionSettings", "scale": "2x" },
+    { "filename": "Maschina-watchOS-Default-29x29@2x.png", "idiom": "watch", "role": "companionSettings", "scale": "3x" },
+    { "filename": "Maschina-watchOS-Default-40x40@2x.png", "idiom": "watch", "role": "appLauncher", "scale": "2x", "subtype": "38mm" },
+    { "filename": "Maschina-watchOS-Default-44x44@2x.png", "idiom": "watch", "role": "appLauncher", "scale": "2x", "subtype": "40mm" },
+    { "filename": "Maschina-watchOS-Default-50x50@2x.png", "idiom": "watch", "role": "appLauncher", "scale": "2x", "subtype": "44mm" },
+    { "filename": "Maschina-watchOS-Default-51x51@2x.png", "idiom": "watch", "role": "appLauncher", "scale": "2x", "subtype": "45mm" },
+    { "filename": "Maschina-watchOS-Default-54x54@2x.png", "idiom": "watch", "role": "appLauncher", "scale": "2x", "subtype": "49mm" },
+    { "filename": "Maschina-watchOS-Default-86x86@2x.png", "idiom": "watch", "role": "quickLook", "scale": "2x", "subtype": "38mm" },
+    { "filename": "Maschina-watchOS-Default-98x98@2x.png", "idiom": "watch", "role": "quickLook", "scale": "2x", "subtype": "42mm" },
+    { "filename": "Maschina-watchOS-Default-108x108@2x.png", "idiom": "watch", "role": "quickLook", "scale": "2x", "subtype": "44mm" },
+    { "filename": "Maschina-watchOS-Default-117x117@2x.png", "idiom": "watch", "role": "quickLook", "scale": "2x", "subtype": "45mm" },
+    { "filename": "Maschina-watchOS-Default-129x129@2x.png", "idiom": "watch", "role": "quickLook", "scale": "2x", "subtype": "49mm" },
+    { "filename": "Maschina-watchOS-Default-1088x1088@1x.png", "idiom": "watch-marketing", "scale": "1x", "size": "1024x1024" }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "@maschina/tests",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "e2e":         "vitest run e2e",
+    "integration": "vitest run integration",
+    "load":        "echo 'Load tests — tooling TBD'",
+    "clean":       "rm -rf coverage"
+  },
+  "devDependencies": {
+    "@maschina/tsconfig": "workspace:*",
+    "@maschina/vitest-config": "workspace:*",
+    "vitest": "^4.0.18"
+  }
+}

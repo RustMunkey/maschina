@@ -1,0 +1,14 @@
+{
+  "name": "@maschina/desktop",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tauri build",
+    "dev": "tauri dev",
+    "test": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "clean": "cargo clean --manifest-path src-tauri/Cargo.toml"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

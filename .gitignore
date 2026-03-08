@@ -1,0 +1,147 @@
+# ─── Dependencies ────────────────────────────────────────────────────────────
+node_modules
+.pnpm-store
+.pnpm-debug.log*
+package-lock.json
+yarn.lock
+__pycache__
+*.py[cod]
+*.egg-info
+.venv
+venv
+.uv
+uv.lock
+
+# ─── Build outputs ───────────────────────────────────────────────────────────
+dist
+build
+.next
+.nuxt
+.svelte-kit
+.turbo
+out
+.output
+target/
+*.d.ts.map
+*.tsbuildinfo
+*.rlib
+*.rmeta
+*.pdb
+
+# ─── Environment / Secrets ───────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+docker/.env
+.secrets
+scripts/set-secrets.sh
+
+# ─── Databases ───────────────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+local.db
+dev.db
+
+# ─── Certificates / Keys ─────────────────────────────────────────────────────
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.creds
+*.jks
+*.keystore
+
+# ─── AI / Claude ─────────────────────────────────────────────────────────────
+CLAUDE.md
+.claude/
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.heapsnapshot
+
+# ─── OS ──────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ─── Editor ──────────────────────────────────────────────────────────────────
+.vscode
+.idea
+*.swp
+*.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.project
+.classpath
+.settings/
+*.launch
+.vim/
+Session.vim
+
+# ─── Testing / Coverage ──────────────────────────────────────────────────────
+coverage
+.coverage
+.coverage.*
+htmlcov
+.pytest_cache
+.mypy_cache
+.ruff_cache
+*.lcov
+vitest.results.json
+
+# ─── Rust ────────────────────────────────────────────────────────────────────
+target/
+Cargo.lock.bak
+**/*.rs.bk
+
+# ─── Tauri ───────────────────────────────────────────────────────────────────
+apps/desktop/src-tauri/target
+apps/desktop/src-tauri/WixTools
+apps/mobile/src-tauri/target
+apps/mobile/gen/
+
+# ─── Solana / Anchor ─────────────────────────────────────────────────────────
+.anchor
+programs/target
+idl/
+types/
+
+# ─── Docker ──────────────────────────────────────────────────────────────────
+.docker/
+
+# ─── Terraform / Infrastructure ──────────────────────────────────────────────
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfvars
+!*.tfvars.example
+
+# ─── Misc ────────────────────────────────────────────────────────────────────
+.cache
+tmp/
+temp/
+.maschina
+*.orig
+*.rej
+*.patch
+.actrc.local

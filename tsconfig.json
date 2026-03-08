@@ -1,0 +1,18 @@
+{
+  "extends": "./packages/tsconfig/base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "packages/*/src/**/*",
+    "packages/sdk/ts/src/**/*",
+    "apps/*/src/**/*",
+    "services/api/src/**/*"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/dist",
+    "apps/desktop/src-tauri",
+    "apps/mobile/src-tauri"
+  ]
+}

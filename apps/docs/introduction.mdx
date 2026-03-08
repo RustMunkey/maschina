@@ -1,0 +1,47 @@
+---
+title: Introduction
+description: Infrastructure for autonomous digital labor.
+---
+
+Maschina is a platform for building, deploying, and operating autonomous AI agents at scale. It handles the infrastructure so you can focus on what your agents do — not how they run.
+
+## What Maschina provides
+
+- **Agent runtime** — multi-turn LLM execution with tool calling, risk checks, and structured I/O
+- **Job queue** — NATS JetStream-backed durable dispatch with pull consumers and retry semantics
+- **Auth** — JWT sessions, API keys, RBAC, OAuth, and email verification out of the box
+- **Billing** — Stripe Checkout with prepaid credits and usage-based quota enforcement
+- **Observability** — OpenTelemetry tracing, Prometheus metrics, Loki logs, Grafana dashboards
+- **Gateway** — Axum-based reverse proxy with JWT validation, rate limiting, and WebSocket bridge
+
+## Architecture overview
+
+Maschina is a monorepo composed of TypeScript packages and services, Rust services, and a Python agent runtime.
+
+| Layer | Technology |
+|---|---|
+| API | Hono (TypeScript) |
+| Gateway | Axum (Rust) |
+| Realtime | Axum + WebSocket (Rust) |
+| Daemon | Rust, NATS pull consumer |
+| Agent runtime | FastAPI + Python |
+| Database | PostgreSQL (Neon) / SQLite (local) |
+| Cache | Redis |
+| Messaging | NATS JetStream |
+
+## Explore the docs
+
+<CardGroup cols={2}>
+  <Card title="Architecture" icon="sitemap" href="/architecture/system">
+    System design, services, data flow, and infrastructure.
+  </Card>
+  <Card title="Development" icon="code" href="/development/local">
+    Local setup, environment variables, and coding standards.
+  </Card>
+  <Card title="Operations" icon="server" href="/operations/deployment">
+    Deployment, CI/CD, observability, and disaster recovery.
+  </Card>
+  <Card title="Security" icon="lock" href="/security/security">
+    Auth, secrets management, access control, and API security.
+  </Card>
+</CardGroup>

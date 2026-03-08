@@ -1,0 +1,11 @@
+{
+  "name": "@maschina/ml",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "hatch build",
+    "test": "pytest",
+    "clean": "rm -rf dist .pytest_cache __pycache__ .coverage"
+  }
+}

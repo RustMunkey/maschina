@@ -1,0 +1,4 @@
+# act local runner configuration
+# Uses a slimmer Ubuntu image (~500MB) instead of the full 18GB one.
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+--secret-file .secrets

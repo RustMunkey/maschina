@@ -1,0 +1,11 @@
+[toolchain]
+channel = "1.88"
+components = ["rustfmt", "clippy", "rust-src"]
+targets = [
+  "wasm32-unknown-unknown",   # Solana / Anchor programs
+  "aarch64-apple-darwin",     # macOS Apple Silicon
+  "x86_64-apple-darwin",      # macOS Intel
+  "x86_64-unknown-linux-gnu", # Linux CI
+  "aarch64-linux-android",    # Tauri mobile (Android)
+  "aarch64-apple-ios",        # Tauri mobile (iOS)
+]

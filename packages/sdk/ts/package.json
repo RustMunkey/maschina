@@ -1,0 +1,25 @@
+{
+  "name": "@maschina/sdk",
+  "version": "0.0.0",
+  "private": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@maschina/tsconfig": "workspace:*",
+    "typescript": "^5",
+    "vitest": "^4.0.18"
+  }
+}

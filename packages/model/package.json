@@ -1,0 +1,13 @@
+{
+  "name": "@maschina/model",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "train": "python -m maschina_model.train",
+    "eval": "python -m maschina_model.eval",
+    "infer": "python -m maschina_model.infer",
+    "test": "pytest",
+    "clean": "rm -rf dist __pycache__ .pytest_cache"
+  }
+}

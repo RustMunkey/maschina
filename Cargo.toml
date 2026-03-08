@@ -1,0 +1,11 @@
+[workspace]
+resolver = "2"
+members = [
+  "services/daemon",
+  "services/gateway",
+  "services/realtime",
+  "apps/desktop/src-tauri",
+  "packages/cli",
+  "packages/code",
+  "packages/sdk/rust",
+]

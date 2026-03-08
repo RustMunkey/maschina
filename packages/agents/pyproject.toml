@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "maschina-agents"
+version = "0.0.0"
+requires-python = ">=3.12"
+dependencies = [
+  "maschina-runtime",
+  "maschina-ml",
+  # Agent types: Signal, Analysis, Execution, Optimization, Reporting
+  "pydantic>=2.9",
+  "anthropic>=0.40",
+  "langchain>=0.3",
+  "langchain-anthropic>=0.3",
+  "httpx>=0.28",
+  "numpy>=2.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "pytest-cov>=6.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/maschina_agents"]

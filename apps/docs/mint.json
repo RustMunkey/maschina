@@ -1,0 +1,82 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Maschina",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#e85d26",
+    "light": "#f08c5a",
+    "dark": "#c44810"
+  },
+  "topbarLinks": [
+    {
+      "name": "Dashboard",
+      "url": "https://app.maschina.io"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Get Started",
+    "url": "https://app.maschina.io/register"
+  },
+  "tabs": [
+    { "name": "Architecture", "url": "architecture" },
+    { "name": "Development", "url": "development" },
+    { "name": "Operations", "url": "operations" },
+    { "name": "Security", "url": "security" }
+  ],
+  "navigation": [
+    {
+      "group": "Overview",
+      "pages": ["introduction", "techstack"]
+    },
+    {
+      "group": "Architecture",
+      "pages": [
+        "architecture/system",
+        "architecture/api",
+        "architecture/ai",
+        "architecture/data",
+        "architecture/workflows",
+        "architecture/network",
+        "architecture/services",
+        "architecture/infrastructure",
+        "architecture/repository"
+      ]
+    },
+    {
+      "group": "Development",
+      "pages": [
+        "development/local",
+        "development/environment",
+        "development/standards",
+        "development/testing",
+        "development/contributing"
+      ]
+    },
+    {
+      "group": "Operations",
+      "pages": [
+        "operations/deployment",
+        "operations/ci-cd",
+        "operations/observability",
+        "operations/scaling",
+        "operations/disaster-recovery"
+      ]
+    },
+    {
+      "group": "Security",
+      "pages": [
+        "security/security",
+        "security/access",
+        "security/secrets",
+        "security/api"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "github": "https://github.com/RustMunkey/maschina"
+  }
+}

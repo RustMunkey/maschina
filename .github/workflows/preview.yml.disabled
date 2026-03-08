@@ -1,0 +1,8 @@
+# Preview environments are disabled in Phase 1.
+# Re-enable when staging infrastructure is set up (Fly staging apps + Neon project branches).
+#
+# When ready, this workflow will:
+#  - Create a Neon DB branch per PR
+#  - Deploy ephemeral Fly preview apps (maschina-api-pr-N, etc.)
+#  - Post preview URLs as a PR comment
+#  - Tear everything down on PR close

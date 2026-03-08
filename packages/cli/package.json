@@ -1,0 +1,12 @@
+{
+  "name": "@maschina/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "cargo build --release",
+    "dev": "cargo run",
+    "test": "cargo test",
+    "clean": "cargo clean"
+  }
+}

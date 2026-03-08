@@ -1,0 +1,47 @@
+{
+  "name": "@maschina/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "db:generate": "tsx node_modules/drizzle-kit/bin.cjs generate",
+    "db:migrate": "tsx node_modules/drizzle-kit/bin.cjs migrate",
+    "db:push": "tsx node_modules/drizzle-kit/bin.cjs push",
+    "db:studio": "tsx node_modules/drizzle-kit/bin.cjs studio",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@maschina/types": "workspace:*",
+    "drizzle-orm": "^0.39.3"
+  },
+  "devDependencies": {
+    "@maschina/tsconfig": "workspace:*",
+    "@maschina/vitest-config": "workspace:*",
+    "drizzle-kit": "^0.30.6",
+    "typescript": "^5",
+    "vitest": "^4.0.18"
+  },
+  "peerDependencies": {
+    "better-sqlite3": "^11",
+    "postgres": "^3"
+  },
+  "peerDependenciesMeta": {
+    "postgres": {
+      "optional": true
+    },
+    "better-sqlite3": {
+      "optional": true
+    }
+  }
+}
