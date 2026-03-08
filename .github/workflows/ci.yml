@@ -22,7 +22,7 @@ jobs:
     name: TS / typecheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: pnpm/action-setup@v4
         with:
@@ -57,7 +57,7 @@ jobs:
     name: TS / lint (Biome)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: pnpm/action-setup@v4
         with:
@@ -101,7 +101,7 @@ jobs:
       NATS_URL: nats://localhost:4222
       JWT_SECRET: ci-test-secret-minimum-32-chars-longvalue
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Service containers can't pass command args — start NATS manually with JetStream.
       - name: Start NATS with JetStream
@@ -147,7 +147,7 @@ jobs:
     name: Rust / fmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: "1.88"
@@ -158,7 +158,7 @@ jobs:
     name: Rust / clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: "1.88"
@@ -176,7 +176,7 @@ jobs:
     name: Rust / test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: "1.88"
@@ -188,7 +188,7 @@ jobs:
     name: Rust / build (release)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: "1.88"
@@ -206,7 +206,7 @@ jobs:
     name: Python / lint (Ruff)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -218,7 +218,7 @@ jobs:
     name: Python / test (Pytest)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
