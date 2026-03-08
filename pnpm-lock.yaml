@@ -896,7 +896,11 @@ importers:
 
   packages/ml: {}
 
-  packages/model: {}
+  packages/model:
+    dependencies:
+      '@maschina/plans':
+        specifier: workspace:*
+        version: link:../plans
 
   packages/nats:
     dependencies:
@@ -1452,6 +1456,9 @@ importers:
       '@maschina/jobs':
         specifier: workspace:*
         version: link:../../packages/jobs
+      '@maschina/model':
+        specifier: workspace:*
+        version: link:../../packages/model
       '@maschina/nats':
         specifier: workspace:*
         version: link:../../packages/nats

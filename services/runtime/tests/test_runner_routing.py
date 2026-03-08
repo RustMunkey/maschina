@@ -25,12 +25,15 @@ _stub_module(
     check_output=lambda text: mock.MagicMock(flags=[]),
 )
 
-# Stub maschina_runtime
-_stub_module(
-    "maschina_runtime",
-    RunInput=mock.MagicMock,
-    AgentRunner=mock.MagicMock,
-)
+# Stub maschina_runtime as a package (needs __path__ so submodule imports work)
+_rt = _stub_module("maschina_runtime", RunInput=mock.MagicMock, AgentRunner=mock.MagicMock)
+_rt.__path__ = []  # marks it as a package to Python's import system
+
+# Stub maschina_runtime.models (imported by ollama_runner.py at module level)
+_stub_module("maschina_runtime.models", RunInput=mock.MagicMock, RunResult=mock.MagicMock)
+
+# Stub openai (imported by ollama_runner.py)
+_stub_module("openai", AsyncOpenAI=mock.MagicMock)
 
 # Stub src.config.settings before importing runner
 settings_mock = mock.MagicMock()
