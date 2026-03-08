@@ -19,6 +19,8 @@ export const UpdateAgentSchema = z.object({
 
 export const RunAgentSchema = z.object({
   input: z.record(z.unknown()).optional().default({}),
+  /** Optional model override. Validated against the caller's plan tier. */
+  model: z.string().optional(),
   timeout: z
     .number()
     .int()

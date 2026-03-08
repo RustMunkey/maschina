@@ -19,6 +19,7 @@
     "@maschina/email": "workspace:*",
     "@maschina/events": "workspace:*",
     "@maschina/jobs": "workspace:*",
+    "@maschina/model": "workspace:*",
     "@maschina/nats": "workspace:*",
     "@maschina/notifications": "workspace:*",
     "@maschina/plans": "workspace:*",

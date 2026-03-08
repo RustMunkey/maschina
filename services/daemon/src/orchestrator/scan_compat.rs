@@ -8,6 +8,10 @@ pub struct JobToRun {
     pub agent_id: Uuid,
     pub user_id: Uuid,
     pub plan_tier: String,
+    /// Resolved model ID (e.g. "claude-haiku-4-5-20251001" or "ollama/llama3.2").
+    pub model: String,
+    /// System prompt resolved from agent config at dispatch time.
+    pub system_prompt: String,
     pub input_payload: serde_json::Value,
     pub timeout_secs: i64,
 }

@@ -17,6 +17,8 @@ pub struct AgentExecuteJob {
     pub agent_id: Uuid,
     pub user_id: Uuid,
     pub tier: String,
+    pub model: String,
+    pub system_prompt: String,
     pub input_payload: serde_json::Value,
     pub timeout_secs: u64,
 }
@@ -119,6 +121,8 @@ pub async fn scan_and_dispatch(state: AppState) -> Result<()> {
                 agent_id: job.agent_id,
                 user_id: job.user_id,
                 plan_tier: job.tier,
+                model: job.model,
+                system_prompt: job.system_prompt,
                 input_payload: job.input_payload,
                 timeout_secs: job.timeout_secs as i64,
             };

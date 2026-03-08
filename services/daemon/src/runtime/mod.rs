@@ -4,32 +4,44 @@ use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 
 /// Output returned by the Python runtime after a successful agent execution.
+/// Must match services/runtime/src/models.py::RunResponse exactly.
 #[derive(Debug, Deserialize)]
 pub struct RunOutput {
-    pub payload: serde_json::Value,
+    pub output_payload: serde_json::Value,
     pub input_tokens: u64,
     pub output_tokens: u64,
 }
 
 /// Request body sent to the Python runtime service.
+/// Must match services/runtime/src/models.py::RunRequest exactly.
 #[derive(Debug, Serialize)]
 struct RuntimeRequest<'a> {
     run_id: uuid::Uuid,
     agent_id: uuid::Uuid,
     user_id: uuid::Uuid,
+    plan_tier: &'a str,
+    model: &'a str,
+    system_prompt: &'a str,
+    max_tokens: u32,
     input_payload: &'a serde_json::Value,
+    timeout_secs: i64,
 }
 
 /// Dispatch a run to the Python runtime and await the result.
 /// The caller is responsible for enforcing the timeout wrapper.
 pub async fn dispatch(state: &AppState, run: &QueuedRun) -> Result<RunOutput, DaemonError> {
-    let url = format!("{}/execute", state.config.runtime_url);
+    let url = format!("{}/run", state.config.runtime_url);
 
     let body = RuntimeRequest {
         run_id: run.id,
         agent_id: run.agent_id,
         user_id: run.user_id,
+        plan_tier: &run.plan_tier,
+        model: &run.model,
+        system_prompt: &run.system_prompt,
+        max_tokens: 4096,
         input_payload: &run.input_payload,
+        timeout_secs: run.timeout_secs,
     };
 
     let response = state

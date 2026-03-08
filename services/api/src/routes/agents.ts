@@ -3,6 +3,7 @@ import { agents } from "@maschina/db";
 import { and, eq, isNull } from "@maschina/db";
 import { Subjects } from "@maschina/events";
 import { dispatchAgentRun } from "@maschina/jobs";
+import { resolveModel, validateModelAccess } from "@maschina/model";
 import { publishSafe } from "@maschina/nats";
 import { recordAgentExecution } from "@maschina/usage";
 import {
@@ -147,9 +148,26 @@ app.post(
 
     if (!agent) throw new HTTPException(404, { message: "Agent not found" });
 
-    // Get the user's current plan for timeout config
-    const { getPlan } = await import("@maschina/plans");
-    const plan = getPlan(user.tier);
+    // Validate model access and resolve to the appropriate model for this tier
+    if (input.model) {
+      const access = validateModelAccess(user.tier, input.model);
+      if (!access.allowed) {
+        throw new HTTPException(403, {
+          message: access.reason ?? "Model not available on your plan.",
+        });
+      }
+    }
+    const resolvedModel = resolveModel(user.tier, input.model);
+
+    // Resolve system prompt from agent config, fall back to a sensible default
+    const agentConfig = (agent.config ?? {}) as Record<string, unknown>;
+    const systemPrompt =
+      typeof agentConfig.systemPrompt === "string"
+        ? agentConfig.systemPrompt
+        : `You are a Maschina ${agent.type} agent named "${agent.name}". Complete the task provided.`;
+
+    // Convert timeout from ms (API input) to seconds (runtime)
+    const timeoutSecs = Math.floor((input.timeout ?? 300_000) / 1000);
 
     // Insert the agent_runs row
     const { agentRuns } = await import("@maschina/db");
@@ -169,8 +187,10 @@ app.post(
       agentId,
       userId: user.id,
       tier: user.tier,
+      model: resolvedModel,
+      systemPrompt,
       inputPayload: input.input ?? {},
-      timeoutSecs: 300,
+      timeoutSecs,
     });
 
     // Publish event (fire-and-forget — realtime service fans this out to WebSocket clients)

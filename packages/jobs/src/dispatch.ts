@@ -31,6 +31,8 @@ export async function dispatchAgentRun(opts: {
   agentId: string;
   userId: string;
   tier: string;
+  model: string;
+  systemPrompt: string;
   inputPayload: unknown;
   timeoutSecs: number;
 }): Promise<string> {

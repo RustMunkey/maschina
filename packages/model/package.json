@@ -3,11 +3,23 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
+    "build": "tsc",
     "train": "python -m maschina_model.train",
     "eval": "python -m maschina_model.eval",
     "infer": "python -m maschina_model.infer",
     "test": "pytest",
     "clean": "rm -rf dist __pycache__ .pytest_cache"
+  },
+  "dependencies": {
+    "@maschina/plans": "workspace:*"
   }
 }

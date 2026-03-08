@@ -29,8 +29,9 @@
     "cargo:run:cli": "cargo run -p maschina-cli",
     "cargo:run:code": "cargo run -p maschina-code",
 
-    "pytest": "pytest packages/runtime packages/agents packages/ml packages/model packages/risk packages/sdk/python services/worker",
+    "pytest": "pytest packages/runtime packages/agents packages/ml packages/model packages/risk packages/sdk/python services/worker services/runtime",
     "pytest:runtime": "pytest packages/runtime",
+    "pytest:runtime-service": "pytest services/runtime",
     "pytest:agents": "pytest packages/agents",
     "pytest:ml": "pytest packages/ml",
     "pytest:model": "pytest packages/model",
@@ -186,7 +187,7 @@
     "ci": "pnpm check && pnpm build:packages && pnpm test",
     "ci:ts": "pnpm check && pnpm build:packages && turbo test --filter='!@maschina/daemon' --filter='!@maschina/cli' --filter='!@maschina/code' --filter='!@maschina/rust'",
     "ci:rust": "pnpm check:rust && pnpm build:rust && pnpm test:rust",
-    "ci:python": "pytest tests packages/runtime packages/agents packages/ml packages/risk packages/sdk/python services/worker",
+    "ci:python": "pytest tests packages/runtime packages/agents packages/ml packages/risk packages/sdk/python services/worker services/runtime",
     "ci:e2e": "turbo test --filter=@maschina/tests",
     "ci:integration": "vitest run --root tests/integration"
   },

@@ -15,6 +15,8 @@ export interface AgentExecuteJob {
   agentId: string;
   userId: string;
   tier: string;
+  model: string;
+  systemPrompt: string;
   inputPayload: unknown;
   timeoutSecs: number;
 }
