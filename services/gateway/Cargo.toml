@@ -13,7 +13,7 @@ tokio = { version = "1", features = ["full"] }
 # HTTP / routing
 axum = { version = "0.7", features = ["ws"] }
 tower = "0.5"
-tower-http = { version = "0.5", features = ["cors", "trace", "compression-gzip"] }
+tower-http = { version = "0.6", features = ["cors", "trace", "compression-gzip"] }
 # HTTP client (proxy)
 reqwest = { version = "0.12", features = ["stream", "json"] }
 bytes = "1"

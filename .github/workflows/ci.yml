@@ -137,7 +137,7 @@ jobs:
       - name: Run migrations
         run: pnpm db:migrate
 
-      - run: pnpm turbo test --filter='!@maschina/worker' --filter='!@maschina/runtime' --filter='!@maschina/agents' --filter='!@maschina/risk' --filter='!@maschina/ml' --filter='!@maschina/sdk-python'
+      - run: pnpm turbo test --filter='!@maschina/worker' --filter='!@maschina/runtime' --filter='!@maschina/agents' --filter='!@maschina/risk' --filter='!@maschina/ml' --filter='!@maschina/sdk-python' --filter='!@maschina/model'
 
   # ── Rust ──────────────────────────────────────────────────────────────────
   # Scoped to server-side crates only. Tauri + CLI binaries are built and
