@@ -44,6 +44,7 @@ jobs:
           pnpm --filter @maschina/events build
           pnpm --filter @maschina/nats build
           pnpm --filter @maschina/jobs build
+          pnpm --filter @maschina/model build
           pnpm --filter @maschina/telemetry build
           pnpm --filter @maschina/usage build
           pnpm --filter @maschina/billing build
@@ -127,6 +128,7 @@ jobs:
           pnpm --filter @maschina/events build
           pnpm --filter @maschina/nats build
           pnpm --filter @maschina/jobs build
+          pnpm --filter @maschina/model build
           pnpm --filter @maschina/telemetry build
           pnpm --filter @maschina/usage build
           pnpm --filter @maschina/billing build
