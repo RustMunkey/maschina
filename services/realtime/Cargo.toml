@@ -19,7 +19,7 @@ tokio-stream = { version = "0.1", features = ["sync"] }
 tokio-util = { version = "0.7", features = ["rt"] }
 futures-util = "0.3"
 # NATS JetStream (event fan-out source)
-async-nats = "0.38"
+async-nats = "0.46"
 # Per-user connection registry
 dashmap = "6"
 # Auth
