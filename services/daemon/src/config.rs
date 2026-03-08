@@ -20,6 +20,7 @@ pub struct Config {
     /// Port for the daemon's internal health/metrics HTTP server
     pub health_port: u16,
     /// Agent run timeout — hard kill after this many seconds
+    #[allow(dead_code)]
     pub agent_timeout_secs: u64,
     /// Environment: "development" | "production"
     pub env: String,

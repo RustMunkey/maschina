@@ -109,8 +109,8 @@ async fn record_usage(
     let uid = run.user_id.to_string();
 
     // Increment agent_execution counter
-    let exec_key = format!("quota:{}:agent_execution:{}", uid, month);
-    let token_key = format!("quota:{}:model_tokens:{}", uid, month);
+    let exec_key = format!("quota:{uid}:agent_execution:{month}");
+    let token_key = format!("quota:{uid}:model_tokens:{month}");
 
     let total_tokens = (output.input_tokens + output.output_tokens) as i64;
 
@@ -124,7 +124,7 @@ async fn record_usage(
     let _: Vec<redis::Value> = pipe
         .query_async(&mut state.redis.clone())
         .await
-        .map_err(|e| DaemonError::Redis(e))?;
+        .map_err(DaemonError::Redis)?;
 
     // Fire-and-forget usage event to PostgreSQL
     let db = state.db.clone();

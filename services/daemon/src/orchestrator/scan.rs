@@ -24,6 +24,7 @@ pub struct AgentExecuteJob {
 /// Wraps the NATS envelope to extract the job payload.
 #[derive(Debug, serde::Deserialize)]
 struct JobEnvelope {
+    #[allow(dead_code)]
     id: String,
     data: AgentExecuteJob,
 }

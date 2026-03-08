@@ -21,6 +21,7 @@ pub enum DaemonError {
     #[error("Agent {agent_id} not found or not accessible")]
     AgentNotFound { agent_id: Uuid },
 
+    #[allow(dead_code)]
     #[error("Sandbox error: {0}")]
     Sandbox(String),
 

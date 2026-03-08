@@ -11,6 +11,7 @@ pub struct AppState {
     pub config: Arc<Config>,
     pub db: Pool,
     pub redis: redis::aio::ConnectionManager,
+    #[allow(dead_code)]
     pub nats: async_nats::Client,
     pub jetstream: async_nats::jetstream::Context,
     pub http: reqwest::Client,
