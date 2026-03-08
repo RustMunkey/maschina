@@ -227,6 +227,7 @@ jobs:
       - name: Install packages
         run: |
           uv pip install -e packages/runtime --system
+          uv pip install -e packages/ml --system
           uv pip install -e packages/agents --system
           uv pip install -e packages/risk --system
           uv pip install pytest pytest-asyncio pytest-mock --system

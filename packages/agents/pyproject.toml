@@ -8,6 +8,7 @@ version = "0.0.0"
 requires-python = ">=3.12"
 dependencies = [
   "maschina-runtime",
+  "maschina-ml",
   # Agent types: Signal, Analysis, Execution, Optimization, Reporting
   "pydantic>=2.9",
   "anthropic>=0.40",
