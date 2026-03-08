@@ -15,7 +15,7 @@ axum = { version = "0.7", features = ["ws"] }
 tower = "0.5"
 tower-http = { version = "0.5", features = ["cors", "trace", "compression-gzip"] }
 # HTTP client (proxy)
-reqwest = { version = "0.12", features = ["stream", "json"] }
+reqwest = { version = "0.13", features = ["stream", "json"] }
 bytes = "1"
 # WebSocket proxy
 tokio-tungstenite = { version = "0.21", features = ["native-tls"] }
