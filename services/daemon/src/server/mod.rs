@@ -36,11 +36,7 @@ async fn health(State(state): State<AppState>) -> Response {
     // Quick liveness probe — just check DB connectivity
     match sqlx::query("SELECT 1").execute(&state.db).await {
         Ok(_) => (StatusCode::OK, "ok").into_response(),
-        Err(e) => (
-            StatusCode::SERVICE_UNAVAILABLE,
-            format!("db error: {e}"),
-        )
-            .into_response(),
+        Err(e) => (StatusCode::SERVICE_UNAVAILABLE, format!("db error: {e}")).into_response(),
     }
 }
 
@@ -60,7 +56,10 @@ async fn metrics(State(state): State<AppState>) -> Response {
     let body = String::from_utf8(buffer).unwrap_or_default();
     (
         StatusCode::OK,
-        [(axum::http::header::CONTENT_TYPE, "text/plain; version=0.0.4")],
+        [(
+            axum::http::header::CONTENT_TYPE,
+            "text/plain; version=0.0.4",
+        )],
         body,
     )
         .into_response()

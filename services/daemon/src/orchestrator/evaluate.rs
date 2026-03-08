@@ -1,6 +1,6 @@
 use crate::error::DaemonError;
-use crate::state::AppState;
 use crate::orchestrator::scan_compat::JobToRun as QueuedRun;
+use crate::state::AppState;
 use redis::AsyncCommands;
 use tracing::{info, instrument, warn};
 
@@ -16,8 +16,8 @@ pub async fn evaluate_and_execute(state: AppState, run: QueuedRun) {
             warn!(run_id = %run.id, error = %e, "Evaluate phase rejected run");
             let (status, reason) = match &e {
                 DaemonError::QuotaExceeded { .. } => ("failed", "quota_exceeded"),
-                DaemonError::AgentNotFound { .. }  => ("failed", "agent_not_found"),
-                _                                   => ("failed", "evaluate_error"),
+                DaemonError::AgentNotFound { .. } => ("failed", "agent_not_found"),
+                _ => ("failed", "evaluate_error"),
             };
             let _ = fail_run(&state, &run, status, reason, &e.to_string()).await;
             state.metrics.runs_executing.dec();
@@ -29,7 +29,7 @@ pub async fn evaluate_and_execute(state: AppState, run: QueuedRun) {
 async fn evaluate(state: &AppState, run: &QueuedRun) -> crate::error::Result<()> {
     // 1. Verify the agent still exists and belongs to the user
     let agent_exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM agents WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL)"
+        "SELECT EXISTS(SELECT 1 FROM agents WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL)",
     )
     .bind(run.agent_id)
     .bind(run.user_id)
@@ -37,7 +37,9 @@ async fn evaluate(state: &AppState, run: &QueuedRun) -> crate::error::Result<()>
     .await?;
 
     if !agent_exists {
-        return Err(DaemonError::AgentNotFound { agent_id: run.agent_id });
+        return Err(DaemonError::AgentNotFound {
+            agent_id: run.agent_id,
+        });
     }
 
     // 2. Skip quota checks for internal tier
@@ -50,7 +52,8 @@ async fn evaluate(state: &AppState, run: &QueuedRun) -> crate::error::Result<()>
     let month = chrono::Utc::now().format("%Y-%m").to_string();
     let quota_key = format!("quota:{}:agent_execution:{}", run.user_id, month);
 
-    let current: i64 = state.redis
+    let current: i64 = state
+        .redis
         .clone()
         .get::<_, Option<i64>>(&quota_key)
         .await
@@ -71,14 +74,14 @@ async fn evaluate(state: &AppState, run: &QueuedRun) -> crate::error::Result<()>
 
 fn monthly_execution_limit(tier: &str) -> i64 {
     match tier {
-        "access"     => 10,
-        "m1"         => 500,
-        "m5"         => 2_000,
-        "m10"        => 10_000,
-        "teams"      => 10_000,
+        "access" => 10,
+        "m1" => 500,
+        "m5" => 2_000,
+        "m10" => 10_000,
+        "teams" => 10_000,
         "enterprise" => -1, // unlimited
-        "internal"   => -1,
-        _            => 0,
+        "internal" => -1,
+        _ => 0,
     }
 }
 

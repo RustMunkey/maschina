@@ -9,14 +9,18 @@ async fn nats_connect(url: &str) -> anyhow::Result<async_nats::Client> {
     if let Ok(creds) = std::env::var("NATS_CREDS") {
         let path = std::env::temp_dir().join("nats.creds");
         std::fs::write(&path, creds.as_bytes())?;
-        let client = async_nats::ConnectOptions::with_credentials_file(path.clone()).await?
-            .connect(url).await?;
+        let client = async_nats::ConnectOptions::with_credentials_file(path.clone())
+            .await?
+            .connect(url)
+            .await?;
         let _ = std::fs::remove_file(path);
         return Ok(client);
     }
     if let Ok(path) = std::env::var("NATS_CREDS_FILE") {
-        return Ok(async_nats::ConnectOptions::with_credentials_file(path).await?
-            .connect(url).await?);
+        return Ok(async_nats::ConnectOptions::with_credentials_file(path)
+            .await?
+            .connect(url)
+            .await?);
     }
     Ok(async_nats::connect(url).await?)
 }
@@ -35,8 +39,7 @@ use tower_http::{cors::CorsLayer, trace::TraceLayer};
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "info".into()),
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
         )
         .json()
         .init();
@@ -82,7 +85,10 @@ async fn main() -> anyhow::Result<()> {
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
 
-    let serve = axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>());
+    let serve = axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    );
 
     // Graceful shutdown on Ctrl-C
     tokio::select! {

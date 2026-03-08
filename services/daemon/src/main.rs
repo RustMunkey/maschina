@@ -20,14 +20,18 @@ async fn nats_connect(url: &str) -> anyhow::Result<async_nats::Client> {
     if let Ok(creds) = std::env::var("NATS_CREDS") {
         let path = std::env::temp_dir().join("nats.creds");
         std::fs::write(&path, creds.as_bytes())?;
-        let client = async_nats::ConnectOptions::with_credentials_file(path.clone()).await?
-            .connect(url).await?;
+        let client = async_nats::ConnectOptions::with_credentials_file(path.clone())
+            .await?
+            .connect(url)
+            .await?;
         let _ = std::fs::remove_file(path);
         return Ok(client);
     }
     if let Ok(path) = std::env::var("NATS_CREDS_FILE") {
-        return Ok(async_nats::ConnectOptions::with_credentials_file(path).await?
-            .connect(url).await?);
+        return Ok(async_nats::ConnectOptions::with_credentials_file(path)
+            .await?
+            .connect(url)
+            .await?);
     }
     Ok(async_nats::connect(url).await?)
 }

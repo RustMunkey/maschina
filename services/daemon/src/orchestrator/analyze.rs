@@ -23,7 +23,15 @@ pub async fn finalize_run(
         }
 
         Err(DaemonError::Timeout { .. }) => {
-            if let Err(e) = persist_failure(state, run, "timed_out", "timeout", "Agent run exceeded time limit").await {
+            if let Err(e) = persist_failure(
+                state,
+                run,
+                "timed_out",
+                "timeout",
+                "Agent run exceeded time limit",
+            )
+            .await
+            {
                 error!(run_id = %run.id, error = %e, "Failed to persist timeout");
             }
             notify_realtime(state, run, "timed_out", Some("timeout")).await;
@@ -113,7 +121,9 @@ async fn record_usage(
         .incr(&token_key, total_tokens)
         .expire(&token_key, seconds_until_month_end());
 
-    let _: Vec<redis::Value> = pipe.query_async(&mut state.redis.clone()).await
+    let _: Vec<redis::Value> = pipe
+        .query_async(&mut state.redis.clone())
+        .await
         .map_err(|e| DaemonError::Redis(e))?;
 
     // Fire-and-forget usage event to PostgreSQL
@@ -159,11 +169,7 @@ async fn notify_realtime(
     });
 
     let url = format!("{}/internal/run-event", state.config.realtime_url);
-    let result = state.http
-        .post(&url)
-        .json(&payload)
-        .send()
-        .await;
+    let result = state.http.post(&url).json(&payload).send().await;
 
     if let Err(e) = result {
         warn!(run_id = %run.id, error = %e, "Failed to notify realtime service");
@@ -173,11 +179,11 @@ async fn notify_realtime(
 fn error_code_and_message(e: &DaemonError) -> (&'static str, &'static str) {
     match e {
         DaemonError::QuotaExceeded { .. } => ("quota_exceeded", "Monthly quota exceeded"),
-        DaemonError::AgentNotFound { .. }  => ("agent_not_found", "Agent not found"),
-        DaemonError::Sandbox(_)            => ("sandbox_error", "Sandbox execution error"),
-        DaemonError::Runtime(_)            => ("runtime_error", "Runtime error"),
-        DaemonError::Timeout { .. }        => ("timeout", "Agent run exceeded time limit"),
-        _                                  => ("internal_error", "Internal daemon error"),
+        DaemonError::AgentNotFound { .. } => ("agent_not_found", "Agent not found"),
+        DaemonError::Sandbox(_) => ("sandbox_error", "Sandbox execution error"),
+        DaemonError::Runtime(_) => ("runtime_error", "Runtime error"),
+        DaemonError::Timeout { .. } => ("timeout", "Agent run exceeded time limit"),
+        _ => ("internal_error", "Internal daemon error"),
     }
 }
 
@@ -186,7 +192,13 @@ fn seconds_until_month_end() -> i64 {
     let now = Utc::now();
     let year = now.year();
     let month = now.month();
-    let (next_year, next_month) = if month == 12 { (year + 1, 1) } else { (year, month + 1) };
-    let end = Utc.with_ymd_and_hms(next_year, next_month, 1, 0, 0, 0).unwrap();
+    let (next_year, next_month) = if month == 12 {
+        (year + 1, 1)
+    } else {
+        (year, month + 1)
+    };
+    let end = Utc
+        .with_ymd_and_hms(next_year, next_month, 1, 0, 0, 0)
+        .unwrap();
     (end - now).num_seconds().max(1)
 }

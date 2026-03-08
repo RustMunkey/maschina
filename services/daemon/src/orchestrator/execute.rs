@@ -13,11 +13,7 @@ pub async fn execute_run(state: AppState, run: QueuedRun) {
 
     info!(run_id = %run.id, timeout_secs = run.timeout_secs, "Executing agent run");
 
-    let result = timeout(
-        timeout_dur,
-        crate::runtime::dispatch(&state, &run),
-    )
-    .await;
+    let result = timeout(timeout_dur, crate::runtime::dispatch(&state, &run)).await;
 
     match result {
         // Runtime completed within timeout

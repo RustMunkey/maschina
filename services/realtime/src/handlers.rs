@@ -43,11 +43,8 @@ pub async fn ws_handler(
     headers: HeaderMap,
     Query(params): Query<ConnectParams>,
 ) -> impl IntoResponse {
-    let user_id = auth::resolve_user_id(
-        &headers,
-        params.token.as_deref(),
-        &state.config.jwt_secret,
-    );
+    let user_id =
+        auth::resolve_user_id(&headers, params.token.as_deref(), &state.config.jwt_secret);
 
     let Some(user_id) = user_id else {
         return StatusCode::UNAUTHORIZED.into_response();
@@ -103,11 +100,8 @@ pub async fn sse_handler(
     headers: HeaderMap,
     Query(params): Query<ConnectParams>,
 ) -> impl IntoResponse {
-    let user_id = auth::resolve_user_id(
-        &headers,
-        params.token.as_deref(),
-        &state.config.jwt_secret,
-    );
+    let user_id =
+        auth::resolve_user_id(&headers, params.token.as_deref(), &state.config.jwt_secret);
 
     let Some(user_id) = user_id else {
         return (StatusCode::UNAUTHORIZED, "unauthorized").into_response();
@@ -116,12 +110,11 @@ pub async fn sse_handler(
     let rx = registry::subscribe(&state.registry, &user_id);
     tracing::info!(user_id = %user_id, "sse client connected");
 
-    let stream = BroadcastStream::new(rx)
-        .filter_map(|result| match result {
-            Ok(text) => Some(Ok::<Event, axum::Error>(Event::default().data(text))),
-            // Receiver lagged — skip and continue
-            Err(_) => None,
-        });
+    let stream = BroadcastStream::new(rx).filter_map(|result| match result {
+        Ok(text) => Some(Ok::<Event, axum::Error>(Event::default().data(text))),
+        // Receiver lagged — skip and continue
+        Err(_) => None,
+    });
 
     Sse::new(stream)
         .keep_alive(KeepAlive::default())

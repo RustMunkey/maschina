@@ -27,7 +27,8 @@ pub struct Config {
 
 impl Config {
     pub fn from_env() -> Result<Self> {
-        let _ = dotenvy::dotenv().map(|_| ())
+        let _ = dotenvy::dotenv()
+            .map(|_| ())
             .or_else(|_| dotenvy::from_path(concat!(env!("CARGO_MANIFEST_DIR"), "/.env")))
             .or_else(|_| dotenvy::from_path(concat!(env!("CARGO_MANIFEST_DIR"), "/../../.env")));
 
@@ -35,8 +36,7 @@ impl Config {
             database_url: required("DATABASE_URL")?,
             redis_url: env::var("REDIS_URL").unwrap_or_else(|_| "redis://localhost:6379".into()),
             nats_url: env::var("NATS_URL").unwrap_or_else(|_| "nats://localhost:4222".into()),
-            runtime_url: env::var("RUNTIME_URL")
-                .unwrap_or_else(|_| "http://localhost:8001".into()),
+            runtime_url: env::var("RUNTIME_URL").unwrap_or_else(|_| "http://localhost:8001".into()),
             realtime_url: env::var("REALTIME_URL")
                 .unwrap_or_else(|_| "http://localhost:4000".into()),
             max_concurrent_agents: env::var("MAX_CONCURRENT_AGENTS")

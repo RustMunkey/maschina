@@ -69,7 +69,7 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
-      - run: pnpm check
+      - run: pnpm exec biome check packages/ services/ --no-errors-on-unmatched
 
   ts-test:
     name: TS / test (Vitest)

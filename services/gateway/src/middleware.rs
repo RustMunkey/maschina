@@ -34,14 +34,8 @@ pub async fn auth_and_rate_limit(
                 return Err(GatewayError::RateLimited);
             }
             let headers = req.headers_mut();
-            headers.insert(
-                "x-forwarded-user-id",
-                hval(&claims.sub)?,
-            );
-            headers.insert(
-                "x-forwarded-plan-tier",
-                hval(&claims.tier)?,
-            );
+            headers.insert("x-forwarded-user-id", hval(&claims.sub)?);
+            headers.insert("x-forwarded-plan-tier", hval(&claims.tier)?);
         }
         AuthContext::ApiKey(key) => {
             if state.ip_limiter.check_key(&addr.ip()).is_err() {
@@ -61,8 +55,7 @@ pub async fn auth_and_rate_limit(
 
     // Correlation ID
     let req_id = uuid::Uuid::new_v4().to_string();
-    req.headers_mut()
-        .insert("x-request-id", hval(&req_id)?);
+    req.headers_mut().insert("x-request-id", hval(&req_id)?);
 
     Ok(next.run(req).await)
 }

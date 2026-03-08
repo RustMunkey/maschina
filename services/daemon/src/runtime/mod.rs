@@ -6,17 +6,17 @@ use serde::{Deserialize, Serialize};
 /// Output returned by the Python runtime after a successful agent execution.
 #[derive(Debug, Deserialize)]
 pub struct RunOutput {
-    pub payload:       serde_json::Value,
-    pub input_tokens:  u64,
+    pub payload: serde_json::Value,
+    pub input_tokens: u64,
     pub output_tokens: u64,
 }
 
 /// Request body sent to the Python runtime service.
 #[derive(Debug, Serialize)]
 struct RuntimeRequest<'a> {
-    run_id:        uuid::Uuid,
-    agent_id:      uuid::Uuid,
-    user_id:       uuid::Uuid,
+    run_id: uuid::Uuid,
+    agent_id: uuid::Uuid,
+    user_id: uuid::Uuid,
     input_payload: &'a serde_json::Value,
 }
 
@@ -26,13 +26,14 @@ pub async fn dispatch(state: &AppState, run: &QueuedRun) -> Result<RunOutput, Da
     let url = format!("{}/execute", state.config.runtime_url);
 
     let body = RuntimeRequest {
-        run_id:        run.id,
-        agent_id:      run.agent_id,
-        user_id:       run.user_id,
+        run_id: run.id,
+        agent_id: run.agent_id,
+        user_id: run.user_id,
         input_payload: &run.input_payload,
     };
 
-    let response = state.http
+    let response = state
+        .http
         .post(&url)
         .json(&body)
         .send()
@@ -42,7 +43,9 @@ pub async fn dispatch(state: &AppState, run: &QueuedRun) -> Result<RunOutput, Da
     let status = response.status();
     if !status.is_success() {
         let body = response.text().await.unwrap_or_default();
-        return Err(DaemonError::Runtime(format!("Runtime returned {status}: {body}")));
+        return Err(DaemonError::Runtime(format!(
+            "Runtime returned {status}: {body}"
+        )));
     }
 
     let output: RunOutput = response

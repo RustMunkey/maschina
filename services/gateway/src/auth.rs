@@ -34,10 +34,7 @@ pub fn decode_jwt(token: &str, secret: &str) -> Option<Claims> {
 /// Does NOT hit the database — JWT is validated stateless, API keys are forwarded.
 pub fn extract_auth(headers: &HeaderMap, jwt_secret: &str) -> AuthContext {
     // Authorization: Bearer <token|api-key>
-    if let Some(val) = headers
-        .get("authorization")
-        .and_then(|v| v.to_str().ok())
-    {
+    if let Some(val) = headers.get("authorization").and_then(|v| v.to_str().ok()) {
         if let Some(token) = val.strip_prefix("Bearer ") {
             if token.starts_with("msk_") {
                 return AuthContext::ApiKey(token.to_string());
@@ -51,10 +48,7 @@ pub fn extract_auth(headers: &HeaderMap, jwt_secret: &str) -> AuthContext {
     }
 
     // X-Api-Key: <key>
-    if let Some(key) = headers
-        .get("x-api-key")
-        .and_then(|v| v.to_str().ok())
-    {
+    if let Some(key) = headers.get("x-api-key").and_then(|v| v.to_str().ok()) {
         return AuthContext::ApiKey(key.to_string());
     }
 

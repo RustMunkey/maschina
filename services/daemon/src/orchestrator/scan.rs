@@ -13,10 +13,10 @@ const FILTER_SUBJECT: &str = "maschina.jobs.agent.agent.execute";
 /// A deserialized agent execution job from NATS.
 #[derive(Debug, serde::Deserialize)]
 pub struct AgentExecuteJob {
-    pub run_id:       Uuid,
-    pub agent_id:     Uuid,
-    pub user_id:      Uuid,
-    pub tier:         String,
+    pub run_id: Uuid,
+    pub agent_id: Uuid,
+    pub user_id: Uuid,
+    pub tier: String,
     pub input_payload: serde_json::Value,
     pub timeout_secs: u64,
 }
@@ -24,7 +24,7 @@ pub struct AgentExecuteJob {
 /// Wraps the NATS envelope to extract the job payload.
 #[derive(Debug, serde::Deserialize)]
 struct JobEnvelope {
-    id:   String,
+    id: String,
     data: AgentExecuteJob,
 }
 
@@ -100,7 +100,11 @@ pub async fn scan_and_dispatch(state: AppState) -> Result<()> {
         state.metrics.runs_executing.inc();
         dispatched += 1;
 
-        let permit = state.slots.clone().acquire_owned().await
+        let permit = state
+            .slots
+            .clone()
+            .acquire_owned()
+            .await
             .expect("Semaphore closed — this is a bug");
 
         let state_clone = state.clone();
@@ -110,10 +114,10 @@ pub async fn scan_and_dispatch(state: AppState) -> Result<()> {
 
             // Convert to the QueuedRun type that evaluate/execute/analyze expect
             let run = crate::orchestrator::scan_compat::JobToRun {
-                id:           job.run_id,
-                agent_id:     job.agent_id,
-                user_id:      job.user_id,
-                plan_tier:    job.tier,
+                id: job.run_id,
+                agent_id: job.agent_id,
+                user_id: job.user_id,
+                plan_tier: job.tier,
                 input_payload: job.input_payload,
                 timeout_secs: job.timeout_secs as i64,
             };
@@ -137,10 +141,10 @@ pub async fn scan_and_dispatch(state: AppState) -> Result<()> {
 async fn ensure_stream_and_consumer(state: &AppState) -> Result<()> {
     // Stream
     let stream_config = async_nats::jetstream::stream::Config {
-        name:      STREAM_NAME.to_string(),
-        subjects:  vec!["maschina.jobs.>".to_string()],
+        name: STREAM_NAME.to_string(),
+        subjects: vec!["maschina.jobs.>".to_string()],
         retention: RetentionPolicy::WorkQueue,
-        max_age:   std::time::Duration::from_secs(24 * 60 * 60), // 24h
+        max_age: std::time::Duration::from_secs(24 * 60 * 60), // 24h
         ..Default::default()
     };
 
@@ -151,15 +155,16 @@ async fn ensure_stream_and_consumer(state: &AppState) -> Result<()> {
 
     // Pull consumer
     let consumer_config = PullConfig {
-        durable_name:   Some(CONSUMER_NAME.to_string()),
+        durable_name: Some(CONSUMER_NAME.to_string()),
         filter_subject: FILTER_SUBJECT.to_string(),
-        ack_policy:     AckPolicy::Explicit,
-        max_deliver:    5,
-        ack_wait:       std::time::Duration::from_secs(30),
+        ack_policy: AckPolicy::Explicit,
+        max_deliver: 5,
+        ack_wait: std::time::Duration::from_secs(30),
         ..Default::default()
     };
 
-    let stream = state.jetstream
+    let stream = state
+        .jetstream
         .get_stream(STREAM_NAME)
         .await
         .map_err(|e| DaemonError::Runtime(format!("NATS get stream: {e}")))?;
