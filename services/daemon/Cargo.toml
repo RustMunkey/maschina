@@ -51,4 +51,4 @@ futures = "0.3"
 tokio-cron-scheduler = "0.13"
 
 # Prometheus metrics
-prometheus = { version = "0.13", features = ["process"] }
+prometheus = { version = "0.14", features = ["process"] }
