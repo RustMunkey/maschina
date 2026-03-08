@@ -124,7 +124,7 @@ apps/mobile/gen/
 .anchor
 programs/target
 idl/
-types/
+target/types/
 
 # ─── Docker ──────────────────────────────────────────────────────────────────
 .docker/

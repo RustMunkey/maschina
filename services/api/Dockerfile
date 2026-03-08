@@ -6,6 +6,7 @@ RUN corepack enable && corepack prepare pnpm@10.6.1 --activate
 # Copy workspace manifests for dependency resolution
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY packages/tsconfig ./packages/tsconfig
+COPY packages/types/package.json        ./packages/types/package.json
 COPY packages/auth/package.json         ./packages/auth/package.json
 COPY packages/billing/package.json      ./packages/billing/package.json
 COPY packages/cache/package.json        ./packages/cache/package.json

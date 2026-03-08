@@ -12,7 +12,11 @@ export class MaschinaError extends Error {
     let message = res.statusText;
     let code: string | undefined;
     try {
-      const body = await res.json();
+      const body = (await res.json()) as {
+        error?: { message?: string; code?: string };
+        message?: string;
+        code?: string;
+      };
       message = body?.error?.message ?? body?.message ?? message;
       code = body?.error?.code ?? body?.code;
     } catch {
