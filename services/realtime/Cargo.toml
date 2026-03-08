@@ -13,7 +13,7 @@ tokio = { version = "1", features = ["full"] }
 # HTTP / WebSocket / SSE
 axum = { version = "0.7", features = ["ws"] }
 tower = "0.5"
-tower-http = { version = "0.5", features = ["cors", "trace"] }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
 # Streaming + cancellation
 tokio-stream = { version = "0.1", features = ["sync"] }
 tokio-util = { version = "0.7", features = ["rt"] }
