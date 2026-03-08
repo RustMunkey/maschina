@@ -63,7 +63,7 @@ async fn persist_success(
         WHERE id = $4
         "#,
     )
-    .bind(&output.payload)
+    .bind(&output.output_payload)
     .bind(output.input_tokens as i64)
     .bind(output.output_tokens as i64)
     .bind(run.id)

@@ -14,6 +14,7 @@ COPY packages/db/package.json           ./packages/db/package.json
 COPY packages/email/package.json         ./packages/email/package.json
 COPY packages/events/package.json       ./packages/events/package.json
 COPY packages/jobs/package.json         ./packages/jobs/package.json
+COPY packages/model/package.json        ./packages/model/package.json
 COPY packages/nats/package.json         ./packages/nats/package.json
 COPY packages/notifications/package.json ./packages/notifications/package.json
 COPY packages/plans/package.json        ./packages/plans/package.json
@@ -38,6 +39,7 @@ RUN pnpm --filter @maschina/plans build
 RUN pnpm --filter @maschina/events build
 RUN pnpm --filter @maschina/nats build
 RUN pnpm --filter @maschina/jobs build
+RUN pnpm --filter @maschina/model build
 RUN pnpm --filter @maschina/telemetry build
 RUN pnpm --filter @maschina/usage build
 RUN pnpm --filter @maschina/billing build

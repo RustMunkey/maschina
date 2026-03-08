@@ -8,6 +8,24 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-08 — Model routing)
+- `packages/model/src/catalog.ts` — TypeScript model catalog: 3 Anthropic cloud models + 3 Ollama local models, per-tier access gates, billing multipliers (Haiku 1x, Sonnet 3x, Opus 15x, Ollama 0x)
+- `packages/model/src/index.ts` — Barrel export
+- `packages/model/src/catalog.test.ts` — 20 vitest tests covering multipliers, tier access, validation, resolution
+- `packages/model/tsconfig.json` + build script — TS package alongside existing Python code
+- `packages/validation` — `RunAgentSchema` gains optional `model` field
+- `packages/jobs` — `AgentExecuteJob` gains `model` + `systemPrompt` fields; `dispatchAgentRun` updated
+- `services/api` — Model access validation at run dispatch; resolves system prompt from `agent.config.systemPrompt`; passes model + system prompt through job queue
+- `services/daemon` — `AgentExecuteJob`, `JobToRun` gain `model` + `system_prompt`; `RuntimeRequest` now sends all fields the Python runtime needs (`plan_tier`, `model`, `system_prompt`, `max_tokens`, `timeout_secs`); URL fixed from `/execute` → `/run`
+- `services/daemon` — `RunOutput.payload` renamed to `output_payload` to match Python `RunResponse`
+- `services/runtime` — Full model routing in `runner.py`: routes by model ID prefix (ollama/* vs Anthropic), applies billing multiplier, lazy-imports Anthropic client per request; drops global Ollama flag
+- `services/runtime/tests/test_runner_routing.py` — Unit tests for multiplier + routing helpers (no real LLM calls)
+- CI + pytest scripts updated to include `services/runtime` tests
+
+### Fixed (2026-03-08 — Model routing)
+- Daemon was calling `/execute` endpoint on Python runtime — correct endpoint is `/run`
+- Daemon `RuntimeRequest` was missing `plan_tier`, `model`, `system_prompt`, `timeout_secs` fields that the Python `RunRequest` model requires
+
 ### Fixed (2026-03-07 — Session N+1: backend boot + E2E)
 - All 31 TS packages now build clean (`pnpm turbo build --filter='./packages/*'`)
 - `packages/cache/src/client.ts` — ioredis ESM default import via `(Redis as any)` constructor cast

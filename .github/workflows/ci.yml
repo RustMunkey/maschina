@@ -44,6 +44,7 @@ jobs:
           pnpm --filter @maschina/events build
           pnpm --filter @maschina/nats build
           pnpm --filter @maschina/jobs build
+          pnpm --filter @maschina/model build
           pnpm --filter @maschina/telemetry build
           pnpm --filter @maschina/usage build
           pnpm --filter @maschina/billing build
@@ -127,6 +128,7 @@ jobs:
           pnpm --filter @maschina/events build
           pnpm --filter @maschina/nats build
           pnpm --filter @maschina/jobs build
+          pnpm --filter @maschina/model build
           pnpm --filter @maschina/telemetry build
           pnpm --filter @maschina/usage build
           pnpm --filter @maschina/billing build
@@ -231,8 +233,9 @@ jobs:
           uv pip install -e packages/agents --system
           uv pip install -e packages/risk --system
           uv pip install -e "packages/sdk/python[dev]" --system
+          uv pip install -e "services/runtime[dev]" --system
           uv pip install pytest pytest-asyncio pytest-mock --system
-      - run: pytest packages/runtime/tests packages/agents/tests packages/risk/tests packages/sdk/python/tests -v
+      - run: pytest packages/runtime/tests packages/agents/tests packages/risk/tests packages/sdk/python/tests services/runtime/tests -v
 
   # ── Gate ──────────────────────────────────────────────────────────────────
 

@@ -896,7 +896,18 @@ importers:
 
   packages/ml: {}
 
-  packages/model: {}
+  packages/model:
+    dependencies:
+      '@maschina/plans':
+        specifier: workspace:*
+        version: link:../plans
+    devDependencies:
+      '@maschina/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      typescript:
+        specifier: ^5
+        version: 5.9.3
 
   packages/nats:
     dependencies:
@@ -1452,6 +1463,9 @@ importers:
       '@maschina/jobs':
         specifier: workspace:*
         version: link:../../packages/jobs
+      '@maschina/model':
+        specifier: workspace:*
+        version: link:../../packages/model
       '@maschina/nats':
         specifier: workspace:*
         version: link:../../packages/nats
