@@ -87,7 +87,7 @@ jobs:
       - name: Save image ref
         run: echo "ghcr.io/rustmunkey/maschina/${{ matrix.service.name }}:sha-${{ github.sha }}" > /tmp/image-${{ matrix.service.name }}.txt
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: image-ref-${{ matrix.service.name }}
           path: /tmp/image-${{ matrix.service.name }}.txt
