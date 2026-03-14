@@ -40,7 +40,7 @@ async fn try_issue(state: &AppState, run: &QueuedRun, output: &RunOutput) -> Res
     });
 
     let payload_str = serde_json::to_string(&payload)
-        .map_err(|e| DaemonError::Internal(format!("receipt serialization failed: {e}")))?;
+        .map_err(|e| DaemonError::Runtime(format!("receipt serialization failed: {e}")))?;
 
     let signature = sign(&payload_str, &state.config.proof_secret);
     let receipt_id = Uuid::new_v4();

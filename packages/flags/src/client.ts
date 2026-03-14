@@ -33,7 +33,7 @@ async function getLdClient(): Promise<LdClient | null> {
   try {
     const { init, BasicLogger } = await import("@launchdarkly/node-server-sdk");
     const client = init(sdkKey, {
-      logger: BasicLogger.get().error,
+      logger: BasicLogger.get({ level: "error" }),
       diagnosticOptOut: true,
     });
     await client.waitForInitialization({ timeout: 5 });
@@ -62,7 +62,7 @@ async function getCacheClient(): Promise<SimpleCache | null> {
   if (!redisUrl) return null;
 
   try {
-    const { default: Redis } = await import("ioredis");
+    const { Redis } = await import("ioredis");
     _cache = new Redis(redisUrl, {
       lazyConnect: true,
       enableOfflineQueue: false,
