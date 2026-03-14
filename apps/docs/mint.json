@@ -1,82 +1,131 @@
 {
   "$schema": "https://mintlify.com/schema.json",
   "name": "Maschina",
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+  "favicon": "/brand/favicon.svg",
+  "appearance": "dark",
+  "modeToggle": {
+    "default": "dark",
+    "isHidden": true
   },
-  "favicon": "/favicon.svg",
   "colors": {
-    "primary": "#e85d26",
-    "light": "#f08c5a",
-    "dark": "#c44810"
+    "primary": "#B83232",
+    "light": "#CC3333",
+    "dark": "#8C1F1F",
+    "background": {
+      "dark": "#0A0A0A",
+      "light": "#F7F7F7"
+    }
   },
+  "css": "/custom.css",
   "topbarLinks": [
     {
-      "name": "Dashboard",
-      "url": "https://app.maschina.ai"
+      "name": "GitHub",
+      "url": "https://github.com/maschina-labs"
+    },
+    {
+      "name": "X",
+      "url": "https://x.com/MaschinaAI"
+    },
+    {
+      "name": "Discord",
+      "url": "https://discord.gg/maschina"
     }
   ],
-  "topbarCtaButton": {
-    "name": "Get Started",
-    "url": "https://app.maschina.ai/register"
-  },
   "tabs": [
-    { "name": "Architecture", "url": "architecture" },
-    { "name": "Development", "url": "development" },
-    { "name": "Operations", "url": "operations" },
-    { "name": "Security", "url": "security" }
+    { "name": "Guides", "url": "guides" },
+    { "name": "Platform", "url": "platform" },
+    { "name": "SDKs", "url": "sdks" },
+    { "name": "API Reference", "url": "api-reference" },
+    { "name": "Self-Hosting", "url": "self-hosting" },
+    { "name": "Changelog", "url": "changelog" }
   ],
   "navigation": [
     {
       "group": "Overview",
-      "pages": ["introduction", "techstack"]
-    },
-    {
-      "group": "Architecture",
       "pages": [
-        "architecture/system",
-        "architecture/api",
-        "architecture/ai",
-        "architecture/data",
-        "architecture/workflows",
-        "architecture/network",
-        "architecture/services",
-        "architecture/infrastructure",
-        "architecture/repository"
+        "introduction",
+        "install",
+        "quickstart",
+        "concepts",
+        "contributing"
       ]
     },
     {
-      "group": "Development",
+      "group": "Guides",
       "pages": [
-        "development/local",
-        "development/environment",
-        "development/standards",
-        "development/testing",
-        "development/contributing"
+        "guides/first-agent",
+        "guides/models",
+        "guides/webhooks",
+        "guides/realtime",
+        "guides/search",
+        "guides/cli"
       ]
     },
     {
-      "group": "Operations",
+      "group": "Help",
       "pages": [
-        "operations/deployment",
-        "operations/ci-cd",
-        "operations/observability",
-        "operations/scaling",
-        "operations/disaster-recovery"
+        "guides/faq",
+        "guides/troubleshooting"
       ]
     },
     {
-      "group": "Security",
+      "group": "Platform",
       "pages": [
-        "security/security",
-        "security/access",
-        "security/secrets",
-        "security/api"
+        "platform/overview",
+        "platform/network",
+        "platform/nodes",
+        "platform/marketplace",
+        "platform/economics",
+        "platform/roadmap"
+      ]
+    },
+    {
+      "group": "SDKs",
+      "pages": [
+        "sdks/typescript",
+        "sdks/python",
+        "sdks/rust",
+        "sdks/rest"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "api-reference/authentication",
+        "api-reference/agents",
+        "api-reference/runs",
+        "api-reference/keys",
+        "api-reference/usage",
+        "api-reference/webhooks",
+        "api-reference/search",
+        "api-reference/realtime",
+        "api-reference/compliance"
+      ]
+    },
+    {
+      "group": "Self-Hosting",
+      "pages": [
+        "self-hosting/overview",
+        "self-hosting/docker",
+        "self-hosting/fly",
+        "self-hosting/environment",
+        "self-hosting/architecture"
+      ]
+    },
+    {
+      "group": "Changelog",
+      "pages": [
+        "changelog"
       ]
     }
   ],
   "footerSocials": {
-    "github": "https://github.com/RustMunkey/maschina"
+    "github": "https://github.com/maschina-labs",
+    "x": "https://x.com/MaschinaAI"
+  },
+  "feedback": {
+    "thumbsRating": true,
+    "suggestEdit": true,
+    "raiseIssue": true
   }
 }

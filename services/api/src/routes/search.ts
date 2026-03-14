@@ -28,6 +28,7 @@ app.get("/", async (c) => {
   const results = await search(type, q, {
     limit,
     offset,
+    // Scope results to the requesting user (agents are private)
     filter: `userId = "${userId}"`,
     sort: ["createdAt:desc"],
   });

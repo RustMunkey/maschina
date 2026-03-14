@@ -5,6 +5,7 @@ import { Subjects } from "@maschina/events";
 import { dispatchAgentRun } from "@maschina/jobs";
 import { resolveModel, validateModelAccess } from "@maschina/model";
 import { publishSafe } from "@maschina/nats";
+import { deleteDocument, upsertDocument } from "@maschina/search";
 import { recordAgentExecution } from "@maschina/usage";
 import {
   CreateAgentSchema,
@@ -19,6 +20,21 @@ import { HTTPException } from "hono/http-exception";
 import type { Variables } from "../context.js";
 import { requireAuth, requireFeature } from "../middleware/auth.js";
 import { requireQuota, trackApiCall } from "../middleware/quota.js";
+
+function agentToDoc(agent: typeof agents.$inferSelect) {
+  const config = (agent.config ?? {}) as Record<string, unknown>;
+  return {
+    id: agent.id,
+    name: agent.name,
+    description: agent.description ?? "",
+    type: agent.type,
+    status: agent.status,
+    model: typeof config.model === "string" ? config.model : "claude-haiku-4-5",
+    systemPrompt: typeof config.systemPrompt === "string" ? config.systemPrompt : "",
+    userId: agent.userId,
+    createdAt: agent.createdAt.toISOString(),
+  };
+}
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -71,6 +87,11 @@ app.post("/", requireQuota("agent_execution", 0), async (c) => {
     })
     .returning();
 
+  // Sync to search index (fire-and-forget)
+  upsertDocument("agents", agentToDoc(agent)).catch((err) =>
+    console.warn("[search] Failed to index agent on create:", err),
+  );
+
   return c.json(projectAgent(agent), 201);
 });
 
@@ -110,6 +131,11 @@ app.patch("/:id", async (c) => {
 
   if (!updated) throw new HTTPException(404, { message: "Agent not found" });
 
+  // Sync to search index (fire-and-forget)
+  upsertDocument("agents", agentToDoc(updated)).catch((err) =>
+    console.warn("[search] Failed to update agent in index:", err),
+  );
+
   return c.json(projectAgent(updated));
 });
 
@@ -125,6 +151,11 @@ app.delete("/:id", async (c) => {
     .returning({ id: agents.id });
 
   if (!deleted) throw new HTTPException(404, { message: "Agent not found" });
+
+  // Remove from search index (fire-and-forget)
+  deleteDocument("agents", agentId).catch((err) =>
+    console.warn("[search] Failed to remove agent from index:", err),
+  );
 
   return c.json({ success: true });
 });

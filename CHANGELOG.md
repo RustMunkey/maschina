@@ -8,6 +8,15 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-14 — Meilisearch search)
+- `packages/search/src/indexes.ts` — agents index settings updated: `type` and `status` added to searchable/filterable/displayedAttributes
+- `packages/search/src/search.test.ts` — unit tests for INDEXES structure, module exports, client singleton
+- `services/api/src/routes/search.ts` — `GET /search` route: auth-scoped, supports `q`, `type`, `limit`, `offset`; graceful Meilisearch degradation (returns empty result on unreachable)
+- `services/api/src/routes/agents.ts` — Meilisearch sync on agent create/update/delete (fire-and-forget, non-blocking)
+- `services/api/src/app.ts` — `/search` route registered
+- `services/api/src/index.ts` — `ensureIndexes()` called at startup (non-fatal on failure)
+- `services/api/package.json` — `@maschina/search` added as dependency
+
 ### Added (2026-03-08 — Model routing)
 - `packages/model/src/catalog.ts` — TypeScript model catalog: 3 Anthropic cloud models + 3 Ollama local models, per-tier access gates, billing multipliers (Haiku 1x, Sonnet 3x, Opus 15x, Ollama 0x)
 - `packages/model/src/index.ts` — Barrel export

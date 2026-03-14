@@ -42,6 +42,7 @@
     "app": "turbo dev --filter=@maschina/app",
     "web": "turbo dev --filter=@maschina/web",
     "doc": "turbo dev --filter=@maschina/docs",
+    "mint": "turbo dev --filter=@maschina/docs",
     "console": "turbo dev --filter=@maschina/console",
     "desktop": "turbo dev --filter=@maschina/desktop",
     "mobile": "turbo dev --filter=@maschina/mobile",
