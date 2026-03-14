@@ -31,11 +31,8 @@ async function getLdClient(): Promise<LdClient | null> {
   if (!sdkKey) return null;
 
   try {
-    const { init, BasicLogger } = await import("@launchdarkly/node-server-sdk");
-    const client = init(sdkKey, {
-      logger: BasicLogger.get({ level: "error" }),
-      diagnosticOptOut: true,
-    });
+    const { init } = await import("@launchdarkly/node-server-sdk");
+    const client = init(sdkKey, { diagnosticOptOut: true });
     await client.waitForInitialization({ timeout: 5 });
     _ld = client as unknown as LdClient;
   } catch {
