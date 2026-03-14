@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     anthropic_api_key: str = ""
+    openai_api_key: str = ""
     runtime_port: int = 8001
     node_env: str = "development"
     default_timeout_secs: int = 300

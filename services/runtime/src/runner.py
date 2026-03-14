@@ -2,15 +2,15 @@
 Agent execution — delegates to maschina-runtime (the shared execution package)
 and runs risk checks via maschina-risk before and after the LLM call.
 
-Model routing:
-  - Models starting with "ollama/" → OllamaRunner (local, no token quota deduction)
-  - All other models              → AnthropicRunner (cloud, billed with multiplier)
+Model routing (by prefix):
+  ollama/*   → OllamaRunner (local, no token quota deduction)
+  claude-*   → AnthropicRunner (requires ANTHROPIC_API_KEY)
+  gpt-* / o* → OpenAIRunner (requires OPENAI_API_KEY)
 
-Token billing multipliers (applied to raw token counts before returning):
-  claude-haiku-*   → 1x
-  claude-sonnet-*  → 3x
-  claude-opus-*    → 15x
-  ollama/*         → 0x  (local, never deducted from quota)
+Unknown prefixes raise a RuntimeError.
+
+Token billing multipliers are sourced from the catalog in packages/model.
+Unknown models fall back to 2x (passthrough rate).
 """
 
 import logging
@@ -32,21 +32,39 @@ _MULTIPLIERS: list[tuple[str, int]] = [
     ("claude-haiku-", 1),
     ("claude-sonnet-", 3),
     ("claude-opus-", 15),
+    ("gpt-5-nano", 1),
+    ("gpt-5-mini", 1),
+    ("gpt-5.4-pro", 25),
+    ("gpt-5.4", 10),
+    ("gpt-5", 8),
+    ("gpt-4o-mini", 1),
+    ("gpt-4o", 4),
+    ("gpt-4.1-mini", 1),
+    ("gpt-4.1-nano", 1),
+    ("gpt-4.1", 4),
+    ("o4-mini", 2),
+    ("o3-mini", 2),
+    ("o3-pro", 25),
+    ("o3", 20),
     ("ollama/", 0),
 ]
 
-_DEFAULT_MULTIPLIER = 1
+_PASSTHROUGH_MULTIPLIER = 2  # flat rate for unlisted models
 
 
 def _get_multiplier(model: str) -> int:
     for prefix, mult in _MULTIPLIERS:
         if model.startswith(prefix):
             return mult
-    return _DEFAULT_MULTIPLIER
+    return _PASSTHROUGH_MULTIPLIER
 
 
 def _is_ollama(model: str) -> bool:
     return model.startswith("ollama/")
+
+
+def _is_openai(model: str) -> bool:
+    return model.startswith(("gpt-", "o1", "o3", "o4"))
 
 
 def _ollama_model_name(model: str) -> str:
@@ -83,7 +101,6 @@ async def execute(req: RunRequest) -> RunResponse:
 
     # ── Route to runner ─────────────────────────────────────────────────────
     if _is_ollama(req.model):
-        # Local Ollama — use the model name from the request
         runner = OllamaRunner(
             base_url=settings.ollama_base_url,
             model=_ollama_model_name(req.model),
@@ -91,22 +108,39 @@ async def execute(req: RunRequest) -> RunResponse:
             max_tokens=min(req.max_tokens, settings.max_output_tokens),
             timeout_secs=req.timeout_secs,
         )
+
+    elif _is_openai(req.model):
+        try:
+            import openai as _openai_check  # noqa: F401
+        except ImportError as exc:
+            raise RuntimeError("openai package not installed — run: pip install openai") from exc
+
+        if not settings.openai_api_key:
+            raise RuntimeError(f"OPENAI_API_KEY is not set but model '{req.model}' requires it")
+
+        from .openai_runner import OpenAIRunner
+
+        runner = OpenAIRunner(
+            api_key=settings.openai_api_key,
+            model=req.model,
+            system_prompt=req.system_prompt,
+            max_tokens=min(req.max_tokens, settings.max_output_tokens),
+            timeout_secs=req.timeout_secs,
+        )
+
     else:
-        # Cloud Anthropic model — lazy-import to avoid requiring the key for local dev
+        # Anthropic (claude-*) or unknown prefix treated as Anthropic
+        if not settings.anthropic_api_key:
+            raise RuntimeError(f"ANTHROPIC_API_KEY is not set but model '{req.model}' requires it")
+
         try:
             import anthropic
-
-            client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
         except ImportError as exc:
             raise RuntimeError("anthropic package not installed") from exc
 
-        if not settings.anthropic_api_key:
-            raise RuntimeError(
-                f"ANTHROPIC_API_KEY is not set but model '{req.model}' requires cloud execution"
-            )
-
         from maschina_runtime import AgentRunner
 
+        client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
         runner = AgentRunner(
             client=client,
             system_prompt=req.system_prompt,
@@ -131,8 +165,6 @@ async def execute(req: RunRequest) -> RunResponse:
         )
 
     # ── Apply billing multiplier ────────────────────────────────────────────
-    # Multiply raw token counts so the daemon's quota deduction reflects cost.
-    # Ollama multiplier = 0, so local runs never deduct from the cloud quota.
     multiplier = _get_multiplier(req.model)
     billed_input_tokens = result.input_tokens * multiplier
     billed_output_tokens = result.output_tokens * multiplier
