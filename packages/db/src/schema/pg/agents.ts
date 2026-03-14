@@ -1,4 +1,13 @@
-import { index, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { agentStatusEnum, agentTypeEnum } from "./enums.js";
 import { users } from "./users.js";
 
@@ -86,7 +95,29 @@ export const agentRuns = pgTable(
   }),
 );
 
+// ─── Agent Skills ─────────────────────────────────────────────────────────────
+
+export const agentSkills = pgTable(
+  "agent_skills",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    agentId: uuid("agent_id")
+      .notNull()
+      .references(() => agents.id, { onDelete: "cascade" }),
+    skillName: text("skill_name").notNull(), // "http_fetch" | "web_search" | "code_exec"
+    config: jsonb("config").notNull().default({}), // skill-specific config (e.g. max_results)
+    enabled: boolean("enabled").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    agentSkillUniq: index("agent_skills_agent_skill_uniq").on(t.agentId, t.skillName),
+    agentIdIdx: index("agent_skills_agent_id_idx").on(t.agentId),
+  }),
+);
+
 export type Agent = typeof agents.$inferSelect;
 export type NewAgent = typeof agents.$inferInsert;
 export type AgentRun = typeof agentRuns.$inferSelect;
 export type NewAgentRun = typeof agentRuns.$inferInsert;
+export type AgentSkill = typeof agentSkills.$inferSelect;

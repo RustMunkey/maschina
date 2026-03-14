@@ -8,6 +8,22 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-14 — Agent skill framework)
+- `packages/db/src/schema/pg/agents.ts` — `agent_skills` table (agent_id, skill_name, config, enabled)
+- `packages/connectors/src/skills.ts` — skill catalog: `http_fetch` (access+), `web_search` (m1+, Brave API), `code_exec` (m5+, sandboxed subprocess); tier gating helpers `canUseSkill()`, `listSkills()`
+- `packages/connectors/src/index.ts` + `package.json` — wired up, deps fixed to `@maschina/plans`
+- `packages/runtime/src/maschina_runtime/tools.py` — `WebSearchTool` (Brave Search API, max_results configurable), `CodeExecTool` (subprocess sandbox, timeout configurable, 30s max); `HttpFetchTool` gains optional domain allowlist
+- `services/runtime/src/skills.py` — maps skill slugs → Tool instances; reads BRAVE_SEARCH_API_KEY from env
+- `services/runtime/src/models.py` — `RunRequest` gains `skills: list[str]` + `skill_configs: dict`
+- `services/runtime/src/runner.py` — builds tools from `req.skills` and passes to `AgentRunner` (Anthropic only)
+- `services/daemon/src/orchestrator/scan_compat.rs` — `JobToRun` gains `skills: Vec<String>` + `skill_configs`
+- `services/daemon/src/orchestrator/scan.rs` — initializes empty skills on `JobToRun`
+- `services/daemon/src/orchestrator/evaluate.rs` — queries `agent_skills` table, populates `run.skills` + `run.skill_configs` before execute
+- `services/daemon/src/runtime/mod.rs` — `RuntimeRequest` gains `skills` + `skill_configs`, passed through to Python runtime
+- `services/api/src/routes/skills.ts` — `GET /skills` (catalog), `GET /agents/:id/skills`, `PUT /agents/:id/skills/:slug`, `DELETE /agents/:id/skills/:slug`; tier-gated on upsert
+- `services/api/src/app.ts` — skill routes registered
+- `.env.example` — `BRAVE_SEARCH_API_KEY` added
+
 ### Added (2026-03-14 — Agent memory)
 - `packages/vector/src/collections.ts` — added `agent_memory` collection (1536-dim Cosine)
 - `services/runtime/src/memory.py` — episodic memory: retrieve top-k similar memories (Qdrant + OpenAI text-embedding-3-small), store output after each run; all errors swallowed gracefully

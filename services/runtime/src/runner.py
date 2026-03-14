@@ -23,6 +23,7 @@ from .config import settings
 from .memory import retrieve_memories, store_memory
 from .models import RunRequest, RunResponse
 from .ollama_runner import OllamaRunner
+from .skills import build_tools
 
 logger = logging.getLogger(__name__)
 
@@ -155,12 +156,14 @@ async def execute(req: RunRequest) -> RunResponse:
 
         from maschina_runtime import AgentRunner
 
+        tools = build_tools(req.skills, req.skill_configs)
         client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
         runner = AgentRunner(
             client=client,
             system_prompt=req.system_prompt,
             model=req.model,
             max_tokens=min(req.max_tokens, settings.max_output_tokens),
+            tools=tools,
             timeout_secs=req.timeout_secs,
         )
 

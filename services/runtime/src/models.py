@@ -22,6 +22,10 @@ class RunRequest(BaseModel):
     # Seconds before this run must complete (daemon-enforced timeout)
     timeout_secs: int = 300
 
+    # Enabled skills for this agent (slugs) + their per-agent config overrides
+    skills: list[str] = Field(default_factory=list)
+    skill_configs: dict[str, dict[str, Any]] = Field(default_factory=dict)
+
 
 class RunResponse(BaseModel):
     """Returned to the daemon after the run completes."""

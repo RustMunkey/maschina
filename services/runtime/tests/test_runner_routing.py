@@ -32,6 +32,25 @@ _rt.__path__ = []  # marks it as a package to Python's import system
 # Stub maschina_runtime.models (imported by ollama_runner.py at module level)
 _stub_module("maschina_runtime.models", RunInput=mock.MagicMock, RunResult=mock.MagicMock)
 
+# Stub maschina_runtime.tools (imported by src.skills which is imported by src.runner)
+_stub_module(
+    "maschina_runtime.tools",
+    Tool=mock.MagicMock,
+    HttpFetchTool=mock.MagicMock,
+    WebSearchTool=mock.MagicMock,
+    CodeExecTool=mock.MagicMock,
+)
+
+# Stub src.skills (imported by src.runner)
+_stub_module("src.skills", build_tools=lambda names, configs=None: [])
+
+# Stub src.memory (imported by src.runner)
+_stub_module(
+    "src.memory",
+    retrieve_memories=lambda *a, **kw: [],
+    store_memory=lambda *a, **kw: None,
+)
+
 # Stub openai (imported by ollama_runner.py)
 _stub_module("openai", AsyncOpenAI=mock.MagicMock)
 

@@ -26,6 +26,7 @@
     "@maschina/telemetry": "workspace:*",
     "@maschina/usage": "workspace:*",
     "@maschina/compliance": "workspace:*",
+    "@maschina/connectors": "workspace:*",
     "@maschina/search": "workspace:*",
     "@maschina/validation": "workspace:*",
     "@maschina/webhooks": "workspace:*",

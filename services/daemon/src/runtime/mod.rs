@@ -26,6 +26,8 @@ struct RuntimeRequest<'a> {
     max_tokens: u32,
     input_payload: &'a serde_json::Value,
     timeout_secs: i64,
+    skills: &'a [String],
+    skill_configs: &'a serde_json::Value,
 }
 
 /// A node row returned from the registry query.
@@ -88,6 +90,8 @@ pub async fn dispatch(state: &AppState, run: &QueuedRun) -> Result<RunOutput, Da
         max_tokens: 4096,
         input_payload: &run.input_payload,
         timeout_secs: run.timeout_secs,
+        skills: &run.skills,
+        skill_configs: &run.skill_configs,
     };
 
     let response = state
