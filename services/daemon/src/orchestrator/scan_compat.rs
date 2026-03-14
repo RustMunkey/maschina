@@ -14,4 +14,8 @@ pub struct JobToRun {
     pub system_prompt: String,
     pub input_payload: serde_json::Value,
     pub timeout_secs: i64,
+    /// Enabled skill slugs for this agent (e.g. ["web_search", "code_exec"]).
+    pub skills: Vec<String>,
+    /// Per-skill config JSON, keyed by slug.
+    pub skill_configs: serde_json::Value,
 }

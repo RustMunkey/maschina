@@ -125,6 +125,9 @@ pub async fn scan_and_dispatch(state: AppState) -> Result<()> {
                 system_prompt: job.system_prompt,
                 input_payload: job.input_payload,
                 timeout_secs: job.timeout_secs as i64,
+                // Skills are resolved in the EVALUATE phase from agent_skills table
+                skills: vec![],
+                skill_configs: serde_json::Value::Object(Default::default()),
             };
 
             // Ack the NATS message after we've successfully claimed the DB row.

@@ -4,11 +4,18 @@ use crate::state::AppState;
 use redis::AsyncCommands;
 use tracing::{info, instrument, warn};
 
+#[derive(Debug, sqlx::FromRow)]
+struct AgentSkillRow {
+    skill_name: String,
+    config: serde_json::Value,
+    enabled: bool,
+}
+
 /// EVALUATE phase: check quota and tier gates before allowing execution.
 /// Returns `Ok(())` if the run should proceed, or marks it failed and returns `Err`.
 #[instrument(skip(state, run), fields(run_id = %run.id, user_id = %run.user_id))]
-pub async fn evaluate_and_execute(state: AppState, run: QueuedRun) {
-    match evaluate(&state, &run).await {
+pub async fn evaluate_and_execute(state: AppState, mut run: QueuedRun) {
+    match evaluate(&state, &mut run).await {
         Ok(()) => {
             super::execute::execute_run(state, run).await;
         }
@@ -26,7 +33,7 @@ pub async fn evaluate_and_execute(state: AppState, run: QueuedRun) {
     }
 }
 
-async fn evaluate(state: &AppState, run: &QueuedRun) -> crate::error::Result<()> {
+async fn evaluate(state: &AppState, run: &mut QueuedRun) -> crate::error::Result<()> {
     // 1. Verify the agent still exists and belongs to the user
     let agent_exists: bool = sqlx::query_scalar(
         "SELECT EXISTS(SELECT 1 FROM agents WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL)",
@@ -42,13 +49,29 @@ async fn evaluate(state: &AppState, run: &QueuedRun) -> crate::error::Result<()>
         });
     }
 
-    // 2. Skip quota checks for internal tier
+    // 2. Resolve enabled skills for this agent
+    let skill_rows = sqlx::query_as::<_, AgentSkillRow>(
+        "SELECT skill_name, config, enabled FROM agent_skills WHERE agent_id = $1 AND enabled = true",
+    )
+    .bind(run.agent_id)
+    .fetch_all(&state.db)
+    .await
+    .unwrap_or_default();
+
+    let mut skill_configs = serde_json::Map::new();
+    for row in &skill_rows {
+        run.skills.push(row.skill_name.clone());
+        skill_configs.insert(row.skill_name.clone(), row.config.clone());
+    }
+    run.skill_configs = serde_json::Value::Object(skill_configs);
+
+    // 3. Skip quota checks for internal tier
     if run.plan_tier == "internal" {
         info!(run_id = %run.id, "Internal tier — skipping quota check");
         return Ok(());
     }
 
-    // 3. Check monthly agent execution quota via Redis
+    // 4. Check monthly agent execution quota via Redis
     let month = chrono::Utc::now().format("%Y-%m").to_string();
     let quota_key = format!("quota:{}:agent_execution:{}", run.user_id, month);
 
