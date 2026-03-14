@@ -18,6 +18,22 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 - `services/api/src/routes/receipts.ts` — `GET /receipts/:id`, `GET /agents/:agentId/receipts`; ownership-gated per userId
 - `services/api/src/app.ts` — receipt routes registered
 
+### Added (2026-03-14 — Feature flags)
+- `packages/flags/src/flags.ts` — flag registry (`marketplaceEnabled`, `workflowsEnabled`, `memoryEnabled`, `proofOfComputeEnabled`, `nodeRegistrationEnabled`, `distributedComputeEnabled`, `machTeamPlanVisible`, `billingEnabled`, `skillMarketplaceEnabled`, `pluginsEnabled`, `newRunUiEnabled`); `FlagName` union type
+- `packages/flags/src/types.ts` — `FlagContext` (userId, orgId, tier, email, attributes), `FlagValue`, `FlagKey`
+- `packages/flags/src/client.ts` — `FlagClient.is()` / `FlagClient.all()`; `getFlags(ctx)` — LaunchDarkly (lazy) → Redis cache (TTL 60s) → defaults; `isEnabled()` convenience helper
+- `packages/flags/src/flags.test.ts` — tests: defaults, overrides, all(), flag shape
+- `.github/workflows/ci.yml` — `@maschina/storage` and `@maschina/flags` added to TS build chain in both ts-typecheck and ts-test jobs
+
+### Added (2026-03-14 — S3/CloudFront object storage)
+- `packages/storage/src/client.ts` — `StorageClient`: upload, uploadJson, download, downloadJson, delete, presignedDownload, presignedUpload, publicUrl; CloudFront URL rewriting; MinIO-compatible via `S3_ENDPOINT`; singleton `getStorage()`
+- `packages/storage/src/keys.ts` — `StorageKeys`: agentArtifact, taskOutput, upload path helpers
+- `packages/storage/src/storage.test.ts` — 12 tests (StorageKeys + publicUrl)
+- `packages/storage/package.json` — `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner`
+- `services/api/src/routes/storage.ts` — `POST /storage/upload-url`, `GET /storage/download-url`, `DELETE /storage/object`; ownership-gated per userId
+- `services/api/src/app.ts` — storage routes registered
+- `services/api/Dockerfile` — storage package built in image
+
 ### Added (2026-03-14 — Multi-agent workflows)
 - `packages/db/src/schema/pg/workflows.ts` — `workflows` + `workflowRuns` tables; `workflowTypeEnum` + `workflowRunStatusEnum` added to enums
 - `packages/events/src/types.ts` — `WorkflowRunQueued` + `WorkflowRunCancelled` subjects + data types
