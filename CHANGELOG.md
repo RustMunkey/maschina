@@ -8,6 +8,15 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-14 — Resource scheduler)
+- `services/daemon/src/scheduler/mod.rs` — scored node selection replacing naive "most recent heartbeat" strategy
+  - Queries all active nodes with fresh heartbeat in one JOIN (nodes + node_capabilities + latest heartbeat via LATERAL)
+  - Scoring: load factor (50pts, proportional to spare capacity), model match (30pts, prefix match on supported_models), GPU bonus (20pts, for ollama/* models on GPU nodes)
+  - Nodes at full capacity (`active_task_count >= max_concurrent_tasks`) are excluded from selection
+  - Falls back to `RUNTIME_URL` when no nodes available or all at capacity; logs capacity state at DEBUG
+- `services/daemon/src/runtime/mod.rs` — replaced `select_node_url()` with `crate::scheduler::select_node(state, model)`; removed dead NodeRow struct
+- `services/daemon/src/main.rs` — registered `scheduler` module
+
 ### Added (2026-03-14 — Agent skill framework)
 - `packages/db/src/schema/pg/agents.ts` — `agent_skills` table (agent_id, skill_name, config, enabled)
 - `packages/connectors/src/skills.ts` — skill catalog: `http_fetch` (access+), `web_search` (m1+, Brave API), `code_exec` (m5+, sandboxed subprocess); tier gating helpers `canUseSkill()`, `listSkills()`
