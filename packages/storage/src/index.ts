@@ -1,2 +1,4 @@
-// @maschina/storage — S3 / object storage client
-export {};
+export { StorageClient, getStorage } from "./client.js";
+export type { StorageClientOptions, UploadOptions } from "./client.js";
+export { StorageKeys } from "./keys.js";
+export type { StoragePrefix } from "./keys.js";

@@ -24,6 +24,7 @@ COPY packages/usage/package.json        ./packages/usage/package.json
 COPY packages/validation/package.json   ./packages/validation/package.json
 COPY packages/vector/package.json       ./packages/vector/package.json
 COPY packages/compliance/package.json   ./packages/compliance/package.json
+COPY packages/storage/package.json      ./packages/storage/package.json
 COPY packages/webhooks/package.json     ./packages/webhooks/package.json
 COPY packages/marketplace/package.json  ./packages/marketplace/package.json
 COPY packages/connectors/package.json   ./packages/connectors/package.json
@@ -53,6 +54,7 @@ RUN pnpm --filter @maschina/email build
 RUN pnpm --filter @maschina/search build
 RUN pnpm --filter @maschina/vector build
 RUN pnpm --filter @maschina/compliance build
+RUN pnpm --filter @maschina/storage build
 RUN pnpm --filter @maschina/webhooks build
 RUN pnpm --filter @maschina/marketplace build
 RUN pnpm --filter @maschina/connectors build

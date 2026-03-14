@@ -18,7 +18,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@maschina/types": "workspace:*"
+    "@aws-sdk/client-s3": "^3",
+    "@aws-sdk/s3-request-presigner": "^3"
   },
   "devDependencies": {
     "@maschina/tsconfig": "workspace:*",

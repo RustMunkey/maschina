@@ -29,6 +29,7 @@
     "@maschina/connectors": "workspace:*",
     "@maschina/marketplace": "workspace:*",
     "@maschina/search": "workspace:*",
+    "@maschina/storage": "workspace:*",
     "@maschina/validation": "workspace:*",
     "@maschina/webhooks": "workspace:*",
     "dotenv": "^17.3.1",
