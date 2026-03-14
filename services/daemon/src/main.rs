@@ -6,6 +6,7 @@ mod db;
 mod error;
 mod orchestrator;
 mod runtime;
+mod scheduler;
 mod server;
 mod state;
 
