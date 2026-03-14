@@ -1,0 +1,191 @@
+---
+title: Webhooks
+description: Manage outbound webhook endpoints and delivery logs.
+---
+
+import { GitBranch, ShieldCheck, ArrowsClockwise, Bell } from "@phosphor-icons/react";
+
+## Webhook Object
+
+```json
+{
+  "id": "wh_01abc...",
+  "url": "https://your-app.com/webhooks/maschina",
+  "events": ["agent.run.completed", "agent.run.failed"],
+  "status": "active",
+  "createdAt": "2026-03-13T00:00:00.000Z",
+  "updatedAt": "2026-03-13T00:00:00.000Z"
+}
+```
+
+### Webhook Status Values
+
+| Status | Description |
+|---|---|
+| `active` | Receiving deliveries normally |
+| `failing` | Last delivery failed; check the delivery log |
+| `disabled` | Manually disabled via `PATCH /webhooks/:id` |
+
+---
+
+## Create a Webhook
+
+```bash
+POST /webhooks
+```
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `url` | string | Yes | HTTPS endpoint that receives POST deliveries. |
+| `events` | string[] | Yes | List of events to subscribe to. See supported events below. |
+
+**Request:**
+```json
+{
+  "url": "https://your-app.com/webhooks/maschina",
+  "events": ["agent.run.completed", "agent.run.failed"]
+}
+```
+
+**Response:** `201 Created`
+```json
+{
+  "id": "wh_01abc...",
+  "url": "https://your-app.com/webhooks/maschina",
+  "events": ["agent.run.completed", "agent.run.failed"],
+  "status": "active",
+  "secret": "whsec_...",
+  "createdAt": "2026-03-13T00:00:00.000Z"
+}
+```
+
+<Warning>
+The `secret` is shown exactly once at creation. Save it immediately — it is never retrievable again. Use it to verify `X-Maschina-Signature` on every delivery. See [signature verification](/guides/webhooks#verifying-signatures).
+</Warning>
+
+---
+
+## List Webhooks
+
+```bash
+GET /webhooks
+```
+
+Returns all webhook endpoints for the authenticated user.
+
+---
+
+## Get a Webhook
+
+```bash
+GET /webhooks/:id
+```
+
+Returns the full webhook object excluding the secret.
+
+---
+
+## Update a Webhook
+
+```bash
+PATCH /webhooks/:id
+```
+
+All fields are optional.
+
+```json
+{
+  "url": "https://new-url.com/webhooks",
+  "events": ["agent.run.completed"],
+  "active": true
+}
+```
+
+**Response:** `200 OK` — returns the updated webhook object.
+
+---
+
+## Delete a Webhook
+
+```bash
+DELETE /webhooks/:id
+```
+
+**Response:** `200 OK`
+```json
+{ "success": true }
+```
+
+---
+
+## Send a Test Delivery
+
+<Bell size={18} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} /> Sends a sample `agent.run.completed` payload to your endpoint immediately. Useful for verifying your signature verification logic before going live.
+
+```bash
+POST /webhooks/:id/test
+```
+
+**Response:** `200 OK`
+```json
+{
+  "deliveryId": "del_01abc...",
+  "status": "delivered",
+  "responseCode": 200
+}
+```
+
+---
+
+## View Delivery Log
+
+```bash
+GET /webhooks/:id/deliveries
+```
+
+Returns the last 50 delivery attempts with status, HTTP response code, and timestamp.
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": "del_01abc...",
+      "webhookId": "wh_01abc...",
+      "event": "agent.run.completed",
+      "status": "delivered",
+      "responseCode": 200,
+      "durationMs": 142,
+      "attemptCount": 1,
+      "createdAt": "2026-03-13T00:00:00.000Z"
+    },
+    {
+      "id": "del_02abc...",
+      "webhookId": "wh_01abc...",
+      "event": "agent.run.failed",
+      "status": "failed",
+      "responseCode": 503,
+      "durationMs": 5000,
+      "attemptCount": 5,
+      "createdAt": "2026-03-13T01:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+## Supported Events
+
+<Bell size={18} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} /> Subscribe to only the events your application needs.
+
+| Event | Trigger |
+|---|---|
+| `agent.run.started` | Run picked up by the daemon and is executing |
+| `agent.run.completed` | Run finished successfully — output is available |
+| `agent.run.failed` | Run failed after all retry attempts |
+| `subscription.updated` | Plan or billing status changed |
+| `usage.quota_warning` | 80% of monthly token quota consumed |
+| `usage.quota_exceeded` | Monthly token quota exhausted — runs will be rejected |
+
+For payload schemas and signature verification, see the [Webhooks guide](/guides/webhooks).

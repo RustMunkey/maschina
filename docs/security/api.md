@@ -134,7 +134,7 @@ Email addresses are normalized to `email.toLowerCase()` before any comparison or
 CORS is enforced by the gateway. Allowed origins are configured via `CORS_ORIGIN` environment variable.
 
 ```
-CORS_ORIGIN=https://app.maschina.io,https://maschina.io
+CORS_ORIGIN=https://app.maschina.ai,https://maschina.ai
 ```
 
 In local development: `CORS_ORIGIN=http://localhost:5173`.

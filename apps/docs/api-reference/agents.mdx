@@ -1,0 +1,231 @@
+---
+title: Agents
+description: Create, manage, and run autonomous agents.
+---
+
+import { Robot, Plus, List, Pencil, Trash, Play, ArrowsClockwise } from "@phosphor-icons/react";
+
+## Agent Object
+
+Every agent has a stable ID, a type, a config block, and a lifecycle status.
+
+```json
+{
+  "id": "agt_01abc...",
+  "name": "Research Agent",
+  "description": "Produces structured summaries from any topic.",
+  "type": "analysis",
+  "status": "idle",
+  "config": {
+    "systemPrompt": "You are a research analyst. Return concise, sourced summaries.",
+    "model": "claude-sonnet-4-6"
+  },
+  "createdAt": "2026-03-13T00:00:00.000Z",
+  "updatedAt": "2026-03-13T00:00:00.000Z"
+}
+```
+
+### Agent Types
+
+| Type | Description |
+|---|---|
+| `execution` | General-purpose task execution |
+| `analysis` | Data analysis and structured output |
+| `signal` | Event detection and alerting |
+| `optimization` | Iterative refinement tasks |
+| `reporting` | Scheduled report generation |
+
+### Status Values
+
+| Status | Description |
+|---|---|
+| `idle` | Ready to accept runs |
+| `running` | Currently executing a run |
+| `paused` | Temporarily suspended — no new runs dispatched |
+| `error` | Last run failed; agent is still active |
+
+---
+
+## Create an Agent
+
+```bash
+POST /agents
+```
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `name` | string | Yes | Display name for the agent (max 100 characters). |
+| `type` | string | Yes | Agent type: `execution`, `analysis`, `signal`, `optimization`, or `reporting`. |
+| `description` | string | No | Optional human-readable description shown in search results. |
+| `config` | object | No | Runtime configuration for the agent. |
+| `config.systemPrompt` | string | No | System prompt prepended to every run. Defaults to a generic assistant prompt. |
+| `config.model` | string | No | Default model for this agent. Can be overridden per run. See [Model Selection](/guides/models). |
+
+**Request:**
+```json
+{
+  "name": "Research Agent",
+  "type": "analysis",
+  "description": "Produces structured summaries from any topic.",
+  "config": {
+    "systemPrompt": "You are a research analyst. Return concise, sourced summaries.",
+    "model": "claude-sonnet-4-6"
+  }
+}
+```
+
+**Response:** `201 Created`
+```json
+{
+  "id": "agt_01abc...",
+  "name": "Research Agent",
+  "description": "Produces structured summaries from any topic.",
+  "type": "analysis",
+  "status": "idle",
+  "config": {
+    "systemPrompt": "You are a research analyst. Return concise, sourced summaries.",
+    "model": "claude-sonnet-4-6"
+  },
+  "createdAt": "2026-03-13T00:00:00.000Z",
+  "updatedAt": "2026-03-13T00:00:00.000Z"
+}
+```
+
+---
+
+## List Agents
+
+```bash
+GET /agents
+```
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `limit` | number | `20` | Max results per page (max: 100). |
+| `offset` | number | `0` | Pagination offset. |
+| `type` | string | — | Filter by agent type. |
+| `status` | string | — | Filter by status: `idle`, `running`, `paused`, `error`. |
+| `q` | string | — | Full-text search across name and description (backed by Meilisearch). |
+
+**Response:** `200 OK`
+```json
+{
+  "data": [
+    {
+      "id": "agt_01abc...",
+      "name": "Research Agent",
+      "type": "analysis",
+      "status": "idle",
+      "createdAt": "2026-03-13T00:00:00.000Z"
+    }
+  ],
+  "total": 1,
+  "limit": 20,
+  "offset": 0
+}
+```
+
+---
+
+## Get an Agent
+
+```bash
+GET /agents/:id
+```
+
+Returns the full agent object including config. Returns `404` if the agent does not exist or belongs to a different user.
+
+---
+
+## Update an Agent
+
+```bash
+PATCH /agents/:id
+```
+
+All fields are optional. Only provided fields are updated.
+
+```json
+{
+  "name": "Updated Name",
+  "description": "New description.",
+  "config": {
+    "systemPrompt": "New system prompt.",
+    "model": "claude-haiku-4-5"
+  }
+}
+```
+
+**Response:** `200 OK` — returns the updated agent object.
+
+---
+
+## Delete an Agent
+
+```bash
+DELETE /agents/:id
+```
+
+Soft-deletes the agent. Running runs complete normally. No new runs can be dispatched after deletion.
+
+**Response:** `200 OK`
+```json
+{ "success": true }
+```
+
+---
+
+## Run an Agent
+
+<Play size={18} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} /> Dispatches an agent run. Returns immediately with a `runId` — the run executes asynchronously.
+
+```bash
+POST /agents/:id/run
+```
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `input` | object | Yes | Arbitrary JSON passed to the agent runtime as the user message. Must include at least a `message` string. |
+| `model` | string | No | Override the agent's default model for this run only. |
+| `timeout` | number | No | Timeout in milliseconds. Default: `300000`. Max: `600000` (10 minutes). |
+
+**Request:**
+```json
+{
+  "input": { "message": "Summarize recent AI research on multi-agent systems." },
+  "model": "claude-sonnet-4-6",
+  "timeout": 120000
+}
+```
+
+**Response:** `202 Accepted`
+```json
+{
+  "success": true,
+  "runId": "run_01xyz...",
+  "agentId": "agt_01abc...",
+  "status": "queued",
+  "message": "Agent run queued. Connect to /realtime for live status updates."
+}
+```
+
+<Note>
+Use [webhooks](/guides/webhooks) or the [realtime WebSocket](/guides/realtime) to receive results. Polling `GET /agents/:agentId/runs/:runId` also works.
+</Note>
+
+---
+
+## Errors
+
+| Code | Meaning |
+|---|---|
+| `400` | Missing required field or invalid config |
+| `403` | Model requires a higher plan tier |
+| `404` | Agent not found |
+| `429` | Monthly quota exhausted |
+
+```json
+{
+  "message": "Model claude-opus-4-6 requires the m10 plan or higher."
+}
+```

@@ -1,0 +1,161 @@
+---
+title: Install
+description: Install the Maschina SDK, CLI, or run the full stack with Docker.
+---
+
+## SDK
+
+Pick your language and install the official client library.
+
+<CodeGroup>
+
+```bash npm
+npm install @maschina/sdk
+```
+
+```bash pnpm
+pnpm add @maschina/sdk
+```
+
+```bash yarn
+yarn add @maschina/sdk
+```
+
+```bash bun
+bun add @maschina/sdk
+```
+
+```bash pip
+pip install maschina-sdk
+```
+
+```toml Cargo.toml
+[dependencies]
+maschina = "0.1"
+tokio = { version = "1", features = ["full"] }
+```
+
+</CodeGroup>
+
+---
+
+## CLI
+
+The `maschina` CLI lets you manage agents, keys, and services from the terminal.
+
+```bash
+curl -fsSL https://maschina.ai/install.sh | sh
+```
+
+Verify:
+
+```bash
+maschina --version
+```
+
+Or download a binary from [GitHub Releases](https://github.com/maschina-labs/self-hosted/releases).
+
+### First login
+
+```bash
+maschina login
+# prompts for email and password
+# stores credentials at ~/.config/maschina/config.toml
+```
+
+---
+
+## Self-Hosted (Docker)
+
+Run the full Maschina stack locally with Docker Compose.
+
+```bash
+git clone https://github.com/maschina-labs/self-hosted
+cd self-hosted
+cp .env.example .env
+# edit .env with your API keys and secrets
+docker compose up -d
+docker compose exec api pnpm db:migrate
+```
+
+Services:
+
+| Service | Port |
+|---|---|
+| Gateway | 8080 |
+| API | 3000 |
+| Realtime | 8081 |
+| Runtime | 8001 |
+
+See the [Docker guide](/self-hosting/docker) for the full walkthrough, or [Fly.io](/self-hosting/fly) for cloud deployment.
+
+---
+
+## Quick verification
+
+Once installed, create and run your first agent:
+
+<CodeGroup>
+
+```typescript TypeScript
+import { MaschinaClient } from "@maschina/sdk";
+
+const maschina = new MaschinaClient({
+  apiKey: process.env.MASCHINA_API_KEY,
+});
+
+const agent = await maschina.agents.create({
+  name: "Test Agent",
+  type: "execution",
+  config: { systemPrompt: "You are a helpful assistant." },
+});
+
+const run = await maschina.agents.run(agent.id, {
+  input: { message: "Say hello." },
+});
+
+console.log(run.runId);
+```
+
+```python Python
+from maschina import MaschinaClient
+
+maschina = MaschinaClient()
+
+agent = maschina.agents.create(
+    name="Test Agent",
+    type="execution",
+    config={"systemPrompt": "You are a helpful assistant."}
+)
+
+run = maschina.agents.run(agent.id, input={"message": "Say hello."})
+print(run.run_id)
+```
+
+```bash cURL
+curl -X POST https://api.maschina.ai/agents \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test Agent","type":"execution","config":{"systemPrompt":"You are helpful."}}'
+```
+
+</CodeGroup>
+
+---
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="bolt" href="/quickstart">
+    Full walkthrough — agent, run, result.
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/guides/cli">
+    All CLI commands with examples.
+  </Card>
+  <Card title="Self-Hosting" icon="server" href="/self-hosting/overview">
+    Run on your own infrastructure.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/authentication">
+    Full endpoint documentation.
+  </Card>
+</CardGroup>

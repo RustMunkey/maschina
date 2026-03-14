@@ -121,7 +121,7 @@ PRs automatically get a Neon database branch via the Neon GitHub integration. Pr
 2. CI runs full test suite on `main`
 3. On green CI, tag the release: `git tag v1.2.3`
 4. CI deploys tagged commit to production
-5. Run smoke tests against production (`k6 run k6/smoke.js --env BASE_URL=https://api.maschina.io`)
+5. Run smoke tests against production (`k6 run k6/smoke.js --env BASE_URL=https://api.maschina.ai`)
 6. Monitor Grafana + Sentry for 15 minutes post-deploy
 
 ### Database migration on deploy

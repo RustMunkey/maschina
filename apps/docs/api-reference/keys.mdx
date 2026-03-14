@@ -1,0 +1,106 @@
+---
+title: API Keys
+description: Create, list, and revoke API keys for machine-to-machine authentication.
+---
+
+import { Key, Plus, List, Trash, ShieldCheck } from "@phosphor-icons/react";
+
+API keys authenticate requests from your application to the Maschina API. Keys are prefixed with `msk_live_` and displayed only once on creation.
+
+```bash
+Authorization: Bearer msk_live_...
+```
+
+---
+
+## Create a Key
+
+```bash
+POST /keys
+Content-Type: application/json
+
+{ "name": "production" }
+```
+
+**Response:** `201 Created`
+
+```json
+{
+  "id": "key_01...",
+  "name": "production",
+  "key": "msk_live_...",
+  "prefix": "msk_live_abcdefghij1234567890",
+  "createdAt": "2026-03-13T00:00:00.000Z"
+}
+```
+
+<Warning>The full key is shown **once** on creation and cannot be retrieved again. Store it in your secrets manager immediately.</Warning>
+
+You can also create keys from the CLI:
+
+```bash
+maschina keys create "production"
+```
+
+---
+
+## List Keys
+
+```bash
+GET /keys
+```
+
+Returns all active keys for the authenticated user. The full key value is never returned — only the `prefix` (first 20 characters).
+
+**Response:**
+```json
+{
+  "keys": [
+    {
+      "id": "key_01...",
+      "name": "production",
+      "prefix": "msk_live_abcdefghij12",
+      "lastUsedAt": "2026-03-13T11:45:00.000Z",
+      "createdAt": "2026-03-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+## Get a Key
+
+```bash
+GET /keys/:id
+```
+
+Returns metadata for a single key. The full key is never returned.
+
+---
+
+## Revoke a Key
+
+```bash
+DELETE /keys/:id
+```
+
+Returns `204 No Content`. Revoked keys are **immediately** invalidated — any in-flight requests using that key will fail.
+
+From the CLI:
+
+```bash
+maschina keys revoke key_01...
+```
+
+---
+
+## Best Practices
+
+<ShieldCheck size={18} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} />**One key per environment.** Create separate keys for development, staging, and production. Revoke them individually without disrupting other environments.
+
+<ShieldCheck size={18} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} />**Store securely.** Use a secrets manager (Doppler, Vault, AWS Secrets Manager) or environment variables. Never commit keys to source control.
+
+<ShieldCheck size={18} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} />**Rotate regularly.** Create a new key, update your application, then revoke the old key. There is no downtime during rotation.
+
+<ShieldCheck size={18} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} />**Name clearly.** Use descriptive names (`ci-pipeline`, `production-app`, `local-dev`) so you know exactly what's using each key.

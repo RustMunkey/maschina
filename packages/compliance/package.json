@@ -4,13 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
+    ".": "./src/index.ts"
   },
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -18,8 +13,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@maschina/types": "workspace:*",
-    "@maschina/db": "workspace:*"
+    "@maschina/db": "workspace:*",
+    "@maschina/plans": "workspace:*"
   },
   "devDependencies": {
     "@maschina/tsconfig": "workspace:*",

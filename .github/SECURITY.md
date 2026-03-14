@@ -18,7 +18,7 @@ We operate a rolling release model. Only the current production version receives
 Report vulnerabilities privately via one of:
 
 - **GitHub private vulnerability reporting**: [Security tab → Report a vulnerability](https://github.com/RustMunkey/maschina/security/advisories/new)
-- **Email**: security@maschina.io *(monitored, response within 48 hours)*
+- **Email**: security@maschina.ai *(monitored, response within 48 hours)*
 
 ### What to include
 

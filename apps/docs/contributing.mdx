@@ -1,0 +1,103 @@
+---
+title: Contributing
+description: How to contribute to Maschina docs and the self-hosted distribution.
+---
+
+import { GitBranch, Code, BookOpen, Bug, Star } from "@phosphor-icons/react";
+
+Maschina's documentation and self-hosted distribution are open source. Contributions are welcome — whether that's fixing a typo, adding a missing example, or documenting a new self-hosting deployment target.
+
+## What's Open Source
+
+| Repository | License | Contents |
+|---|---|---|
+| [maschina-labs/docs](https://github.com/maschina-labs/docs) | Apache 2.0 | This documentation site |
+| [maschina-labs/self-hosted](https://github.com/maschina-labs/self-hosted) | Apache 2.0 | Docker Compose, Fly.io configs, migration files |
+| [maschina-labs/sdk-typescript](https://github.com/maschina-labs/sdk-typescript) | Apache 2.0 | TypeScript SDK |
+| [maschina-labs/sdk-python](https://github.com/maschina-labs/sdk-python) | Apache 2.0 | Python SDK |
+| [maschina-labs/sdk-rust](https://github.com/maschina-labs/sdk-rust) | Apache 2.0 | Rust SDK |
+
+The core platform (API, Daemon, Runtime, Gateway, Realtime) is proprietary.
+
+---
+
+## Contributing to Docs
+
+### Fix a typo or improve wording
+
+Every page has an "Edit on GitHub" link at the bottom. Click it, make your change, and open a PR directly from GitHub.
+
+### Add a new example or clarification
+
+1. Fork [maschina-labs/docs](https://github.com/maschina-labs/docs)
+2. Clone your fork and install dependencies:
+
+```bash
+git clone https://github.com/YOUR_USERNAME/docs
+cd docs
+pnpm install
+pnpm doc   # starts the local dev server
+```
+
+3. Make your changes in `apps/docs/`
+4. Open a pull request with a clear description of what you changed and why
+
+### Add a new page
+
+Pages are MDX files in `apps/docs/`. After creating the file, add it to the navigation in `apps/docs/mint.json`.
+
+### Report a documentation issue
+
+[Open an issue](https://github.com/maschina-labs/docs/issues/new) on the docs repository. Include:
+- The page URL
+- What's incorrect or missing
+- What the correct information should be
+
+---
+
+## Contributing to the Self-Hosted Distribution
+
+### Report a deployment issue
+
+[Open an issue](https://github.com/maschina-labs/self-hosted/issues/new) on the self-hosted repository. Include:
+- Your deployment target (Docker Compose, Fly.io, Kubernetes, etc.)
+- The service and error log
+- Steps to reproduce
+
+### Add a deployment guide
+
+If you've successfully deployed Maschina to a platform not yet documented (Kubernetes, Railway, Render, DigitalOcean, etc.), we'd welcome a PR with a guide. Use the existing [Docker](/self-hosting/docker) and [Fly.io](/self-hosting/fly) guides as a template.
+
+### Improve Docker Compose or config files
+
+PRs improving the self-hosted distribution are welcome. Please include:
+- What problem the change solves
+- Whether it's tested
+- Any migration notes for existing deployments
+
+---
+
+## Contributing to the SDKs
+
+Each SDK is in its own repository. Follow the standard GitHub contribution flow:
+
+1. Fork the SDK repository
+2. Create a branch: `git checkout -b fix/issue-description`
+3. Make changes and write tests
+4. Open a PR
+
+SDK PRs that add new endpoint coverage, fix response type inconsistencies, or improve error handling are especially welcome.
+
+---
+
+## Code of Conduct
+
+Be direct, respectful, and constructive. Reviews are about the code, not the person.
+
+---
+
+## License
+
+All open-source repositories use the Apache 2.0 license. By contributing, you agree that your contributions are licensed under the same terms. You cannot relicense contributions under a different license.
+
+The Maschina name, logo, and brand are proprietary and may not be used in derivative works or distributions without explicit written permission.
