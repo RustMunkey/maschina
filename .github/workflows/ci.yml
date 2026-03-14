@@ -54,6 +54,8 @@ jobs:
           pnpm --filter @maschina/webhooks build
           pnpm --filter @maschina/search build
           pnpm --filter @maschina/compliance build
+          pnpm --filter @maschina/storage build
+          pnpm --filter @maschina/flags build
 
       - run: pnpm typecheck
 
@@ -141,6 +143,8 @@ jobs:
           pnpm --filter @maschina/webhooks build
           pnpm --filter @maschina/search build
           pnpm --filter @maschina/compliance build
+          pnpm --filter @maschina/storage build
+          pnpm --filter @maschina/flags build
 
       - name: Run migrations
         run: pnpm db:migrate
