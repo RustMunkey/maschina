@@ -12,7 +12,7 @@ class WatchStore: NSObject, ObservableObject {
     @Published var error: String? = nil
 
     private let session = WCSession.default
-    private let apiBase = "https://api.maschina.io"
+    private let apiBase = "https://api.maschina.ai"
 
     override init() {
         super.init()

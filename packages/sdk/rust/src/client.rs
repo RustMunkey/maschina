@@ -10,7 +10,7 @@ use crate::{
     },
 };
 
-const DEFAULT_BASE_URL: &str = "https://api.maschina.io";
+const DEFAULT_BASE_URL: &str = "https://api.maschina.ai";
 
 pub struct MaschinaClient {
     api_key: String,

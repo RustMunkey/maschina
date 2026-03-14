@@ -17,7 +17,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "API_BASE_URL", "\"https://api.maschina.io\"")
+        buildConfigField("String", "API_BASE_URL", "\"https://api.maschina.ai\"")
     }
 
     buildTypes {
