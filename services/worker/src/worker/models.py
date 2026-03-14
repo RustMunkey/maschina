@@ -43,3 +43,12 @@ class WebhookDispatchJob(BaseModel):
     event: str  # e.g. "agent.run.completed"
     payload: dict[str, Any]  # the full typed event payload
     attempt: int = 1  # current attempt number (1-based)
+
+
+class WorkflowTriggerJob(BaseModel):
+    run_id: str  # workflow_runs.id
+    workflow_id: str  # workflows.id
+    user_id: str
+    workflow_type: str  # sequential | parallel | conditional
+    steps: list[dict[str, Any]]
+    input: dict[str, Any] = {}

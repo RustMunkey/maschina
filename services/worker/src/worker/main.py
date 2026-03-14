@@ -7,6 +7,7 @@ import sys
 import structlog
 
 from .consumer import run_consumer
+from .workflows.temporal_worker import run_temporal_worker
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -31,9 +32,18 @@ log = structlog.get_logger()
 def main() -> None:
     log.info("worker.starting")
     try:
-        asyncio.run(run_consumer())
+        asyncio.run(_run())
     except KeyboardInterrupt:
         log.info("worker.stopped")
+
+
+async def _run() -> None:
+    # Run NATS consumer and Temporal worker side-by-side.
+    # If either crashes, the whole process exits and the supervisor restarts it.
+    await asyncio.gather(
+        run_consumer(),
+        run_temporal_worker(),
+    )
 
 
 if __name__ == "__main__":

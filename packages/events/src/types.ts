@@ -155,6 +155,22 @@ export interface SystemAnnouncementData {
   targetTiers?: string[]; // null = all tiers
 }
 
+// ─── Workflow events ──────────────────────────────────────────────────────────
+
+export interface WorkflowRunQueuedData {
+  runId: string;
+  workflowId: string;
+  userId: string;
+  workflowType: "sequential" | "parallel" | "conditional";
+  steps: Array<Record<string, unknown>>;
+  input: Record<string, unknown>;
+}
+
+export interface WorkflowRunCancelledData {
+  runId: string;
+  temporalWorkflowId: string;
+}
+
 // ─── Subject registry ─────────────────────────────────────────────────────────
 // Single source of truth for NATS subject strings.
 // Use these constants everywhere — never hardcode subject strings.
@@ -185,6 +201,10 @@ export const Subjects = {
 
   // Notifications
   NotificationRequested: "maschina.notification.requested",
+
+  // Workflows
+  WorkflowRunQueued: "maschina.jobs.worker.workflow_trigger",
+  WorkflowRunCancelled: "maschina.jobs.worker.workflow_cancel",
 
   // System
   SystemAnnouncement: "maschina.system.announcement",
@@ -217,4 +237,7 @@ export interface EventMap {
 
   [Subjects.NotificationRequested]: NotificationRequestedData;
   [Subjects.SystemAnnouncement]: SystemAnnouncementData;
+
+  [Subjects.WorkflowRunQueued]: WorkflowRunQueuedData;
+  [Subjects.WorkflowRunCancelled]: WorkflowRunCancelledData;
 }

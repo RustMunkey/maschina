@@ -8,6 +8,20 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-14 — Multi-agent workflows)
+- `packages/db/src/schema/pg/workflows.ts` — `workflows` + `workflowRuns` tables; `workflowTypeEnum` + `workflowRunStatusEnum` added to enums
+- `packages/events/src/types.ts` — `WorkflowRunQueued` + `WorkflowRunCancelled` subjects + data types
+- `services/worker/src/worker/workflows/` — Temporal workflow + activities:
+  - `agent_workflow.py` — `AgentWorkflow` (@workflow.defn): sequential, parallel, conditional execution strategies
+  - `activities.py` — `run_agent_step` (calls runtime /run), `update_run_status` (writes to DB)
+  - `temporal_worker.py` — Temporal worker runner (task queue: `maschina-workflows`)
+- `services/worker/src/worker/handlers/workflow.py` — NATS handler that starts Temporal workflow via client
+- `services/worker/src/worker/main.py` — `asyncio.gather(run_consumer(), run_temporal_worker())`
+- `services/worker/pyproject.toml` — added `temporalio>=1.7`
+- `services/worker/src/worker/config.py` — added `temporal_url` + `runtime_url`
+- `services/api/src/routes/workflows.ts` — full workflow API (CRUD + trigger + run status + cancel)
+- `services/api/src/app.ts` — registered workflow routes at `/workflows`
+
 ### Added (2026-03-14 — Agent marketplace)
 - `packages/marketplace/src/index.ts` — `calcRevenueShare()` (70/30 split), `listingToDoc()` (Meilisearch shape), `generateSlug()`
 - `packages/db/src/schema/pg/marketplace.ts` — `agentId` (nullable FK) + `agentConfig` (jsonb snapshot) on `marketplace_listings`; full `marketplaceOrders` + `marketplaceReviews` tables
