@@ -8,6 +8,21 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-14 — Agent memory)
+- `packages/vector/src/collections.ts` — added `agent_memory` collection (1536-dim Cosine)
+- `services/runtime/src/memory.py` — episodic memory: retrieve top-k similar memories (Qdrant + OpenAI text-embedding-3-small), store output after each run; all errors swallowed gracefully
+- `services/runtime/src/runner.py` — retrieve memories before routing to LLM, inject as memory block in system prompt; store output memory after run
+- `services/runtime/src/config.py` — added `qdrant_url`, `qdrant_api_key`, `memory_enabled`, `memory_top_k` settings
+- `services/runtime/pyproject.toml` — added `qdrant-client>=1.9` dependency
+- `services/api/src/routes/memory.ts` — `GET /agents/:id/memory` (scroll with pagination), `DELETE /agents/:id/memory` (clear all); ownership-gated, graceful on Qdrant unreachable
+- `services/api/src/app.ts` — memory routes registered under `/agents`
+- `apps/docs/api-reference/agents.mdx` — Agent Memory section added (list + clear endpoints)
+
+### Added (2026-03-14 — Node registry API)
+- `services/api/src/routes/nodes.ts` — full node management CRUD: `POST /nodes/register`, `POST /nodes/:id/heartbeat`, `GET /nodes`, `GET /nodes/:id`, `PATCH /nodes/:id`, `DELETE /nodes/:id`
+- `services/daemon/src/runtime/mod.rs` — `select_node_url()` queries `nodes` table for most-recently-healthy active node (heartbeat <60s), falls back to `RUNTIME_URL` on miss or error
+- `services/api/src/app.ts` — `/nodes` route registered
+
 ### Added (2026-03-14 — Meilisearch search)
 - `packages/search/src/indexes.ts` — agents index settings updated: `type` and `status` added to searchable/filterable/displayedAttributes
 - `packages/search/src/search.test.ts` — unit tests for INDEXES structure, module exports, client singleton

@@ -20,6 +20,7 @@ from maschina_risk import check_input, check_output
 from maschina_runtime import RunInput
 
 from .config import settings
+from .memory import retrieve_memories, store_memory
 from .models import RunRequest, RunResponse
 from .ollama_runner import OllamaRunner
 
@@ -99,6 +100,20 @@ async def execute(req: RunRequest) -> RunResponse:
         codes = ", ".join(f.code for f in risk.flags)
         raise ValueError(f"Input blocked by risk check: {codes}")
 
+    # ── Retrieve episodic memories ──────────────────────────────────────────
+    memories = retrieve_memories(req.agent_id, req.user_id, user_message)
+    if memories:
+        memory_block = "\n".join(f"- {m}" for m in memories)
+        req = req.model_copy(
+            update={
+                "system_prompt": (
+                    f"{req.system_prompt}\n\n"
+                    f"## Relevant memories from past interactions\n{memory_block}"
+                )
+            }
+        )
+        logger.debug("Injected %d memories for agent=%s", len(memories), req.agent_id)
+
     # ── Route to runner ─────────────────────────────────────────────────────
     if _is_ollama(req.model):
         runner = OllamaRunner(
@@ -163,6 +178,9 @@ async def execute(req: RunRequest) -> RunResponse:
             "output risk flags",
             extra={"run_id": req.run_id, "flags": [f.code for f in output_risk.flags]},
         )
+
+    # ── Store episodic memory ───────────────────────────────────────────────
+    store_memory(req.agent_id, req.user_id, req.run_id, result.output, role="output")
 
     # ── Apply billing multiplier ────────────────────────────────────────────
     multiplier = _get_multiplier(req.model)

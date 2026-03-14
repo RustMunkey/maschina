@@ -9,13 +9,20 @@ export const COLLECTIONS = {
   documentChunks: "document_chunks",
   /** Marketplace listing embeddings — semantic marketplace search */
   marketplaceListings: "marketplace_listings",
+  /** Per-agent episodic memory — retrieved at run time for context injection */
+  agentMemory: "agent_memory",
 } as const;
 
 export type CollectionName = (typeof COLLECTIONS)[keyof typeof COLLECTIONS];
 
-// Vector dimensions for each collection
-// text-embedding-3-small = 1536, Claude embeddings = 1024, ada-002 = 1536
-const DEFAULT_VECTOR_SIZE = 1536;
+// Vector dimensions per collection
+// voyage-3 = 1024, text-embedding-3-small = 1536, ada-002 = 1536
+const VECTOR_SIZES: Record<string, number> = {
+  agent_embeddings: 1536,
+  document_chunks: 1536,
+  marketplace_listings: 1536,
+  agent_memory: 1024, // Voyage AI voyage-3
+};
 
 /**
  * Ensure all Qdrant collections exist with correct configuration.
@@ -31,7 +38,7 @@ export async function ensureCollections(): Promise<void> {
     } catch {
       await client.createCollection(name, {
         vectors: {
-          size: DEFAULT_VECTOR_SIZE,
+          size: VECTOR_SIZES[name] ?? 1536,
           distance: "Cosine",
         },
         optimizers_config: {

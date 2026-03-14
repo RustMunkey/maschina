@@ -15,6 +15,18 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434/v1"
     ollama_model: str = "llama3.2"
 
+    # Qdrant (agent memory)
+    qdrant_url: str = "http://localhost:6333"
+    qdrant_api_key: str = ""
+
+    # Embeddings — Voyage AI is preferred (Anthropic's recommended partner)
+    # Falls back to OpenAI text-embedding-3-small if voyage_api_key is unset
+    voyage_api_key: str = ""
+
+    # Memory settings
+    memory_enabled: bool = True
+    memory_top_k: int = 5  # number of memories to retrieve per run
+
     @property
     def is_production(self) -> bool:
         return self.node_env == "production"
