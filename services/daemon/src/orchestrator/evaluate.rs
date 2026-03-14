@@ -8,7 +8,6 @@ use tracing::{info, instrument, warn};
 struct AgentSkillRow {
     skill_name: String,
     config: serde_json::Value,
-    enabled: bool,
 }
 
 /// EVALUATE phase: check quota and tier gates before allowing execution.
@@ -51,7 +50,7 @@ async fn evaluate(state: &AppState, run: &mut QueuedRun) -> crate::error::Result
 
     // 2. Resolve enabled skills for this agent
     let skill_rows = sqlx::query_as::<_, AgentSkillRow>(
-        "SELECT skill_name, config, enabled FROM agent_skills WHERE agent_id = $1 AND enabled = true",
+        "SELECT skill_name, config FROM agent_skills WHERE agent_id = $1 AND enabled = true",
     )
     .bind(run.agent_id)
     .fetch_all(&state.db)
