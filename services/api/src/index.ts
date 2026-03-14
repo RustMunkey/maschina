@@ -1,6 +1,7 @@
 import { serve } from "@hono/node-server";
 import { closeRedis } from "@maschina/cache";
 import { connectNats, disconnectNats, ensureStreams } from "@maschina/nats";
+import { ensureIndexes } from "@maschina/search";
 import { initTelemetry } from "@maschina/telemetry";
 import { createApp } from "./app.js";
 import { env } from "./env.js";
@@ -17,6 +18,11 @@ async function start() {
   await connectNats(process.env.NATS_URL ?? "nats://localhost:4222");
   await ensureStreams();
   console.log("[api] NATS connected");
+
+  // Ensure Meilisearch indexes exist (non-fatal — search degrades gracefully)
+  await ensureIndexes().catch((err) =>
+    console.warn("[api] Meilisearch unavailable at startup:", err),
+  );
 
   // Start background job workers (non-blocking — runs concurrently with HTTP server)
   startEmailWorker().catch((err) => console.error("[email-worker] fatal error", err));

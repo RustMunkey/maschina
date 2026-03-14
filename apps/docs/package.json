@@ -1,5 +1,15 @@
 {
   "name": "@maschina/docs",
   "version": "0.0.0",
-  "private": true
+  "private": true,
+  "scripts": {
+    "dev": "npx mintlify dev",
+    "build": "npx mintlify build"
+  },
+  "dependencies": {
+    "@phosphor-icons/react": "^2.1.7"
+  },
+  "devDependencies": {
+    "mintlify": "latest"
+  }
 }

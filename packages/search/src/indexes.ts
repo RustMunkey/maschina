@@ -18,10 +18,10 @@ const INDEX_SETTINGS: Record<
   Parameters<ReturnType<typeof getMeili>["index"]>["0"] extends string ? any : never
 > = {
   agents: {
-    searchableAttributes: ["name", "description", "systemPrompt"],
-    filterableAttributes: ["userId", "model", "createdAt"],
+    searchableAttributes: ["name", "description", "type", "systemPrompt"],
+    filterableAttributes: ["userId", "type", "status", "model", "createdAt"],
     sortableAttributes: ["createdAt", "name"],
-    displayedAttributes: ["id", "name", "description", "model", "createdAt"],
+    displayedAttributes: ["id", "name", "description", "type", "status", "model", "createdAt"],
   },
   marketplace: {
     searchableAttributes: ["name", "description", "tags", "author"],

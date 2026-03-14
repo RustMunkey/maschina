@@ -1,18 +1,15 @@
 name: CodeQL
+# Disabled — requires GitHub Advanced Security (paid) for private repos.
+# Re-enable when repo goes public or GHAS is added.
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  schedule:
-    # Run weekly on Monday at 08:00 UTC
-    - cron: "0 8 * * 1"
+  workflow_dispatch: # manual trigger only
 
 jobs:
   analyze:
     name: Analyze — ${{ matrix.language }}
     runs-on: ubuntu-latest
+    if: false # never runs
     permissions:
       security-events: write
       actions: read
@@ -37,6 +34,5 @@ jobs:
 
       - name: Perform analysis
         uses: github/codeql-action/analyze@v4
-        continue-on-error: true
         with:
           category: "/language:${{ matrix.language }}"
