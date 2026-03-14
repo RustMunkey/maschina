@@ -40,7 +40,10 @@ impl Output {
     /// Print a JSON array or human list.
     pub fn list<T: Serialize>(&self, items: &[T]) {
         if self.json {
-            println!("{}", serde_json::to_string_pretty(items).unwrap_or_default());
+            println!(
+                "{}",
+                serde_json::to_string_pretty(items).unwrap_or_default()
+            );
         }
     }
 
@@ -56,6 +59,7 @@ impl Output {
         }
     }
 
+    #[allow(dead_code)]
     pub fn error(&self, msg: &str) {
         eprintln!("{} {}", style("✗").red().bold(), msg);
     }
@@ -77,8 +81,14 @@ impl Output {
     /// Print a check line with pass/fail indicator.
     pub fn check(&self, label: &str, ok: bool, detail: Option<&str>) {
         if !self.json {
-            let icon = if ok { style("✓").green() } else { style("✗").red() };
-            let detail_str = detail.map(|d| format!("  {}", style(d).dim())).unwrap_or_default();
+            let icon = if ok {
+                style("✓").green()
+            } else {
+                style("✗").red()
+            };
+            let detail_str = detail
+                .map(|d| format!("  {}", style(d).dim()))
+                .unwrap_or_default();
             println!("  {} {}{}", icon, label, detail_str);
         }
     }

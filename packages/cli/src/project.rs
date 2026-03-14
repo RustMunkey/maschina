@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 #[serde(default)]
 pub struct ProjectConfig {
     pub project: ProjectMeta,
-    pub agent:   AgentDefaults,
+    pub agent: AgentDefaults,
     pub runtime: RuntimeConfig,
 }
 
@@ -35,7 +35,7 @@ impl Default for ProjectConfig {
     fn default() -> Self {
         Self {
             project: ProjectMeta::default(),
-            agent:   AgentDefaults::default(),
+            agent: AgentDefaults::default(),
             runtime: RuntimeConfig::default(),
         }
     }
@@ -43,22 +43,32 @@ impl Default for ProjectConfig {
 
 impl Default for ProjectMeta {
     fn default() -> Self {
-        Self { name: String::new(), description: None, version: "0.1.0".into() }
+        Self {
+            name: String::new(),
+            description: None,
+            version: "0.1.0".into(),
+        }
     }
 }
 
 impl Default for AgentDefaults {
     fn default() -> Self {
-        Self { default_type: "signal".into() }
+        Self {
+            default_type: "signal".into(),
+        }
     }
 }
 
 impl Default for RuntimeConfig {
     fn default() -> Self {
-        Self { url: "http://localhost:8000".into(), timeout_ms: 300_000 }
+        Self {
+            url: "http://localhost:8000".into(),
+            timeout_ms: 300_000,
+        }
     }
 }
 
+#[allow(dead_code)]
 pub fn find_project_dir() -> Option<PathBuf> {
     let mut dir = std::env::current_dir().ok()?;
     loop {
@@ -71,6 +81,7 @@ pub fn find_project_dir() -> Option<PathBuf> {
     }
 }
 
+#[allow(dead_code)]
 pub fn load_project(project_dir: &Path) -> Result<ProjectConfig> {
     let path = project_dir.join("config.toml");
     if !path.exists() {
@@ -95,8 +106,12 @@ pub fn save_project(project_dir: &Path, config: &ProjectConfig) -> Result<()> {
 
 pub fn init_project_config(name: &str, description: Option<String>) -> ProjectConfig {
     ProjectConfig {
-        project: ProjectMeta { name: name.to_string(), description, version: "0.1.0".into() },
-        agent:   AgentDefaults::default(),
+        project: ProjectMeta {
+            name: name.to_string(),
+            description,
+            version: "0.1.0".into(),
+        },
+        agent: AgentDefaults::default(),
         runtime: RuntimeConfig::default(),
     }
 }
