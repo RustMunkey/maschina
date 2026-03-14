@@ -17,11 +17,6 @@
     "test": "vitest run",
     "clean": "rm -rf dist"
   },
-  "dependencies": {
-    "@maschina/types": "workspace:*",
-    "@maschina/cache": "workspace:*",
-    "@maschina/db": "workspace:*"
-  },
   "devDependencies": {
     "@maschina/tsconfig": "workspace:*",
     "@maschina/vitest-config": "workspace:*",
