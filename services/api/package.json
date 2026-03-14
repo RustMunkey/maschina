@@ -26,6 +26,7 @@
     "@maschina/telemetry": "workspace:*",
     "@maschina/usage": "workspace:*",
     "@maschina/validation": "workspace:*",
+    "@maschina/webhooks": "workspace:*",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.39.3",
     "hono": "^4.6",

@@ -116,6 +116,29 @@ export const orderStatusEnum = pgEnum("order_status", [
   "disputed",
 ]);
 
+// ─── Nodes / Compute Network ──────────────────────────────────────────────────
+export const nodeStatusEnum = pgEnum("node_status", [
+  "pending", // registered, awaiting first heartbeat / approval
+  "active", // online and accepting work
+  "suspended", // temporarily suspended (policy violation, poor performance)
+  "offline", // heartbeat timeout — was active, now unreachable
+  "banned", // permanently removed from the network
+]);
+
+// Tier determines verification level, task routing priority, and trust model:
+// micro      — RPi, SBCs, watches (data relay, tiny quantized models only)
+// edge       — Mac Minis, consumer desktops, GPU workstations
+// standard   — mid-range servers, general compute (stake + reputation model)
+// verified   — TEE-attested nodes (AMD SEV / Intel SGX) — premium routing
+// datacenter — enterprise server farms, data centers, GPU clusters
+export const nodeTierEnum = pgEnum("node_tier", [
+  "micro",
+  "edge",
+  "standard",
+  "verified",
+  "datacenter",
+]);
+
 // ─── Compliance ───────────────────────────────────────────────────────────────
 export const consentTypeEnum = pgEnum("consent_type", [
   "terms_of_service",

@@ -13,6 +13,7 @@ import {
   reputationScores,
   walletAddresses,
 } from "./misc.js";
+import { nodeCapabilities, nodeHeartbeats, nodes } from "./nodes.js";
 import { notifications } from "./notifications.js";
 import { organizations } from "./organizations.js";
 import { plans } from "./plans.js";
@@ -41,6 +42,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   wallets: many(walletAddresses),
   files: many(files),
   reputation: many(reputationScores),
+  nodes: many(nodes),
 }));
 
 export const userPasswordsRelations = relations(userPasswords, ({ one }) => ({
@@ -161,4 +163,23 @@ export const featureFlagOverridesRelations = relations(featureFlagOverrides, ({ 
 
 export const reputationScoresRelations = relations(reputationScores, ({ one }) => ({
   user: one(users, { fields: [reputationScores.userId], references: [users.id] }),
+}));
+
+// ─── Nodes ────────────────────────────────────────────────────────────────────
+
+export const nodesRelations = relations(nodes, ({ one, many }) => ({
+  user: one(users, { fields: [nodes.userId], references: [users.id] }),
+  capabilities: one(nodeCapabilities, {
+    fields: [nodes.id],
+    references: [nodeCapabilities.nodeId],
+  }),
+  heartbeats: many(nodeHeartbeats),
+}));
+
+export const nodeCapabilitiesRelations = relations(nodeCapabilities, ({ one }) => ({
+  node: one(nodes, { fields: [nodeCapabilities.nodeId], references: [nodes.id] }),
+}));
+
+export const nodeHeartbeatsRelations = relations(nodeHeartbeats, ({ one }) => ({
+  node: one(nodes, { fields: [nodeHeartbeats.nodeId], references: [nodes.id] }),
 }));
