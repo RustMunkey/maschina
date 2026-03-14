@@ -193,7 +193,10 @@ app.post("/listings/:id/publish", requireAuth, async (c) => {
     .returning();
 
   // Sync to Meilisearch
-  upsertDocument("marketplace", listingToDoc(published)).catch(() => {});
+  upsertDocument(
+    "marketplace",
+    listingToDoc(published) as Record<string, unknown> & { id: string },
+  ).catch(() => {});
 
   return c.json(published);
 });
@@ -321,7 +324,7 @@ app.post("/listings/:id/reviews", requireAuth, async (c) => {
     .from(marketplaceReviews)
     .where(eq(marketplaceReviews.listingId, listingId));
 
-  const avg = all.reduce((sum, r) => sum + r.rating, 0) / all.length;
+  const avg = all.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / all.length;
 
   await db
     .update(marketplaceListings)
