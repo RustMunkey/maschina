@@ -32,11 +32,11 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
-    "prepublishOnly": "pnpm build"
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@maschina/tsconfig": "workspace:*",
+    "@types/node": "^22",
     "typescript": "^5",
-    "vitest": "^4.0.18"
+    "vitest": "^4"
   }
 }

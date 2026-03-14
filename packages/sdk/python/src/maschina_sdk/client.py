@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from typing import Any, TypeVar
 
 import httpx
@@ -22,7 +23,7 @@ from .types import (
 
 T = TypeVar("T")
 
-DEFAULT_BASE_URL = "https://api.maschina.io"
+DEFAULT_BASE_URL = "https://api.maschina.ai"
 
 
 class MaschinaClient:
@@ -118,11 +119,10 @@ class MaschinaClient:
         res = await self._client.request(method, path, **kwargs)
         if not res.is_success:
             body: dict[str, Any] = {}
-            try:
+            with contextlib.suppress(Exception):
                 body = res.json()
-            except Exception:
-                pass
-            message = body.get("error", {}).get("message") or body.get("message") or res.reason_phrase
+            err = body.get("error", {})
+            message = err.get("message") or body.get("message") or res.reason_phrase
             code = body.get("error", {}).get("code") or body.get("code")
             raise MaschinaError(message, res.status_code, code)
         if res.status_code == 204:

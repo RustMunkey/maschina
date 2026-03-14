@@ -13,7 +13,7 @@ import type {
   UsageSummary,
 } from "./types.js";
 
-const DEFAULT_BASE_URL = "https://api.maschina.io";
+const DEFAULT_BASE_URL = "https://api.maschina.ai";
 
 export class MaschinaClient {
   private readonly apiKey: string;

@@ -25,7 +25,7 @@ final class APIClient {
     #if DEBUG
     private let base = URL(string: "http://localhost:8080")!
     #else
-    private let base = URL(string: "https://api.maschina.io")!
+    private let base = URL(string: "https://api.maschina.ai")!
     #endif
 
     private var token: String? { UserDefaults.standard.string(forKey: "maschina_token") }

@@ -1,8 +1,18 @@
 [package]
 name = "maschina-sdk"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2021"
-
+description = "Official Rust SDK for the Maschina API"
+license = "Apache-2.0"
+authors = ["Maschina Labs <sdk@maschina.ai>"]
+homepage = "https://maschina.ai"
+repository = "https://github.com/maschina-labs/sdk-rust"
+documentation = "https://docs.rs/maschina-sdk"
+readme = "README.md"
+keywords = ["maschina", "ai", "agents", "sdk", "autonomous"]
+categories = ["api-bindings", "web-programming::http-client", "asynchronous"]
+rust-version = "1.75"
+exclude = ["tests/", ".github/"]
 
 [lib]
 name = "maschina_sdk"

@@ -23,6 +23,10 @@ COPY packages/telemetry/package.json    ./packages/telemetry/package.json
 COPY packages/usage/package.json        ./packages/usage/package.json
 COPY packages/validation/package.json   ./packages/validation/package.json
 COPY packages/vector/package.json       ./packages/vector/package.json
+COPY packages/compliance/package.json   ./packages/compliance/package.json
+COPY packages/webhooks/package.json     ./packages/webhooks/package.json
+COPY packages/marketplace/package.json  ./packages/marketplace/package.json
+COPY packages/connectors/package.json   ./packages/connectors/package.json
 COPY services/api/package.json          ./services/api/package.json
 
 RUN pnpm install --frozen-lockfile
@@ -48,6 +52,10 @@ RUN pnpm --filter @maschina/validation build
 RUN pnpm --filter @maschina/email build
 RUN pnpm --filter @maschina/search build
 RUN pnpm --filter @maschina/vector build
+RUN pnpm --filter @maschina/compliance build
+RUN pnpm --filter @maschina/webhooks build
+RUN pnpm --filter @maschina/marketplace build
+RUN pnpm --filter @maschina/connectors build
 RUN pnpm --filter @maschina/api build
 
 # Use pnpm deploy to produce a self-contained directory with all deps resolved
