@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     qdrant_url: str = "http://localhost:6333"
     qdrant_api_key: str = ""
 
+    # Embeddings — Voyage AI is preferred (Anthropic's recommended partner)
+    # Falls back to OpenAI text-embedding-3-small if voyage_api_key is unset
+    voyage_api_key: str = ""
+
     # Memory settings
     memory_enabled: bool = True
     memory_top_k: int = 5  # number of memories to retrieve per run

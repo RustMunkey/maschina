@@ -3,8 +3,10 @@ Agent episodic memory — retrieve relevant past interactions before a run,
 store a new memory after completion.
 
 Storage: Qdrant collection "agent_memory"
-Embeddings: OpenAI text-embedding-3-small (1536 dims)
-  Falls back gracefully (no-op) when Qdrant or OpenAI is unavailable.
+Embeddings:
+  Primary   — Voyage AI voyage-3 (1024 dims, Anthropic's recommended partner)
+  Fallback  — OpenAI text-embedding-3-small (1536 dims) if VOYAGE_API_KEY unset
+  No-op     — if neither key is available, memory is silently skipped
 
 Point payload schema:
   agent_id : str  — scopes memory to a specific agent
@@ -20,22 +22,57 @@ from __future__ import annotations
 import logging
 import time
 import uuid
-from typing import TYPE_CHECKING
 
 from .config import settings
-
-if TYPE_CHECKING:
-    pass
 
 logger = logging.getLogger(__name__)
 
 _COLLECTION = "agent_memory"
-_EMBED_MODEL = "text-embedding-3-small"
-_EMBED_DIMS = 1536
+
+# Dims must match the Qdrant collection created by packages/vector ensureCollections()
+_VOYAGE_MODEL = "voyage-3"
+_VOYAGE_DIMS = 1024
+
+_OPENAI_MODEL = "text-embedding-3-small"
+_OPENAI_DIMS = 1536
+
+
+# ─── Embedding providers ──────────────────────────────────────────────────────
+
+
+def _embed(text: str) -> tuple[list[float], int] | None:
+    """
+    Embed text using Voyage AI (preferred) or OpenAI (fallback).
+    Returns (vector, dims) or None if no provider is available.
+    """
+    if settings.voyage_api_key:
+        try:
+            import voyageai
+
+            client = voyageai.Client(api_key=settings.voyage_api_key)
+            result = client.embed([text], model=_VOYAGE_MODEL)
+            return result.embeddings[0], _VOYAGE_DIMS
+        except Exception as exc:
+            logger.warning("Voyage embedding failed: %s", exc)
+
+    if settings.openai_api_key:
+        try:
+            import openai
+
+            client = openai.OpenAI(api_key=settings.openai_api_key)
+            resp = client.embeddings.create(model=_OPENAI_MODEL, input=text)
+            return resp.data[0].embedding, _OPENAI_DIMS
+        except Exception as exc:
+            logger.warning("OpenAI embedding failed: %s", exc)
+
+    logger.debug("No embedding provider configured — memory skipped")
+    return None
+
+
+# ─── Qdrant helpers ───────────────────────────────────────────────────────────
 
 
 def _qdrant_client():
-    """Return a QdrantClient or None if unavailable."""
     try:
         from qdrant_client import QdrantClient
 
@@ -48,31 +85,7 @@ def _qdrant_client():
         return None
 
 
-def _openai_client():
-    """Return an OpenAI client or None if unavailable."""
-    try:
-        import openai
-
-        key = settings.openai_api_key
-        if not key:
-            return None
-        return openai.OpenAI(api_key=key)
-    except Exception as exc:
-        logger.debug("OpenAI client unavailable: %s", exc)
-        return None
-
-
-def _embed(client, text: str) -> list[float] | None:
-    try:
-        resp = client.embeddings.create(model=_EMBED_MODEL, input=text)
-        return resp.data[0].embedding
-    except Exception as exc:
-        logger.warning("Embedding failed: %s", exc)
-        return None
-
-
-def _ensure_collection(qdrant) -> bool:
-    """Create the agent_memory collection if it does not exist. Returns True on success."""
+def _ensure_collection(qdrant, dims: int) -> bool:
     try:
         from qdrant_client.models import Distance, VectorParams
 
@@ -80,7 +93,7 @@ def _ensure_collection(qdrant) -> bool:
         if _COLLECTION not in existing:
             qdrant.create_collection(
                 collection_name=_COLLECTION,
-                vectors_config=VectorParams(size=_EMBED_DIMS, distance=Distance.COSINE),
+                vectors_config=VectorParams(size=dims, distance=Distance.COSINE),
             )
         return True
     except Exception as exc:
@@ -104,13 +117,10 @@ def retrieve_memories(agent_id: str, user_id: str, query_text: str) -> list[str]
     if qdrant is None:
         return []
 
-    oai = _openai_client()
-    if oai is None:
+    embedded = _embed(query_text)
+    if embedded is None:
         return []
-
-    vector = _embed(oai, query_text)
-    if vector is None:
-        return []
+    vector, _ = embedded
 
     try:
         from qdrant_client.models import FieldCondition, Filter, MatchValue
@@ -145,15 +155,12 @@ def store_memory(agent_id: str, user_id: str, run_id: str, text: str, role: str 
     if qdrant is None:
         return
 
-    oai = _openai_client()
-    if oai is None:
+    embedded = _embed(text)
+    if embedded is None:
         return
+    vector, dims = embedded
 
-    vector = _embed(oai, text)
-    if vector is None:
-        return
-
-    if not _ensure_collection(qdrant):
+    if not _ensure_collection(qdrant, dims):
         return
 
     try:
