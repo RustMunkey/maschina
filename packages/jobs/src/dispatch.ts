@@ -88,3 +88,35 @@ export async function dispatchPruneSessions(): Promise<string> {
 export async function dispatchPruneTokens(): Promise<string> {
   return dispatch({ type: "maintenance.prune_tokens" });
 }
+
+// ─── Webhook dispatch (published to Python worker) ───────────────────────────
+// These jobs are consumed by services/worker (Python), not the daemon.
+// Subject: maschina.jobs.worker.webhook_dispatch
+// NOTE: not routed through jobSubject() — Python worker expects a flat subject.
+
+export async function dispatchWebhookJob(opts: {
+  deliveryId: string;
+  webhookId: string;
+  event: string;
+  payload: Record<string, unknown>;
+  attempt?: number;
+}): Promise<void> {
+  const js = await getJs();
+  const subject = "maschina.jobs.worker.webhook_dispatch";
+
+  const envelope = {
+    id: randomUUID(),
+    timestamp: new Date().toISOString(),
+    version: 1,
+    subject,
+    data: {
+      delivery_id: opts.deliveryId,
+      webhook_id: opts.webhookId,
+      event: opts.event,
+      payload: opts.payload,
+      attempt: opts.attempt ?? 1,
+    },
+  };
+
+  await js.publish(subject, new TextEncoder().encode(JSON.stringify(envelope)));
+}

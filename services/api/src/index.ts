@@ -5,6 +5,7 @@ import { initTelemetry } from "@maschina/telemetry";
 import { createApp } from "./app.js";
 import { env } from "./env.js";
 import { startEmailWorker } from "./jobs/email.js";
+import { startWebhookDispatcher } from "./jobs/webhook.js";
 
 // ─── Telemetry (must be first) ────────────────────────────────────────────────
 initTelemetry({ serviceName: "maschina-api", serviceVersion: "0.0.0" });
@@ -19,6 +20,7 @@ async function start() {
 
   // Start background job workers (non-blocking — runs concurrently with HTTP server)
   startEmailWorker().catch((err) => console.error("[email-worker] fatal error", err));
+  startWebhookDispatcher().catch((err) => console.error("[webhook-dispatcher] fatal error", err));
 
   const app = createApp();
 

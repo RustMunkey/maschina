@@ -1484,6 +1484,9 @@ importers:
       '@maschina/validation':
         specifier: workspace:*
         version: link:../../packages/validation
+      '@maschina/webhooks':
+        specifier: workspace:*
+        version: link:../../packages/webhooks
       dotenv:
         specifier: ^17.3.1
         version: 17.3.1
