@@ -8,7 +8,7 @@
 |---|---|---|
 | Node.js | 22+ | `nvm install 22` |
 | pnpm | 9+ | `npm install -g pnpm` |
-| Rust | 1.82+ | `rustup update stable` |
+| Rust | 1.88+ | `rustup update stable` |
 | Python | 3.12+ | `pyenv install 3.12` |
 | uv | latest | `curl -LsSf https://astral.sh/uv/install.sh | sh` |
 | Docker | 24+ | Docker Desktop or OrbStack |
@@ -62,16 +62,12 @@ cargo build
 ### 6. Set up Python packages
 
 ```bash
-cd packages/runtime && uv pip install -e . && cd ../..
-cd packages/agents && uv pip install -e . && cd ../..
-cd packages/risk && uv pip install -e . && cd ../..
-cd services/runtime && uv pip install -e . && cd ../..
-```
-
-Or with a helper script:
-
-```bash
-./scripts/setup-python.sh
+uv pip install -e packages/runtime \
+               -e packages/agents \
+               -e packages/risk \
+               -e "packages/sdk/python[dev]" \
+               -e "services/runtime[dev]" \
+               -e services/worker
 ```
 
 ---

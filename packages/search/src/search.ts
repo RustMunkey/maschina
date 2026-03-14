@@ -23,7 +23,7 @@ export interface SearchResult<T = Record<string, unknown>> {
 /**
  * Search a named index and return typed results.
  */
-export async function search<T = Record<string, unknown>>(
+export async function search<T extends Record<string, unknown> = Record<string, unknown>>(
   index: IndexName,
   query: string,
   opts: SearchOptions = {},

@@ -11,6 +11,7 @@
 | `services/daemon` | Rust | Tokio | 9090 (health) | Agent job orchestrator |
 | `services/realtime` | Rust | Axum | 4000 | WebSocket / SSE hub |
 | `services/runtime` | Python | FastAPI | 8001 | Agent execution sandbox |
+| `services/worker` | Python | — | — | NATS job consumer (email, webhooks, analytics) |
 
 ---
 
@@ -184,8 +185,39 @@ The agent execution sandbox. Receives job descriptions from the daemon and runs 
 | `GET` | `/health` | Health check |
 | `POST` | `/run` | Execute an agent run |
 
+### Model routing
+
+The runtime routes by the `model` field in the request:
+
+- `ollama/*` prefix → local OllamaRunner (Access tier, no quota deduction, multiplier 0x)
+- All other values → Anthropic SDK
+
+After the run, the runtime applies the billing multiplier to token counts before returning. The daemon records the already-multiplied counts in PostgreSQL. Multipliers: Haiku 1x, Sonnet 3x, Opus 15x, Ollama 0x.
+
 ### Shared packages
 
 - `maschina-runtime` — `AgentRunner` (multi-turn LLM loop, tool calling)
 - `maschina-agents` — Agent type base classes
 - `maschina-risk` — Input/output safety checks
+
+---
+
+## services/worker
+
+**Language:** Python · **Framework:** — · **Port:** none
+
+Background job consumer. Subscribes to NATS JetStream subjects and processes async jobs that don't need to block the API request cycle.
+
+### Responsibilities
+
+- Email dispatch jobs (consume from `MASCHINA_JOBS`, call Resend via `packages/email`)
+- Outbound webhook delivery jobs (sign payload, POST to user URL, retry with exponential backoff)
+- Analytics flush jobs
+
+### Job types consumed
+
+| Job type | Source | Action |
+|---|---|---|
+| `email.*` | `services/api` on user events | Send transactional email via Resend |
+| `webhook.dispatch` | `services/api` on agent run events | POST to user webhook URL with HMAC-SHA256 signature |
+| `analytics.flush` | Periodic | Flush analytics events to PostHog |

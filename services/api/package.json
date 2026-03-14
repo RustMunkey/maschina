@@ -25,6 +25,8 @@
     "@maschina/plans": "workspace:*",
     "@maschina/telemetry": "workspace:*",
     "@maschina/usage": "workspace:*",
+    "@maschina/compliance": "workspace:*",
+    "@maschina/search": "workspace:*",
     "@maschina/validation": "workspace:*",
     "@maschina/webhooks": "workspace:*",
     "dotenv": "^17.3.1",

@@ -14,12 +14,12 @@
   "topbarLinks": [
     {
       "name": "Dashboard",
-      "url": "https://app.maschina.io"
+      "url": "https://app.maschina.ai"
     }
   ],
   "topbarCtaButton": {
     "name": "Get Started",
-    "url": "https://app.maschina.io/register"
+    "url": "https://app.maschina.ai/register"
   },
   "tabs": [
     { "name": "Architecture", "url": "architecture" },

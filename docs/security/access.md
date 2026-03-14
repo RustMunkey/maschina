@@ -126,7 +126,7 @@ No service accepts requests from the public internet except the gateway.
 
 ## Admin Console Access
 
-`apps/console` (internal admin console) is accessible only to users with the `Internal` plan tier. It runs on a separate subdomain (`console.maschina.io`) and requires:
+`apps/console` (internal admin console) is accessible only to users with the `Internal` plan tier. It runs on a separate subdomain (`console.maschina.ai`) and requires:
 
 1. Valid JWT with `plan: "internal"` claim
 2. Additional admin password (second factor, implemented in console app)

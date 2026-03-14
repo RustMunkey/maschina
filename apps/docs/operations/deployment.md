@@ -37,7 +37,7 @@ Stage 3 (runner):  node:22-alpine — copy dist + prod node_modules, run
 
 **Rust services:**
 ```
-Stage 1 (builder): rust:1.82-slim — cargo build --release
+Stage 1 (builder): rust:1.88-slim — cargo build --release
 Stage 2 (runner):  debian:bookworm-slim — copy binary, run
 ```
 
@@ -117,12 +117,14 @@ PRs automatically get a Neon database branch via the Neon GitHub integration. Pr
 
 ## Release Workflow
 
-1. All changes merge to `main` via squash merge
-2. CI runs full test suite on `main`
-3. On green CI, tag the release: `git tag v1.2.3`
-4. CI deploys tagged commit to production
-5. Run smoke tests against production (`k6 run k6/smoke.js --env BASE_URL=https://api.maschina.io`)
+1. Feature branches merge to `main` via squash merge
+2. CI runs full test suite on `main` (all 10 jobs must pass)
+3. On green CI, `semantic-release.yml` auto-publishes a versioned GitHub release based on commit messages (conventionalcommits)
+4. `deploy.yml` builds multi-arch Docker images and deploys to Fly.io
+5. Run smoke tests against production (`k6 run k6/smoke.js --env BASE_URL=https://api.maschina.ai`)
 6. Monitor Grafana + Sentry for 15 minutes post-deploy
+
+For CLI binary releases, push a `v*` tag manually — `release.yml` builds cross-platform binaries and attaches them to the GitHub Release.
 
 ### Database migration on deploy
 

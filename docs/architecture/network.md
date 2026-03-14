@@ -98,8 +98,8 @@ Upstream services trust these headers unconditionally — they are only reachabl
 - DDoS protection at the edge
 - WAF for basic request filtering
 - Edge TLS termination (Cloudflare → Fly.io is TLS-encrypted)
-- `api.maschina.io` → Fly.io gateway
-- `maschina.io`, `app.maschina.io` → Fly.io or CDN for web apps
+- `api.maschina.ai` → Fly.io gateway
+- `maschina.ai`, `app.maschina.ai` → Fly.io or CDN for web apps
 
 ---
 

@@ -133,7 +133,7 @@ Client → POST /agents/:id/run → services/api
 
 ### WebSocket (real-time events)
 
-Clients connect to `wss://api.maschina.io/ws?token=<jwt>`. The gateway upgrades the connection and bridges it to `services/realtime`. The realtime service fans out events from NATS core subjects to the client's live connection.
+Clients connect to `wss://api.maschina.ai/ws?token=<jwt>`. The gateway upgrades the connection and bridges it to `services/realtime`. The realtime service fans out events from NATS core subjects to the client's live connection.
 
 ### SSE (server-sent events)
 

@@ -19,7 +19,7 @@ We do not tolerate:
 
 ## Reporting
 
-If you experience or witness unacceptable behaviour, contact the project owner at conduct@maschina.io. All reports are handled confidentially.
+If you experience or witness unacceptable behaviour, contact the project owner at conduct@maschina.ai. All reports are handled confidentially.
 
 ---
 

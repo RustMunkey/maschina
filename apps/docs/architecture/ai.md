@@ -126,15 +126,17 @@ def check_quota_pre_run(*, monthly_token_limit, tokens_used_this_month, estimate
 
 ### Primary Provider — Anthropic
 
-All agent runs use the Claude API via the Anthropic Python SDK.
+All cloud agent runs use the Claude API via the Anthropic Python SDK. Model access is gated by plan tier and defined in `packages/model/src/catalog.ts`.
 
-| Model tier | Model | Use case |
-|---|---|---|
-| Default | `claude-sonnet-4-5` | Standard agent runs |
-| High-capability | `claude-opus-4-6` | Complex analysis, long-horizon tasks |
-| Fast / low-cost | `claude-haiku-4-5` | High-volume, latency-sensitive runs |
+| Model | Plan required | Billing multiplier | Default for |
+|---|---|---|---|
+| `claude-haiku-4-5` | M1+ | 1x | M1 |
+| `claude-sonnet-4-6` | M5+ | 3x | M5, Mach Team |
+| `claude-opus-4-6` | M10+ | 15x | M10, Enterprise, Internal |
 
-Model is configurable per agent at creation time. Plan tier gates which models are accessible.
+Multipliers are applied to raw token counts in `services/runtime` before returning billed counts to the daemon. Token budgets are in haiku-equivalent tokens — intuitive for users, accurate for billing.
+
+Model is configurable per agent at creation time. Attempting to use a model above your plan tier returns a `403` with an upgrade message.
 
 ### Local Inference — Ollama
 

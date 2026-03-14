@@ -7,8 +7,10 @@ import { errorHandler, notFound } from "./middleware/error.js";
 import agentRoutes from "./routes/agents.js";
 import authRoutes from "./routes/auth.js";
 import billingRoutes from "./routes/billing.js";
+import complianceRoutes from "./routes/compliance.js";
 import healthRoutes from "./routes/health.js";
 import keyRoutes from "./routes/keys.js";
+import searchRoutes from "./routes/search.js";
 import usageRoutes from "./routes/usage.js";
 import userRoutes from "./routes/users.js";
 import webhookRoutes from "./routes/webhooks.js";
@@ -30,6 +32,8 @@ export function createApp() {
   app.route("/usage", usageRoutes);
   app.route("/billing", billingRoutes);
   app.route("/webhooks", webhookRoutes);
+  app.route("/search", searchRoutes);
+  app.route("/compliance", complianceRoutes);
 
   // ─── Error handling ───────────────────────────────────────────────────────
   app.onError(errorHandler);

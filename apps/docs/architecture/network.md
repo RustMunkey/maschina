@@ -82,7 +82,7 @@ Upstream services trust these headers unconditionally — they are only reachabl
 | Helius | Outbound | HTTPS | Solana RPC + on-chain event webhooks |
 | Helius webhooks | Inbound | HTTPS | On-chain events → processing handler |
 | LangSmith | Outbound | HTTPS | LLM trace export (from `services/runtime`) |
-| Svix | Outbound | HTTPS | Outbound developer webhook delivery |
+| User webhooks | Outbound | HTTPS | Outbound webhook delivery to user-configured URLs (`packages/webhooks`) |
 | Sentry | Outbound | HTTPS | Error reporting (all services) |
 | Grafana Tempo | Internal | OTLP/HTTP | Distributed trace ingestion |
 | Prometheus | Internal | HTTP scrape | Metrics collection from all services |
@@ -98,8 +98,8 @@ Upstream services trust these headers unconditionally — they are only reachabl
 - DDoS protection at the edge
 - WAF for basic request filtering
 - Edge TLS termination (Cloudflare → Fly.io is TLS-encrypted)
-- `api.maschina.io` → Fly.io gateway
-- `maschina.io`, `app.maschina.io` → Fly.io or CDN for web apps
+- `api.maschina.ai` → Fly.io gateway
+- `maschina.ai`, `app.maschina.ai` → Fly.io or CDN for web apps
 
 ---
 

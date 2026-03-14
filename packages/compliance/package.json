@@ -18,8 +18,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@maschina/types": "workspace:*",
-    "@maschina/db": "workspace:*"
+    "@maschina/db": "workspace:*",
+    "@maschina/plans": "workspace:*"
   },
   "devDependencies": {
     "@maschina/tsconfig": "workspace:*",

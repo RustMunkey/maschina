@@ -40,7 +40,7 @@ packages/auth/src/
 
 ### Configuration
 
-Each package has a `vitest.config.ts` (or inherits from root). Coverage threshold is enforced at 80% for all packages in `packages/`.
+A root `vitest.config.ts` runs all `*.test.ts` files across the monorepo directly (no turbo). Coverage uses v8; the CI threshold is 3% baseline (intentionally low — raised per-package as test coverage grows).
 
 ### Integration tests
 

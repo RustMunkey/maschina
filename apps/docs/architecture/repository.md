@@ -8,62 +8,90 @@
 maschina/
 ├── apps/                    ← Web and native applications
 │   ├── app/                 ← Main product dashboard (React + Vite + TanStack)
-│   ├── web/                 ← Marketing site
-│   ├── developers/          ← Developer portal — API keys, webhooks, usage
-│   │   ├── auth/            ← Developer sign-up / login (custom auth)
-│   │   └── admin/           ← Maschina team admin section
+│   ├── auth/                ← Standalone auth app
+│   ├── admin/               ← Internal admin app
 │   ├── console/             ← Internal admin console (Maschina team only)
-│   ├── docs/                ← Public developer documentation site
-│   ├── desktop/             ← Desktop client (Tauri 2 — Linux, Windows, macOS)
-│   └── mobile/
-│       ├── android/         ← Android client (Kotlin + Jetpack Compose + Material 3)
-│       └── ios/             ← iOS client (Swift + SwiftUI)
+│   ├── desktop/             ← Tauri 2 desktop (macOS, Windows, Linux)
+│   ├── developers/          ← Developer portal
+│   ├── docs/                ← Public developer documentation (Mintlify)
+│   ├── mobile/
+│   │   ├── android/         ← Android (Kotlin + Jetpack Compose + Material 3)
+│   │   │   └── wear/        ← Wear OS module (standalone=false, bridged from phone)
+│   │   └── ios/             ← iOS (Swift + SwiftUI)
+│   │       └── MaschinaWatch/ ← watchOS extension (WCSession, 5 complication families)
+│   └── web/                 ← Marketing site
 │
 ├── services/                ← Backend microservices
-│   ├── api/                 ← TypeScript / Hono — business logic API
-│   ├── gateway/             ← Rust / Axum — public edge, auth, proxy
-│   ├── daemon/              ← Rust / Tokio — agent job orchestrator
-│   ├── realtime/            ← Rust / Axum — WebSocket/SSE hub
-│   └── runtime/             ← Python / FastAPI — agent execution sandbox
+│   ├── api/                 ← TypeScript / Hono — business logic API (port 3000)
+│   ├── analytics/           ← Analytics service
+│   ├── daemon/              ← Rust / Tokio — agent job orchestrator (port 9090 health)
+│   ├── email/               ← Email service
+│   ├── gateway/             ← Rust / Axum — public edge, auth, rate limiting, proxy (port 8080)
+│   ├── realtime/            ← Rust / Axum — WebSocket + SSE hub (port 4000)
+│   ├── runtime/             ← Python / FastAPI — agent execution sandbox (port 8001)
+│   └── worker/              ← Python — NATS consumer (email, webhook, analytics jobs)
 │
 ├── packages/                ← Shared libraries
-│   ├── auth/                ← TypeScript — JWT, sessions, argon2id, API keys
+│   ├── auth/                ← TypeScript — JWT, argon2id, sessions, API keys, RBAC, OAuth
 │   ├── billing/             ← TypeScript — Stripe Checkout, webhooks, credits
 │   ├── cache/               ← TypeScript — ioredis wrapper
-│   ├── database/            ← TypeScript — Drizzle schemas, migrations, client
+│   ├── chain/               ← TypeScript — Solana program interactions
+│   ├── compliance/          ← TypeScript — audit log, GDPR deletion (stub)
+│   ├── config/              ← TypeScript — shared app configuration
+│   ├── connectors/          ← TypeScript — 3rd party connector integrations (stub)
+│   ├── content/             ← TypeScript — brand copy, product text
+│   ├── core/                ← TypeScript — agent pipeline primitives
+│   ├── crypto/              ← TypeScript — encryption utilities
+│   ├── db/                  ← TypeScript — Drizzle schemas (pg + sqlite), migrations
 │   ├── email/               ← TypeScript — Resend client, React Email templates
-│   ├── events/              ← TypeScript — NATS event type definitions
-│   ├── jobs/                ← TypeScript — job type definitions, dispatch helpers
-│   ├── nats/                ← TypeScript — NATS/JetStream client, stream setup
-│   ├── notifications/       ← TypeScript — in-app + NATS notification dispatch
-│   ├── plans/               ← TypeScript — plan tiers, gates, quota definitions
+│   ├── errors/              ← TypeScript — shared error types
+│   ├── events/              ← TypeScript — NATS event type definitions + subject registry
+│   ├── flags/               ← TypeScript — LaunchDarkly + PostHog feature flags
+│   ├── jobs/                ← TypeScript — job type definitions + NATS dispatch helpers
+│   ├── keys/                ← TypeScript — API key management utilities
+│   ├── marketplace/         ← TypeScript — agent marketplace (stub)
+│   ├── model/               ← TypeScript — model catalog, tier gates, billing multipliers
+│   ├── nats/                ← TypeScript — NATS/JetStream client, streams
+│   ├── notifications/       ← TypeScript — in-app + NATS fan-out notification dispatch
+│   ├── payments/            ← TypeScript — payment primitives
+│   ├── plans/               ← TypeScript — all 7 tiers, gates, quota limits
+│   ├── query/               ← TypeScript — TanStack Query hook suite
+│   ├── ratelimit/           ← TypeScript — rate limiting primitives
+│   ├── reputation/          ← TypeScript — on-chain reputation scoring (stub)
 │   ├── search/              ← TypeScript — Meilisearch client, index definitions
-│   ├── telemetry/           ← TypeScript — OpenTelemetry SDK init
-│   ├── usage/               ← TypeScript — Redis quota enforcement + PG audit
-│   ├── validation/          ← TypeScript — Zod schemas, sanitization helpers
-│   ├── vector/              ← TypeScript — Qdrant client, collection definitions
-│   ├── agents/              ← Python — agent base classes, 5 agent types
-│   ├── risk/                ← Python — input/output safety checks
-│   ├── runtime/             ← Python — AgentRunner, Tool base, multi-turn loop
-│   ├── cli/                 ← Rust — Clap CLI (maschina-cli binary)
+│   ├── storage/             ← TypeScript — S3/CloudFront object storage
+│   ├── telemetry/           ← TypeScript — OpenTelemetry SDK init + tracer helpers
+│   ├── treasury/            ← TypeScript — Solana treasury management (stub)
+│   ├── tsconfig/            ← Shared TypeScript compiler configs
+│   ├── types/               ← Shared TypeScript types
+│   ├── ui/                  ← shadcn/ui + HeroUI + Headless UI (55 components)
+│   ├── usage/               ← TypeScript — Redis quota enforcement + PG audit log
+│   ├── validation/          ← TypeScript — Zod schemas, sanitization, projection helpers
+│   ├── vector/              ← TypeScript — Qdrant + pgvector client wrappers
+│   ├── webhooks/            ← TypeScript — outbound webhook signing, retry, delivery log
+│   ├── agents/              ← Python — agent base class, 5 agent types
+│   ├── risk/                ← Python — input/output safety checks, PII scan
+│   ├── runtime/             ← Python — AgentRunner, tool calling, multi-turn loop
+│   ├── sdk/
+│   │   ├── ts/              ← TypeScript SDK (@maschina/sdk)
+│   │   ├── python/          ← Python SDK (maschina-sdk)
+│   │   └── rust/            ← Rust SDK (maschina-sdk-rs)
+│   ├── cli/                 ← Rust — Clap CLI (maschina binary)
 │   └── code/                ← Rust — Ratatui TUI scaffold tool (maschina-code binary)
 │
-├── docs/                    ← Internal engineering documentation
-│   ├── architecture/        ← System, services, data, AI, API, network, repo, workflows
-│   ├── development/         ← Local setup, environment, testing, contributing, standards
-│   ├── operations/          ← Deployment, CI/CD, observability, scaling, recovery
-│   └── security/            ← Security model, secrets, access control, API security
-│
 ├── docker/                  ← Docker Compose for local development
-│   └── docker-compose.yml
+│   └── docker-compose.yml   ← Postgres, Redis, NATS, Meilisearch, Qdrant, Temporal, Grafana...
 │
-├── .github/                 ← CI/CD workflows, issue templates, PR templates
-├── .husky/                  ← Git hooks (pre-commit, commit-msg)
-├── turbo.json               ← Turborepo task graph
-├── pnpm-workspace.yaml      ← pnpm workspace config
+├── install/                 ← Curl install script for operators
+├── .github/
+│   ├── hooks/               ← Local pre-commit + commit-msg git hooks
+│   └── workflows/           ← ci.yml, deploy.yml, release.yml, semantic-release.yml,
+│                            ←   codeql.yml, secrets-scan.yml, stale.yml, dependabot-auto-merge.yml
+│
+├── Cargo.toml               ← Rust workspace
 ├── biome.json               ← Biome linting + formatting config
-├── commitlint.config.js     ← Conventional Commits enforcement
-└── CLAUDE.md                ← Claude Code session context
+├── turbo.json               ← Turborepo task graph
+└── pnpm-workspace.yaml      ← pnpm workspace config
 ```
 
 ---
@@ -83,7 +111,7 @@ packages:
 Every TypeScript package and app declares its dependencies explicitly. Cross-package imports use workspace protocol:
 
 ```json
-{ "dependencies": { "@maschina/database": "workspace:*" } }
+{ "dependencies": { "@maschina/db": "workspace:*" } }
 ```
 
 ---
@@ -107,32 +135,16 @@ Turborepo manages the task dependency graph, remote caching, and parallel execut
 ### Common commands
 
 ```bash
-pnpm build              # build all packages and services (respects dep graph)
-pnpm build --filter=@maschina/api    # build only api + its deps
-pnpm typecheck          # type-check all TypeScript packages
-pnpm lint               # Biome lint across all TS packages
-pnpm test               # run all test suites
+pnpm build                               # build all packages and services
+pnpm --filter @maschina/api build        # build only api + its deps
+pnpm typecheck                           # type-check all TypeScript packages
+pnpm exec biome check packages/ services/ # Biome lint across all TS packages
+pnpm exec vitest run                     # run all Vitest tests (root config)
 ```
 
 ---
 
-## Shared Packages
-
-### `apps/developers`
-
-The developer portal — a separate React app (Vite + TanStack Router) for external developers building on top of the Maschina platform.
-
-| Section | Path | Purpose |
-|---|---|---|
-| Auth | `developers/auth/` | Registration, login, email verification for developer accounts |
-| Dashboard | `developers/` | API key management, webhook registration, usage analytics |
-| Admin | `developers/admin/` | Maschina team internal tools — user management, billing ops, feature flags |
-
-`admin/` is route-gated behind the `Internal` plan tier. Regular developers see it as a 403.
-
----
-
-### TypeScript packages (`packages/*`)
+## TypeScript Packages (`packages/*`)
 
 All TypeScript packages follow the same structure:
 
@@ -142,12 +154,13 @@ packages/auth/
     index.ts          ← public exports
     *.ts              ← implementation files
   package.json        ← name: "@maschina/auth"
-  tsconfig.json       ← extends root tsconfig
+  tsconfig.json       ← extends @maschina/tsconfig/node.json
+  dist/               ← compiled output (gitignored)
 ```
 
-Packages export via `"exports"` in `package.json` using the `./dist/index.js` convention. Turborepo's build step compiles each package before dependents run.
+Packages export via `"exports"` in `package.json` using the `./dist/index.js` convention. Turborepo builds each package before its dependents run.
 
-### Python packages (`packages/runtime`, `packages/agents`, `packages/risk`)
+## Python Packages (`packages/runtime`, `packages/agents`, `packages/risk`)
 
 ```
 packages/runtime/
@@ -157,13 +170,14 @@ packages/runtime/
       runner.py
       tools.py
       models.py
+  tests/
+    test_runner.py
   pyproject.toml       ← name: "maschina-runtime"
-  uv.lock
 ```
 
-Python packages are installed as editable installs (`uv pip install -e .`) in `services/runtime`'s virtual environment.
+Installed as editable installs (`uv pip install -e .`) in `services/runtime`'s virtual environment.
 
-### Rust packages (`packages/cli`, `packages/code`)
+## Rust Packages (`packages/cli`, `packages/code`)
 
 ```
 packages/cli/
@@ -175,7 +189,7 @@ packages/cli/
   Cargo.toml           ← package name: "maschina-cli"
 ```
 
-Built with `cargo build --release`. Binaries: `maschina-cli`, `maschina-code`.
+Built with `cargo build --release`. Binaries: `maschina` (CLI), `maschina-code` (TUI scaffold tool).
 
 ---
 
@@ -183,7 +197,7 @@ Built with `cargo build --release`. Binaries: `maschina-cli`, `maschina-code`.
 
 ### Package names
 
-- TypeScript: `@maschina/<name>` (e.g., `@maschina/auth`, `@maschina/database`)
+- TypeScript: `@maschina/<name>` (e.g., `@maschina/auth`, `@maschina/db`)
 - Python: `maschina-<name>` (e.g., `maschina-runtime`, `maschina-risk`)
 - Rust crates: `maschina-<name>` (e.g., `maschina-cli`, `maschina-code`)
 
@@ -199,7 +213,7 @@ TypeScript uses `.js` extensions in all import paths (ESM):
 
 ```typescript
 import { createUser } from "./user.js";
-import { db } from "@maschina/database/client.js";
+import { db } from "@maschina/db";
 ```
 
 ---
@@ -209,7 +223,7 @@ import { db } from "@maschina/database/client.js";
 Critical dependency order (Turborepo enforces this):
 
 ```
-packages/database
+packages/db
   ↓
 packages/auth
 packages/plans
@@ -220,10 +234,12 @@ packages/billing
 packages/nats
 packages/jobs
 packages/events
+packages/model
   ↓
 packages/notifications
 packages/email
 packages/telemetry
+packages/validation
   ↓
 services/api
 ```

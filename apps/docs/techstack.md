@@ -353,9 +353,9 @@ Both Fly.io and AWS stay in the TECHSTACK — Fly.io is early deployment, AWS is
 
 | Technology | Purpose |
 |---|---|
-| **Svix** | Managed outbound webhook delivery — retries, signatures, delivery dashboard, developer portal |
+| **Custom (`packages/webhooks`)** | Outbound webhook delivery — HMAC-SHA256 payload signing (`X-Maschina-Signature` header), exponential backoff retry (max 5 attempts), delivery log in PostgreSQL |
 
-> `webhooks` + `webhook_deliveries` schema exists. Svix activates when external developer webhooks ship.
+> Schema: `webhooks` + `webhook_deliveries` tables. Consumed by `services/worker`. Events: `agent.run.started`, `agent.run.completed`, `agent.run.failed`, `subscription.updated`, `usage.quota_warning`, `usage.quota_exceeded`.
 
 ---
 
@@ -414,8 +414,8 @@ Both Fly.io and AWS stay in the TECHSTACK — Fly.io is early deployment, AWS is
 
 | Decision | Status | Notes |
 |---|---|---|
-| Mobile stack | **Confirmed** | Android = Kotlin + Jetpack Compose + Material 3. iOS = Swift + SwiftUI. No Tauri mobile. |
-| Desktop stack | **Confirmed** | Tauri 2 for Linux + Windows + macOS from day one. Native per-OS desktop post-revenue. |
+| Mobile stack | **Confirmed** | Android = Kotlin + Jetpack Compose + Material 3 + Wear OS module. iOS = Swift + SwiftUI + watchOS extension. Native, not Tauri. |
+| Desktop stack | **Confirmed** | Tauri 2 for macOS (primary), Windows, Linux. Native macOS (Swift) is a post-revenue consideration. |
 | Custom auth | **Confirmed** | Full ownership. No third-party auth library. |
 | NATS job queue | **Done** | NATS JetStream replaced PostgreSQL SKIP LOCKED in `services/daemon`. Redis stays for quota counters only. |
 | Hono + Axum split | **Confirmed** | Both used intentionally. Gateway = Axum edge. API = Hono business logic. |
@@ -425,5 +425,5 @@ Both Fly.io and AWS stay in the TECHSTACK — Fly.io is early deployment, AWS is
 | Qdrant | **Confirmed** | Dedicated vector DB alongside pgvector. Qdrant for scale; pgvector for simple collocated embeddings. |
 | Temporal | **Confirmed** | Durable workflow orchestration for multi-step agent pipelines. Complements (does not replace) NATS. |
 | OpenTelemetry | **In progress** | `packages/telemetry` built, wired into `services/api`. Rust + Python services instrumented next. |
-| Svix | **Planned** | Add when outbound developer webhooks ship. |
+| Outbound webhooks | **In progress** | Custom implementation in `packages/webhooks`. `feat/webhooks` branch next. |
 | Email encryption | **Planned** | `users.email` encrypted at rest; `emailIndex` (HMAC) for lookups. Schema ready, encryption layer not built. |

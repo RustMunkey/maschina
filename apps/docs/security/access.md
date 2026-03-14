@@ -78,7 +78,7 @@ if (!gates.runAgents()) {
 }
 
 if (!gates.accessModel("claude-opus-4-6")) {
-  return c.json({ error: { code: "FORBIDDEN", message: "Opus model requires M5 or higher" } }, 403);
+  return c.json({ error: { code: "FORBIDDEN", message: "Opus model requires M10 or higher" } }, 403);
 }
 ```
 
@@ -87,9 +87,10 @@ if (!gates.accessModel("claude-opus-4-6")) {
 | Capability | Access | M1 | M5 | M10 | Team | Enterprise | Internal |
 |---|---|---|---|---|---|---|---|
 | Run agents | Local Ollama only | Cloud | Cloud | Cloud | Cloud | Cloud | All |
-| Claude Haiku | No | Yes | Yes | Yes | Yes | Yes | Yes |
-| Claude Sonnet | No | Yes | Yes | Yes | Yes | Yes | Yes |
-| Claude Opus | No | No | Yes | Yes | Yes | Yes | Yes |
+| Claude Haiku (1x) | No | Yes | Yes | Yes | Yes | Yes | Yes |
+| Claude Sonnet (3x) | No | No | Yes | Yes | Yes | Yes | Yes |
+| Claude Opus (15x) | No | No | No | Yes | Yes | Yes | Yes |
+| Ollama (local, 0x) | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
 | Monthly token limit | 50k | 500k | 2M | 5M | 2M/seat | Custom | Unlimited |
 | API key issuance | No | Yes | Yes | Yes | Yes | Yes | Yes |
 | Billing bypass | No | No | No | No | No | No | Yes |
@@ -126,7 +127,7 @@ No service accepts requests from the public internet except the gateway.
 
 ## Admin Console Access
 
-`apps/console` (internal admin console) is accessible only to users with the `Internal` plan tier. It runs on a separate subdomain (`console.maschina.io`) and requires:
+`apps/console` (internal admin console) is accessible only to users with the `Internal` plan tier. It runs on a separate subdomain (`console.maschina.ai`) and requires:
 
 1. Valid JWT with `plan: "internal"` claim
 2. Additional admin password (second factor, implemented in console app)
