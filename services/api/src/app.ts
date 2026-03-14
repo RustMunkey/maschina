@@ -18,6 +18,7 @@ import skillRoutes, { catalogApp as skillCatalogRoutes } from "./routes/skills.j
 import usageRoutes from "./routes/usage.js";
 import userRoutes from "./routes/users.js";
 import webhookRoutes from "./routes/webhooks.js";
+import workflowRoutes from "./routes/workflows.js";
 
 export function createApp() {
   const app = new Hono<{ Variables: Variables }>();
@@ -43,6 +44,7 @@ export function createApp() {
   app.route("/agents", skillRoutes);
   app.route("/skills", skillCatalogRoutes);
   app.route("/marketplace", marketplaceRoutes);
+  app.route("/workflows", workflowRoutes);
 
   // ─── Error handling ───────────────────────────────────────────────────────
   app.onError(errorHandler);

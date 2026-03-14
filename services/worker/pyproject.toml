@@ -20,6 +20,7 @@ dependencies = [
   "structlog>=24.4",
   "httpx>=0.28",
   "asyncpg>=0.30",
+  "temporalio>=1.7",
 ]
 
 [project.optional-dependencies]

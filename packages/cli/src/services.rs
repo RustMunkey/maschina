@@ -17,14 +17,23 @@ pub enum Status {
 }
 
 impl Status {
-    pub fn is_running(&self) -> bool { matches!(self, Status::Running { .. }) }
-
-    pub fn label(&self) -> &'static str {
-        match self { Status::Running { .. } => "running", Status::Stopped => "stopped" }
+    pub fn is_running(&self) -> bool {
+        matches!(self, Status::Running { .. })
     }
 
+    pub fn label(&self) -> &'static str {
+        match self {
+            Status::Running { .. } => "running",
+            Status::Stopped => "stopped",
+        }
+    }
+
+    #[allow(dead_code)]
     pub fn bullet(&self) -> &'static str {
-        match self { Status::Running { .. } => "●", Status::Stopped => "○" }
+        match self {
+            Status::Running { .. } => "●",
+            Status::Stopped => "○",
+        }
     }
 }
 
@@ -32,17 +41,43 @@ impl Status {
 pub struct Service {
     pub name: &'static str,
     pub port: Option<u16>,
+    #[allow(dead_code)]
     pub desc: &'static str,
     pub status: Status,
 }
 
 pub fn all() -> Vec<Service> {
     vec![
-        Service { name: "api",      port: Some(3000), desc: "REST API",          status: Status::Stopped },
-        Service { name: "gateway",  port: Some(8080), desc: "proxy / auth",      status: Status::Stopped },
-        Service { name: "realtime", port: Some(4000), desc: "WebSocket / SSE",   status: Status::Stopped },
-        Service { name: "runtime",  port: Some(8000), desc: "agent runner",      status: Status::Stopped },
-        Service { name: "daemon",   port: None,       desc: "NATS job consumer", status: Status::Stopped },
+        Service {
+            name: "api",
+            port: Some(3000),
+            desc: "REST API",
+            status: Status::Stopped,
+        },
+        Service {
+            name: "gateway",
+            port: Some(8080),
+            desc: "proxy / auth",
+            status: Status::Stopped,
+        },
+        Service {
+            name: "realtime",
+            port: Some(4000),
+            desc: "WebSocket / SSE",
+            status: Status::Stopped,
+        },
+        Service {
+            name: "runtime",
+            port: Some(8000),
+            desc: "agent runner",
+            status: Status::Stopped,
+        },
+        Service {
+            name: "daemon",
+            port: None,
+            desc: "NATS job consumer",
+            status: Status::Stopped,
+        },
     ]
 }
 
@@ -62,7 +97,9 @@ pub fn bin_dir() -> PathBuf {
         .join("bin")
 }
 
-pub fn pid_path(name: &str) -> PathBuf { pid_dir().join(format!("{}.pid", name)) }
+pub fn pid_path(name: &str) -> PathBuf {
+    pid_dir().join(format!("{}.pid", name))
+}
 
 pub fn log_dir(workspace: &Option<PathBuf>) -> PathBuf {
     if let Some(root) = workspace {
@@ -103,11 +140,15 @@ pub fn port_open(port: u16) -> bool {
 
 pub fn probe(svc: &Service) -> Status {
     if let Some(pid) = read_pid(svc.name) {
-        if pid_alive(pid) { return Status::Running { pid: Some(pid) }; }
+        if pid_alive(pid) {
+            return Status::Running { pid: Some(pid) };
+        }
         let _ = fs::remove_file(pid_path(svc.name));
     }
     if let Some(port) = svc.port {
-        if port_open(port) { return Status::Running { pid: None }; }
+        if port_open(port) {
+            return Status::Running { pid: None };
+        }
     }
     Status::Stopped
 }
@@ -126,7 +167,9 @@ pub fn find_workspace() -> Option<PathBuf> {
         if dir.join("pnpm-workspace.yaml").exists() && dir.join("Cargo.toml").exists() {
             return Some(dir);
         }
-        if !dir.pop() { return None; }
+        if !dir.pop() {
+            return None;
+        }
     }
 }
 
@@ -160,12 +203,18 @@ pub fn start_svc(svc: &Service, workspace: &Option<PathBuf>) -> Result<String, S
     })?;
 
     let (prog, args, work_dir): (&str, &[&str], PathBuf) = match svc.name {
-        "api"      => ("pnpm",    &["--filter", "./services/api", "dev"],                                  root.clone()),
-        "gateway"  => ("cargo",   &["run", "-p", "maschina-gateway"],                                     root.clone()),
-        "realtime" => ("cargo",   &["run", "-p", "maschina-realtime"],                                    root.clone()),
-        "daemon"   => ("cargo",   &["run", "-p", "maschina-daemon"],                                      root.clone()),
-        "runtime"  => ("python3", &["-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"],  root.join("services/runtime")),
-        _          => return Err(format!("unknown service: {}", svc.name)),
+        "api" => ("pnpm", &["--filter", "./services/api", "dev"], root.clone()),
+        "gateway" => ("cargo", &["run", "-p", "maschina-gateway"], root.clone()),
+        "realtime" => ("cargo", &["run", "-p", "maschina-realtime"], root.clone()),
+        "daemon" => ("cargo", &["run", "-p", "maschina-daemon"], root.clone()),
+        "runtime" => (
+            "python3",
+            &[
+                "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000",
+            ],
+            root.join("services/runtime"),
+        ),
+        _ => return Err(format!("unknown service: {}", svc.name)),
     };
 
     let log = open_log(&logs, svc.name)?;
@@ -191,8 +240,10 @@ pub fn stop_svc(svc: &Service) -> String {
         if pid_alive(pid) {
             Command::new("kill")
                 .args(["-TERM", &pid.to_string()])
-                .stdout(Stdio::null()).stderr(Stdio::null())
-                .status().ok();
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .status()
+                .ok();
             let _ = fs::remove_file(pid_path(svc.name));
             return format!("{} stopped  pid {}", svc.name, pid);
         }
@@ -200,8 +251,12 @@ pub fn stop_svc(svc: &Service) -> String {
     if let Some(port) = svc.port {
         if port_open(port) {
             Command::new("sh")
-                .args(["-c", &format!("lsof -ti :{} | xargs kill -TERM 2>/dev/null || true", port)])
-                .status().ok();
+                .args([
+                    "-c",
+                    &format!("lsof -ti :{} | xargs kill -TERM 2>/dev/null || true", port),
+                ])
+                .status()
+                .ok();
             return format!("{} stopped  port :{}", svc.name, port);
         }
     }

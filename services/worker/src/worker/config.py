@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://maschina:maschina@localhost:5432/maschina"
     anthropic_api_key: str = ""
     node_env: str = "development"
+    temporal_url: str = "localhost:7233"
+    runtime_url: str = "http://localhost:8001"
 
     # Consumer config
     stream_name: str = "MASCHINA_JOBS"

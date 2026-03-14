@@ -152,3 +152,13 @@ export const dataExportStatusEnum = pgEnum("data_export_status", [
   "ready",
   "expired",
 ]);
+
+// ─── Workflows ────────────────────────────────────────────────────────────────
+export const workflowTypeEnum = pgEnum("workflow_type", ["sequential", "parallel", "conditional"]);
+export const workflowRunStatusEnum = pgEnum("workflow_run_status", [
+  "pending",
+  "running",
+  "completed",
+  "failed",
+  "cancelled",
+]);

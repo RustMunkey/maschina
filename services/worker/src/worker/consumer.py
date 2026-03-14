@@ -11,8 +11,21 @@ import structlog
 from nats.js.api import AckPolicy, ConsumerConfig, RetentionPolicy, StreamConfig
 
 from .config import settings
-from .handlers import handle_batch, handle_ml_inference, handle_report, handle_webhook_dispatch
-from .models import BatchJob, JobEnvelope, MlInferenceJob, ReportJob, WebhookDispatchJob
+from .handlers import (
+    handle_batch,
+    handle_ml_inference,
+    handle_report,
+    handle_webhook_dispatch,
+    handle_workflow_trigger,
+)
+from .models import (
+    BatchJob,
+    JobEnvelope,
+    MlInferenceJob,
+    ReportJob,
+    WebhookDispatchJob,
+    WorkflowTriggerJob,
+)
 
 log = structlog.get_logger()
 
@@ -93,5 +106,7 @@ async def _dispatch(envelope: JobEnvelope) -> None:
         await handle_batch(BatchJob.model_validate(envelope.data))
     elif subject == "maschina.jobs.worker.webhook_dispatch":
         await handle_webhook_dispatch(WebhookDispatchJob.model_validate(envelope.data))
+    elif subject == "maschina.jobs.worker.workflow_trigger":
+        await handle_workflow_trigger(WorkflowTriggerJob.model_validate(envelope.data))
     else:
         log.warning("worker.unknown_subject", subject=subject)
