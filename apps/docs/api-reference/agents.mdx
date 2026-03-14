@@ -215,6 +215,56 @@ Use [webhooks](/guides/webhooks) or the [realtime WebSocket](/guides/realtime) t
 
 ---
 
+## Agent Memory
+
+Maschina stores episodic memories from each run and automatically injects relevant past context into future runs for the same agent and user. This gives your agents long-term continuity without any extra work on your end.
+
+### List Memories
+
+```bash
+GET /agents/:id/memory
+```
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `limit` | number | `50` | Max records per page (max: 200). |
+| `offset` | string | — | Pagination cursor from a previous response's `nextOffset`. |
+
+**Response:** `200 OK`
+```json
+{
+  "points": [
+    {
+      "id": "3fa85f64-...",
+      "payload": {
+        "agent_id": "agt_01abc...",
+        "user_id": "usr_01xyz...",
+        "run_id": "run_01def...",
+        "role": "output",
+        "text": "The agent's response text stored as a memory.",
+        "timestamp": 1741824000.0
+      }
+    }
+  ],
+  "nextOffset": null
+}
+```
+
+### Clear All Memories
+
+Permanently deletes all episodic memories for this agent. This cannot be undone.
+
+```bash
+DELETE /agents/:id/memory
+```
+
+**Response:** `200 OK`
+```json
+{ "success": true }
+```
+
+---
+
 ## Errors
 
 | Code | Meaning |

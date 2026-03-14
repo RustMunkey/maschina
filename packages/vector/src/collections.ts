@@ -9,6 +9,8 @@ export const COLLECTIONS = {
   documentChunks: "document_chunks",
   /** Marketplace listing embeddings — semantic marketplace search */
   marketplaceListings: "marketplace_listings",
+  /** Per-agent episodic memory — retrieved at run time for context injection */
+  agentMemory: "agent_memory",
 } as const;
 
 export type CollectionName = (typeof COLLECTIONS)[keyof typeof COLLECTIONS];
