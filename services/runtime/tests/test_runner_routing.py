@@ -65,9 +65,18 @@ class TestGetMultiplier:
         assert _get_multiplier("ollama/llama3.2") == 0
         assert _get_multiplier("ollama/mistral") == 0
 
-    def test_unknown_model_defaults_to_1x(self):
-        assert _get_multiplier("gpt-99") == 1
-        assert _get_multiplier("") == 1
+    def test_gpt5_mini_is_1x(self):
+        assert _get_multiplier("gpt-5-mini") == 1
+
+    def test_gpt5_is_8x(self):
+        assert _get_multiplier("gpt-5") == 8
+
+    def test_o3_is_20x(self):
+        assert _get_multiplier("o3") == 20
+
+    def test_unknown_model_defaults_to_2x_passthrough(self):
+        assert _get_multiplier("gpt-99") == 2
+        assert _get_multiplier("") == 2
 
 
 # ─── Routing helpers ──────────────────────────────────────────────────────────
