@@ -813,6 +813,13 @@ importers:
       vitest:
         specifier: ^4.0.18
         version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@24.12.0)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.10(@types/node@24.12.0)(typescript@5.9.3))(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
+    optionalDependencies:
+      '@launchdarkly/node-server-sdk':
+        specifier: ^9
+        version: 9.10.9
+      ioredis:
+        specifier: ^5
+        version: 5.10.0
 
   packages/jobs:
     dependencies:
@@ -3603,6 +3610,15 @@ packages:
     engines: {node: '>= 10.16.0'}
     peerDependencies:
       jsep: ^0.4.0||^1.0.0
+
+  '@launchdarkly/js-sdk-common@2.23.0':
+    resolution: {integrity: sha512-TQw6Gln8NilJ+jF65QSRcpT4/MR5MmXP++DB0yUktKxTX87ZwrFXHhVqD47zmFU2dJ1SNR/UQiOzODj/N/rJwg==}
+
+  '@launchdarkly/js-server-sdk-common@2.18.2':
+    resolution: {integrity: sha512-Gki+FXxmoftDCs+c7LUXybgMtHfxBVoB1W0NLuBaeQSpSHdjjP3HzP9hWMNl76BGXsRqXA997ZFC9zEE/0yt3A==}
+
+  '@launchdarkly/node-server-sdk@9.10.9':
+    resolution: {integrity: sha512-UPEl+6pTr6FPjS/CM+KIebBT22Td1OMfUgVvJQS9yQpYpUep3dedd8XUuj5NIMDK3t9nOIC8tb1Z2a1orALPXg==}
 
   '@leichtgewicht/ip-codec@2.0.5':
     resolution: {integrity: sha512-Vo+PSpZG2/fmgmiNzYK9qWRh8h/CHrwD0mo1h1DzL4yzHNSfWYujGTYsWGreD000gcgmZ7K4Ys6Tx9TxtsKdDw==}
@@ -9513,6 +9529,10 @@ packages:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
 
+  launchdarkly-eventsource@2.2.0:
+    resolution: {integrity: sha512-u38fYlLSq/m6oFz0MS1/76Sj2xzlYhTKZ+sf/vju6PA86PMc6fPlY5k8CdU79edLXjNwsvIQTDvDNy3llDqB8A==}
+    engines: {node: '>=0.12.0'}
+
   lcm@0.0.3:
     resolution: {integrity: sha512-TB+ZjoillV6B26Vspf9l2L/vKaRY/4ep3hahcyVkCGFgsTNRUQdc24bQeNFiZeoxH0vr5+7SfNRMQuPHv/1IrQ==}
 
@@ -9717,6 +9737,10 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
+
+  lru-cache@6.0.0:
+    resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
+    engines: {node: '>=10'}
 
   lru-cache@7.18.3:
     resolution: {integrity: sha512-jumlc0BIUrS3qJGgIkWZsyfAM7NCWiBcCDhnd+3NNM5KbBmLTgHVfWBcg6W+rLUsIpzpERPsvwUP7CckAQSOoA==}
@@ -11250,6 +11274,11 @@ packages:
 
   semver@6.3.1:
     resolution: {integrity: sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==}
+    hasBin: true
+
+  semver@7.5.4:
+    resolution: {integrity: sha512-1bCSESV6Pv+i21Hvpxp3Dx+pSD8lIPt8uVjRrxAUt/nbswYc+tK6Y2btiULjd4+fnq15PX+nqQDC7Oft7WkwcA==}
+    engines: {node: '>=10'}
     hasBin: true
 
   semver@7.7.2:
@@ -15098,6 +15127,24 @@ snapshots:
   '@jsep-plugin/ternary@1.1.4(jsep@1.4.0)':
     dependencies:
       jsep: 1.4.0
+
+  '@launchdarkly/js-sdk-common@2.23.0':
+    optional: true
+
+  '@launchdarkly/js-server-sdk-common@2.18.2':
+    dependencies:
+      '@launchdarkly/js-sdk-common': 2.23.0
+      semver: 7.5.4
+    optional: true
+
+  '@launchdarkly/node-server-sdk@9.10.9':
+    dependencies:
+      '@launchdarkly/js-server-sdk-common': 2.18.2
+      https-proxy-agent: 7.0.6
+      launchdarkly-eventsource: 2.2.0
+    transitivePeerDependencies:
+      - supports-color
+    optional: true
 
   '@leichtgewicht/ip-codec@2.0.5': {}
 
@@ -22964,6 +23011,9 @@ snapshots:
 
   kleur@4.1.5: {}
 
+  launchdarkly-eventsource@2.2.0:
+    optional: true
+
   lcm@0.0.3:
     dependencies:
       gcd: 0.0.1
@@ -23138,6 +23188,11 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
+
+  lru-cache@6.0.0:
+    dependencies:
+      yallist: 4.0.0
+    optional: true
 
   lru-cache@7.18.3: {}
 
@@ -25231,6 +25286,11 @@ snapshots:
   semver-regex@4.0.5: {}
 
   semver@6.3.1: {}
+
+  semver@7.5.4:
+    dependencies:
+      lru-cache: 6.0.0
+    optional: true
 
   semver@7.7.2: {}
 

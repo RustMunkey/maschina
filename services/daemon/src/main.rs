@@ -5,6 +5,7 @@ mod config;
 mod db;
 mod error;
 mod orchestrator;
+mod receipt;
 mod runtime;
 mod scheduler;
 mod server;
