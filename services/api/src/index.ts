@@ -19,9 +19,9 @@ async function start() {
   await ensureStreams();
   console.log("[api] NATS connected");
 
-  // Ensure Meilisearch indexes exist (idempotent — safe to call on every boot)
+  // Ensure Meilisearch indexes exist (non-fatal — search degrades gracefully)
   await ensureIndexes().catch((err) =>
-    console.warn("[api] Meilisearch unavailable — search degraded:", err.message),
+    console.warn("[api] Meilisearch unavailable at startup:", err),
   );
 
   // Start background job workers (non-blocking — runs concurrently with HTTP server)
