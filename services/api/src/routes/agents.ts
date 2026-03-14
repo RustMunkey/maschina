@@ -5,6 +5,7 @@ import { Subjects } from "@maschina/events";
 import { dispatchAgentRun } from "@maschina/jobs";
 import { resolveModel, validateModelAccess } from "@maschina/model";
 import { publishSafe } from "@maschina/nats";
+import { deleteDocument, upsertDocument } from "@maschina/search";
 import { recordAgentExecution } from "@maschina/usage";
 import {
   CreateAgentSchema,
@@ -71,6 +72,16 @@ app.post("/", requireQuota("agent_execution", 0), async (c) => {
     })
     .returning();
 
+  // Index in Meilisearch (fire-and-forget)
+  upsertDocument("agents", {
+    id: agent.id,
+    userId: agent.userId,
+    name: agent.name,
+    description: agent.description ?? "",
+    model: (agent.config as any)?.model ?? "",
+    createdAt: agent.createdAt.toISOString(),
+  }).catch(console.error);
+
   return c.json(projectAgent(agent), 201);
 });
 
@@ -110,6 +121,16 @@ app.patch("/:id", async (c) => {
 
   if (!updated) throw new HTTPException(404, { message: "Agent not found" });
 
+  // Re-index in Meilisearch (fire-and-forget)
+  upsertDocument("agents", {
+    id: updated.id,
+    userId: updated.userId,
+    name: updated.name,
+    description: updated.description ?? "",
+    model: (updated.config as any)?.model ?? "",
+    createdAt: updated.createdAt.toISOString(),
+  }).catch(console.error);
+
   return c.json(projectAgent(updated));
 });
 
@@ -125,6 +146,9 @@ app.delete("/:id", async (c) => {
     .returning({ id: agents.id });
 
   if (!deleted) throw new HTTPException(404, { message: "Agent not found" });
+
+  // Remove from Meilisearch (fire-and-forget)
+  deleteDocument("agents", deleted.id).catch(console.error);
 
   return c.json({ success: true });
 });
