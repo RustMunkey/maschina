@@ -10,7 +10,7 @@ import { requireAuth } from "../middleware/auth.js";
 const app = new Hono<{ Variables: Variables }>();
 
 app.get("/:id", requireAuth, async (c) => {
-  const userId = c.get("userId");
+  const { id: userId } = c.get("user");
   const receiptId = c.req.param("id");
 
   const receipt = await db.query.executionReceipts.findFirst({
@@ -32,7 +32,7 @@ export default app;
 export const agentReceiptsApp = new Hono<{ Variables: Variables }>();
 
 agentReceiptsApp.get("/:agentId/receipts", requireAuth, async (c) => {
-  const userId = c.get("userId");
+  const { id: userId } = c.get("user");
   const agentId = c.req.param("agentId");
   const limit = Math.min(Number(c.req.query("limit") ?? 20), 100);
   const offset = Number(c.req.query("offset") ?? 0);
