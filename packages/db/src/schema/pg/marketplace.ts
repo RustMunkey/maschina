@@ -8,6 +8,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+import { agents } from "./agents.js";
 import { listingStatusEnum, orderStatusEnum } from "./enums.js";
 import { users } from "./users.js";
 
@@ -18,6 +19,10 @@ export const marketplaceListings = pgTable(
     sellerId: uuid("seller_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    // Optional FK to the source agent — nullable if the agent is later deleted
+    agentId: uuid("agent_id").references(() => agents.id, { onDelete: "set null" }),
+    // Snapshot of the agent config at publish time — used for forking
+    agentConfig: jsonb("agent_config").notNull().default({}),
 
     name: text("name").notNull(),
     slug: text("slug").notNull().unique(),

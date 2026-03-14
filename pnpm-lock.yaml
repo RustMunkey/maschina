@@ -879,12 +879,6 @@ importers:
       '@maschina/db':
         specifier: workspace:*
         version: link:../db
-      '@maschina/reputation':
-        specifier: workspace:*
-        version: link:../reputation
-      '@maschina/types':
-        specifier: workspace:*
-        version: link:../types
     devDependencies:
       '@maschina/tsconfig':
         specifier: workspace:*
@@ -1474,6 +1468,9 @@ importers:
       '@maschina/jobs':
         specifier: workspace:*
         version: link:../../packages/jobs
+      '@maschina/marketplace':
+        specifier: workspace:*
+        version: link:../../packages/marketplace
       '@maschina/model':
         specifier: workspace:*
         version: link:../../packages/model
