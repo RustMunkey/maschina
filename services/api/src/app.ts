@@ -15,6 +15,7 @@ import memoryRoutes from "./routes/memory.js";
 import nodeRoutes from "./routes/nodes.js";
 import searchRoutes from "./routes/search.js";
 import skillRoutes, { catalogApp as skillCatalogRoutes } from "./routes/skills.js";
+import storageRoutes from "./routes/storage.js";
 import usageRoutes from "./routes/usage.js";
 import userRoutes from "./routes/users.js";
 import webhookRoutes from "./routes/webhooks.js";
@@ -45,6 +46,7 @@ export function createApp() {
   app.route("/skills", skillCatalogRoutes);
   app.route("/marketplace", marketplaceRoutes);
   app.route("/workflows", workflowRoutes);
+  app.route("/storage", storageRoutes);
 
   // ─── Error handling ───────────────────────────────────────────────────────
   app.onError(errorHandler);
