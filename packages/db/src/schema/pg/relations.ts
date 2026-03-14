@@ -17,6 +17,7 @@ import { nodeCapabilities, nodeHeartbeats, nodes } from "./nodes.js";
 import { notifications } from "./notifications.js";
 import { organizations } from "./organizations.js";
 import { plans } from "./plans.js";
+import { executionReceipts } from "./receipts.js";
 import { subscriptions as subs } from "./subscriptions.js";
 import { usageEvents, usageRollups } from "./usage.js";
 import { userPasswords, users } from "./users.js";
@@ -88,9 +89,18 @@ export const agentsRelations = relations(agents, ({ one, many }) => ({
   runs: many(agentRuns),
 }));
 
-export const agentRunsRelations = relations(agentRuns, ({ one }) => ({
+export const agentRunsRelations = relations(agentRuns, ({ one, many }) => ({
   agent: one(agents, { fields: [agentRuns.agentId], references: [agents.id] }),
   user: one(users, { fields: [agentRuns.userId], references: [users.id] }),
+  receipt: many(executionReceipts),
+}));
+
+// ─── Execution Receipts ───────────────────────────────────────────────────────
+
+export const executionReceiptsRelations = relations(executionReceipts, ({ one }) => ({
+  run: one(agentRuns, { fields: [executionReceipts.runId], references: [agentRuns.id] }),
+  agent: one(agents, { fields: [executionReceipts.agentId], references: [agents.id] }),
+  user: one(users, { fields: [executionReceipts.userId], references: [users.id] }),
 }));
 
 // ─── Usage ────────────────────────────────────────────────────────────────────

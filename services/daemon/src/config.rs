@@ -24,6 +24,9 @@ pub struct Config {
     pub agent_timeout_secs: u64,
     /// Environment: "development" | "production"
     pub env: String,
+    /// Secret used to sign Proof of Compute execution receipts (HMAC-SHA256).
+    /// Falls back to a dev default when unset — set PROOF_SECRET in production.
+    pub proof_secret: String,
 }
 
 impl Config {
@@ -57,6 +60,8 @@ impl Config {
                 .parse()
                 .context("AGENT_TIMEOUT_SECS must be a number")?,
             env: env::var("NODE_ENV").unwrap_or_else(|_| "development".into()),
+            proof_secret: env::var("PROOF_SECRET")
+                .unwrap_or_else(|_| "dev-proof-secret-change-in-production".into()),
         })
     }
 

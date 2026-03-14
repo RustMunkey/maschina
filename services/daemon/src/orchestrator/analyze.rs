@@ -16,6 +16,7 @@ pub async fn finalize_run(
             if let Err(e) = persist_success(state, run, &output).await {
                 error!(run_id = %run.id, error = %e, "Failed to persist run success");
             }
+            crate::receipt::issue_receipt(state, run, &output).await;
             if let Err(e) = record_usage(state, run, &output).await {
                 warn!(run_id = %run.id, error = %e, "Failed to record run usage");
             }

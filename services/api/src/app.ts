@@ -13,6 +13,7 @@ import keyRoutes from "./routes/keys.js";
 import marketplaceRoutes from "./routes/marketplace.js";
 import memoryRoutes from "./routes/memory.js";
 import nodeRoutes from "./routes/nodes.js";
+import receiptRoutes, { agentReceiptsApp } from "./routes/receipts.js";
 import searchRoutes from "./routes/search.js";
 import skillRoutes, { catalogApp as skillCatalogRoutes } from "./routes/skills.js";
 import storageRoutes from "./routes/storage.js";
@@ -47,6 +48,8 @@ export function createApp() {
   app.route("/marketplace", marketplaceRoutes);
   app.route("/workflows", workflowRoutes);
   app.route("/storage", storageRoutes);
+  app.route("/receipts", receiptRoutes);
+  app.route("/agents", agentReceiptsApp);
 
   // ─── Error handling ───────────────────────────────────────────────────────
   app.onError(errorHandler);

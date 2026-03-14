@@ -17,6 +17,10 @@
     "test": "vitest run",
     "clean": "rm -rf dist"
   },
+  "optionalDependencies": {
+    "@launchdarkly/node-server-sdk": "^9",
+    "ioredis": "^5"
+  },
   "devDependencies": {
     "@maschina/tsconfig": "workspace:*",
     "@maschina/vitest-config": "workspace:*",

@@ -8,6 +8,16 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-14 — Proof of Compute)
+- `packages/db/src/schema/pg/receipts.ts` — `execution_receipts` table (run_id, agent_id, user_id, node_id, model, input_tokens, output_tokens, payload, signature, issued_at)
+- `packages/db/src/schema/pg/relations.ts` — `executionReceiptsRelations`; `agentRunsRelations` gains `receipt` many-relation
+- `services/daemon/src/receipt.rs` — HMAC-SHA256 signing: canonical JSON payload (sorted keys) → hex signature; `issue_receipt()` inserts receipt post-run (non-fatal)
+- `services/daemon/src/orchestrator/analyze.rs` — `issue_receipt()` called after `persist_success` on every completed run
+- `services/daemon/src/config.rs` — `proof_secret` field (env: `PROOF_SECRET`, dev fallback)
+- `services/daemon/Cargo.toml` — `hmac`, `sha2`, `hex` deps
+- `services/api/src/routes/receipts.ts` — `GET /receipts/:id`, `GET /agents/:agentId/receipts`; ownership-gated per userId
+- `services/api/src/app.ts` — receipt routes registered
+
 ### Added (2026-03-14 — Feature flags)
 - `packages/flags/src/flags.ts` — flag registry (`marketplaceEnabled`, `workflowsEnabled`, `memoryEnabled`, `proofOfComputeEnabled`, `nodeRegistrationEnabled`, `distributedComputeEnabled`, `machTeamPlanVisible`, `billingEnabled`, `skillMarketplaceEnabled`, `pluginsEnabled`, `newRunUiEnabled`); `FlagName` union type
 - `packages/flags/src/types.ts` — `FlagContext` (userId, orgId, tier, email, attributes), `FlagValue`, `FlagKey`
