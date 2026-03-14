@@ -8,6 +8,13 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-14 — Agent marketplace)
+- `packages/marketplace/src/index.ts` — `calcRevenueShare()` (70/30 split), `listingToDoc()` (Meilisearch shape), `generateSlug()`
+- `packages/db/src/schema/pg/marketplace.ts` — `agentId` (nullable FK) + `agentConfig` (jsonb snapshot) on `marketplace_listings`; full `marketplaceOrders` + `marketplaceReviews` tables
+- `services/api/src/routes/marketplace.ts` — full marketplace API: browse (Meilisearch + DB fallback), get listing+reviews, create/update/publish/unpublish listing, fork agent (copies config snapshot), submit review (requires completed order), seller's own listings
+- `services/api/src/app.ts` — registered marketplace routes at `/marketplace`
+- `services/api/package.json` — added `@maschina/marketplace` workspace dep
+
 ### Added (2026-03-14 — Resource scheduler)
 - `services/daemon/src/scheduler/mod.rs` — scored node selection replacing naive "most recent heartbeat" strategy
   - Queries all active nodes with fresh heartbeat in one JOIN (nodes + node_capabilities + latest heartbeat via LATERAL)

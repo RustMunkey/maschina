@@ -10,6 +10,7 @@ import billingRoutes from "./routes/billing.js";
 import complianceRoutes from "./routes/compliance.js";
 import healthRoutes from "./routes/health.js";
 import keyRoutes from "./routes/keys.js";
+import marketplaceRoutes from "./routes/marketplace.js";
 import memoryRoutes from "./routes/memory.js";
 import nodeRoutes from "./routes/nodes.js";
 import searchRoutes from "./routes/search.js";
@@ -41,6 +42,7 @@ export function createApp() {
   app.route("/agents", memoryRoutes);
   app.route("/agents", skillRoutes);
   app.route("/skills", skillCatalogRoutes);
+  app.route("/marketplace", marketplaceRoutes);
 
   // ─── Error handling ───────────────────────────────────────────────────────
   app.onError(errorHandler);
