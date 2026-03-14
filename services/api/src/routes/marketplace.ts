@@ -195,7 +195,7 @@ app.post("/listings/:id/publish", requireAuth, async (c) => {
   // Sync to Meilisearch
   upsertDocument(
     "marketplace",
-    listingToDoc(published) as Record<string, unknown> & { id: string },
+    listingToDoc(published) as unknown as Record<string, unknown> & { id: string },
   ).catch(() => {});
 
   return c.json(published);
