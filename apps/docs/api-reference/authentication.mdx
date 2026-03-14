@@ -1,0 +1,202 @@
+---
+title: Authentication
+description: API keys, sessions, OAuth, and token management.
+---
+
+import { Key, Lock, ShieldCheck, User, ArrowsClockwise } from "@phosphor-icons/react";
+
+Maschina supports two authentication methods: API keys (for programmatic access) and session tokens (for user-facing apps and the CLI).
+
+```mermaid
+flowchart LR
+    A([Your App]) -->|"Bearer msk_live_..."| B[Gateway]
+    C([Dashboard / CLI]) -->|"POST /auth/login"| D[API]
+    D -->|"accessToken JWT"| C
+    C -->|"Bearer eyJ..."| B
+    B -->|validate| E[API]
+```
+
+---
+
+## API Keys
+
+<Key size={18} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} /> The recommended authentication method for programmatic access. Pass the key in the `Authorization` header on every request.
+
+```bash
+Authorization: Bearer msk_live_...
+```
+
+Keys are prefixed `msk_live_` for production and `msk_test_` for test mode. The full key is shown exactly once at creation — it is never retrievable again.
+
+### Create a Key
+
+```bash
+POST /keys
+Content-Type: application/json
+
+{ "name": "production" }
+```
+
+**Response:** `201 Created`
+```json
+{
+  "id": "key_01abc...",
+  "name": "production",
+  "key": "msk_live_xxxxxxxxxxxxxxxxxxxx",
+  "prefix": "msk_live_abcdef123456",
+  "createdAt": "2026-03-13T00:00:00.000Z"
+}
+```
+
+<Warning>
+Save the `key` immediately. It is shown once and is not stored by Maschina.
+</Warning>
+
+### List Keys
+
+```bash
+GET /keys
+```
+
+Returns all active keys for the authenticated user. The `key` field is never returned on list — only the `prefix` (first 20 characters) for identification.
+
+```json
+[
+  {
+    "id": "key_01abc...",
+    "name": "production",
+    "prefix": "msk_live_abcdef123456",
+    "createdAt": "2026-03-13T00:00:00.000Z"
+  }
+]
+```
+
+### Revoke a Key
+
+```bash
+DELETE /keys/:id
+```
+
+Revocation takes effect within seconds. Any in-flight requests using the key will fail immediately after revocation.
+
+**Response:** `200 OK`
+```json
+{ "success": true }
+```
+
+---
+
+## Session Authentication
+
+Used by the dashboard and the `maschina` CLI. Returns a short-lived JWT. For programmatic use, prefer API keys.
+
+### Register
+
+```bash
+POST /auth/register
+Content-Type: application/json
+
+{
+  "name": "Asher Wilson",
+  "email": "you@example.com",
+  "password": "your-secure-password"
+}
+```
+
+**Response:** `201 Created`
+```json
+{
+  "accessToken": "eyJ...",
+  "user": {
+    "id": "usr_01...",
+    "name": "Asher Wilson",
+    "email": "you@example.com",
+    "plan": "access"
+  }
+}
+```
+
+### Login
+
+```bash
+POST /auth/login
+Content-Type: application/json
+
+{
+  "email": "you@example.com",
+  "password": "your-secure-password"
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "accessToken": "eyJ...",
+  "user": { ... }
+}
+```
+
+Use the `accessToken` as a bearer token in subsequent requests:
+
+```bash
+Authorization: Bearer eyJ...
+```
+
+### Logout
+
+```bash
+POST /auth/logout
+Authorization: Bearer eyJ...
+```
+
+Invalidates the current session token. Returns `200 { "success": true }`.
+
+### Refresh
+
+```bash
+POST /auth/refresh
+```
+
+Exchanges a still-valid session token for a fresh one. Call this before the token expires to maintain a session without re-login.
+
+---
+
+## Current User
+
+```bash
+GET /users/me
+Authorization: Bearer SESSION_TOKEN_OR_API_KEY
+```
+
+Works with both API keys and session tokens.
+
+```json
+{
+  "id": "usr_01...",
+  "name": "Asher Wilson",
+  "email": "you@example.com",
+  "plan": "m5",
+  "createdAt": "2026-03-01T00:00:00.000Z"
+}
+```
+
+---
+
+## Security Best Practices
+
+<ShieldCheck size={18} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} /> Follow these to keep your account secure:
+
+- **Never hardcode keys** — always read from environment variables (`process.env.MASCHINA_API_KEY`, `os.environ["MASCHINA_API_KEY"]`, `std::env::var("MASCHINA_API_KEY")`)
+- **One key per environment** — use separate keys for production, staging, and local dev so you can revoke one without disrupting others
+- **Rotate keys periodically** — create a new key, update your deployment, then revoke the old one
+- **Set key names that describe the consumer** — `"production-api"`, `"ci-pipeline"`, `"dashboard-app"` makes it easy to know what's affected when revoking
+
+---
+
+## Error Responses
+
+| Code | Condition |
+|---|---|
+| `401 Unauthorized` | Missing or invalid `Authorization` header |
+| `401 Unauthorized` | Expired session token — refresh or re-login |
+| `403 Forbidden` | Valid key but insufficient plan for the requested resource |
