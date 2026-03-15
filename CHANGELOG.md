@@ -8,6 +8,10 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-14 — Proof of Compute verification)
+- `services/api/src/routes/receipts.ts` — `POST /receipts/:id/verify`: re-derives HMAC-SHA256 from stored payload and confirms signature matches; returns `{ valid: boolean, receiptId }`
+- `.env.example` — `PROOF_SECRET` documented with generation hint
+
 ### Added (2026-03-14 — Proof of Compute)
 - `packages/db/src/schema/pg/receipts.ts` — `execution_receipts` table (run_id, agent_id, user_id, node_id, model, input_tokens, output_tokens, payload, signature, issued_at)
 - `packages/db/src/schema/pg/relations.ts` — `executionReceiptsRelations`; `agentRunsRelations` gains `receipt` many-relation
