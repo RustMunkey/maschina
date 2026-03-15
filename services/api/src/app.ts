@@ -4,6 +4,7 @@ import { secureHeaders } from "hono/secure-headers";
 import type { Variables } from "./context.js";
 import { corsMiddleware } from "./middleware/cors.js";
 import { errorHandler, notFound } from "./middleware/error.js";
+import adminRoutes from "./routes/admin.js";
 import agentRoutes from "./routes/agents.js";
 import analyticsRoutes from "./routes/analytics.js";
 import authRoutes from "./routes/auth.js";
@@ -51,6 +52,7 @@ export function createApp() {
   app.route("/connectors", connectorRoutes);
   app.route("/analytics", analyticsRoutes);
   app.route("/budget", budgetRoutes);
+  app.route("/admin", adminRoutes);
   app.route("/agents", memoryRoutes);
   app.route("/agents", skillRoutes);
   app.route("/skills", skillCatalogRoutes);
