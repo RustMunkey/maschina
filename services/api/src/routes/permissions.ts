@@ -41,7 +41,7 @@ app.get("/:agentId/permissions", requireAuth, async (c) => {
     where: eq(agentPermissions.agentId, agentId),
   });
 
-  return c.json({ permissions: rows.map((r) => r.permission) });
+  return c.json({ permissions: rows.map((r: { permission: Permission }) => r.permission) });
 });
 
 // ─── PUT /agents/:agentId/permissions ────────────────────────────────────────
@@ -64,7 +64,7 @@ app.put("/:agentId/permissions", requireAuth, async (c) => {
 
   const unique = [...new Set(parsed.data.permissions)] as Permission[];
 
-  await db.transaction(async (tx) => {
+  await db.transaction(async (tx: typeof db) => {
     await tx.delete(agentPermissions).where(eq(agentPermissions.agentId, agentId));
     if (unique.length > 0) {
       await tx.insert(agentPermissions).values(
