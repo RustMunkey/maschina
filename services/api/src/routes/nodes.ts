@@ -493,11 +493,20 @@ app.post("/:id/slash", requireAuth, requireRole("admin"), async (c) => {
   const slashAmount = (currentStake * parsed.data.slashPct) / 100;
   const newBalance = currentStake - slashAmount;
 
+  const tierMin = STAKE_MINIMUMS[node.tier] ?? 0;
+  const belowMinimum = newBalance < tierMin;
+
   const [event] = await db.transaction(async (tx: typeof db) => {
-    await tx
-      .update(nodes)
-      .set({ stakedUsdc: newBalance.toFixed(6), updatedAt: new Date() })
-      .where(eq(nodes.id, nodeId));
+    const nodeUpdate: Record<string, unknown> = {
+      stakedUsdc: newBalance.toFixed(6),
+      updatedAt: new Date(),
+    };
+    if (belowMinimum) {
+      nodeUpdate.status = "suspended";
+      nodeUpdate.suspendedAt = new Date();
+    }
+
+    await tx.update(nodes).set(nodeUpdate).where(eq(nodes.id, nodeId));
 
     return tx
       .insert(nodeStakeEvents)
@@ -513,7 +522,13 @@ app.post("/:id/slash", requireAuth, requireRole("admin"), async (c) => {
       .returning();
   });
 
-  return c.json({ nodeId, slashAmount, newBalance, event });
+  return c.json({
+    nodeId,
+    slashAmount,
+    newBalance,
+    suspended: belowMinimum,
+    event,
+  });
 });
 
 // ─── GET /nodes/:id/stake ─────────────────────────────────────────────────────

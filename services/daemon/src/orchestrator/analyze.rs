@@ -367,7 +367,26 @@ fn update_node_reputation(state: &AppState, node_id: Option<Uuid>, outcome: &'st
                 "#
             }
         };
-        let _ = sqlx::query(sql).bind(id).execute(&db).await;
+        let result = sqlx::query(sql).bind(id).execute(&db).await;
+        if result.is_ok() {
+            // Auto-suspend nodes whose reputation drops below 20 (with ≥10 tasks for signal).
+            // This prevents rogue or degraded nodes from continuing to receive work.
+            let _ = sqlx::query(
+                r#"
+                UPDATE nodes
+                SET status       = 'suspended',
+                    suspended_at = NOW(),
+                    updated_at   = NOW()
+                WHERE id = $1
+                  AND status = 'active'
+                  AND (total_tasks_completed + total_tasks_failed + total_tasks_timed_out) >= 10
+                  AND reputation_score < 20
+                "#,
+            )
+            .bind(id)
+            .execute(&db)
+            .await;
+        }
     });
 }
 
