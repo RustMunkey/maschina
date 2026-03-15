@@ -8,6 +8,39 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-15 — Comprehensive test suite / feat/testing)
+- **API unit tests** — `services/api/src/routes/health.test.ts`, `auth.test.ts`, `agents.test.ts`
+  covering Layer 1 (401 auth rejection) and Layer 2 (400 validation errors) without DB/network
+- **Plans unit tests** — `packages/plans/src/gates.test.ts` — `isAtLeastTier`, `nextTier`,
+  `can.skipBilling`, `can.useApiKeys`, `can.useCompliance`, `can.inviteTeamMembers`, `hasFeature`
+- **Validation unit tests** — `packages/validation/src/schemas.test.ts` — `assertValid`,
+  `parseBody`, `ValidationError`, all agent + auth + run schemas
+- **Model access integration tests** — `packages/model/src/model_access.integration.test.ts`
+  — plan tier × model access matrix, `resolveModel` cascade fallback for all tiers
+- **Rust scheduler unit tests** — 14 tests in `services/daemon/src/scheduler/mod.rs`
+  `#[cfg(test)]` module: `score()` (capacity, load, model match, GPU, stake cap),
+  `weighted_random_pick()` (empty, single, zero-total, probability distribution)
+- **Python risk tests** — `packages/risk/tests/test_risk.py` replaces placeholder:
+  `check_input` (injection patterns, length limit), `check_output` (PII detection),
+  `check_quota_pre_run` (exhausted, low, unlimited)
+- **Python agent tests** — `packages/agents/tests/test_agents.py` replaces placeholder:
+  AgentType enum, all 5 concrete agents, ABC enforcement, to_dict shape
+- **Python runtime model tests** — `packages/runtime/tests/test_runtime.py` replaces placeholder:
+  RunInput, RunResult, Message, ToolResult validation and serialization
+- **Integration test suite** (`tests/integration/`) — `auth_flow.test.ts` (full createApp()
+  middleware stack), `security.test.ts` (auth bypass, injection payloads, security headers),
+  `chaos.test.ts` (DB fault, Redis fault, concurrent request handling)
+- **E2E smoke tests** (`tests/e2e/smoke.spec.ts`) — skipped unless `RUN_E2E=true`
+- **k6 load test scripts** (`tests/load/`) — `health.k6.js` (ramp 20→100 VUs, p95<100ms),
+  `auth.k6.js` (constant-arrival + spike, rate limit detection), `agents.k6.js` (CRUD lifecycle)
+- `tests/vitest.config.ts` — vitest config for integration/e2e suites
+- `tests/tsconfig.json` — TypeScript config for tests package
+
+### Changed (2026-03-15 — Comprehensive test suite / feat/testing)
+- `tests/package.json` — updated scripts to use vitest config, added hono devDependency
+- Deleted old placeholder test files (test_agents_placeholder.py, test_risk_placeholder.py,
+  test_runtime_placeholder.py) — replaced with real implementations
+
 ### Added (2026-03-15 — Chain wiring / feat/chain-wiring)
 - `services/daemon/src/chain.rs` — on-chain receipt anchoring: computes deterministic
   SHA-256 payload hash, builds Anchor `anchor_receipt` instruction (discriminator + borsh args),

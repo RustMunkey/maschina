@@ -3,10 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "e2e":         "vitest run e2e",
-    "integration": "vitest run integration",
-    "load":        "echo 'Load tests — tooling TBD'",
-    "clean":       "rm -rf coverage"
+    "e2e": "vitest run --config vitest.config.ts e2e",
+    "integration": "vitest run --config vitest.config.ts integration",
+    "load": "echo 'Run k6 load tests: k6 run tests/load/<script>.k6.js'",
+    "clean": "rm -rf coverage"
   },
   "devDependencies": {
     "@maschina/tsconfig": "workspace:*",
