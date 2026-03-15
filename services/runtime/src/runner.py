@@ -17,12 +17,15 @@ import logging
 from typing import Any
 
 from maschina_risk import check_input, check_output
-from maschina_runtime import RunInput
+from maschina_runtime import RunInput, RunResult
+from maschina_runtime.runner import AgentRunner
 
 from .config import settings
+from .fallback import MAX_FALLBACK_ATTEMPTS, is_retriable, next_fallback
 from .memory import retrieve_memories, store_memory
 from .models import RunRequest, RunResponse
 from .ollama_runner import OllamaRunner
+from .openai_runner import OpenAIRunner
 from .skills import build_tools
 from .tracing import end_trace, fail_trace, start_trace
 
@@ -83,6 +86,86 @@ def _extract_user_message(input_payload: dict[str, Any]) -> str:
     return json.dumps(input_payload)
 
 
+def _build_runner(model: str, req: RunRequest) -> AgentRunner | OllamaRunner | OpenAIRunner:
+    """Instantiate the appropriate runner for the given model."""
+    tools = build_tools(req.skills, req.skill_configs)
+
+    if _is_ollama(model):
+        return OllamaRunner(
+            base_url=settings.ollama_base_url,
+            model=_ollama_model_name(model),
+            system_prompt=req.system_prompt,
+            max_tokens=req.max_tokens,
+            timeout_secs=req.timeout_secs,
+        )
+    if _is_openai(model):
+        if not settings.openai_api_key:
+            raise RuntimeError("OPENAI_API_KEY is not configured")
+        return OpenAIRunner(
+            api_key=settings.openai_api_key,
+            model=model,
+            system_prompt=req.system_prompt,
+            max_tokens=req.max_tokens,
+            timeout_secs=req.timeout_secs,
+        )
+    # Default: Anthropic (claude-*)
+    if not settings.anthropic_api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY is not configured")
+    import anthropic
+
+    return AgentRunner(
+        client=anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key),
+        model=model,
+        system_prompt=req.system_prompt,
+        max_tokens=req.max_tokens,
+        tools=tools,
+        timeout_secs=req.timeout_secs,
+    )
+
+
+async def _execute_with_fallback(req: RunRequest, run_input: RunInput) -> tuple[RunResult, str]:
+    """
+    Run the agent with cascade fallback on retriable provider errors.
+
+    Tries the requested model first, then walks the fallback chain up to
+    MAX_FALLBACK_ATTEMPTS times before giving up and re-raising.
+    """
+    model = req.model
+    last_exc: Exception | None = None
+
+    for attempt in range(MAX_FALLBACK_ATTEMPTS):
+        runner = _build_runner(model, req)
+        try:
+            result = await runner.run(run_input)
+            return result, model
+        except Exception as exc:
+            if not is_retriable(exc):
+                raise
+
+            last_exc = exc
+            fallback = next_fallback(model)
+            if fallback is None:
+                logger.warning(
+                    "no fallback available for model=%s after retriable error; giving up",
+                    model,
+                    exc_info=exc,
+                )
+                break
+
+            logger.warning(
+                "retriable error on model=%s (attempt %d/%d), falling back to model=%s",
+                model,
+                attempt + 1,
+                MAX_FALLBACK_ATTEMPTS,
+                fallback,
+                exc_info=exc,
+            )
+            model = fallback
+
+    await fail_trace(run_id=req.run_id, error=str(last_exc))
+    raise RuntimeError(f"all fallback attempts exhausted for run {req.run_id}") from last_exc
+
+
 async def execute(req: RunRequest) -> RunResponse:
     """
     Execute an agent run.
@@ -116,58 +199,6 @@ async def execute(req: RunRequest) -> RunResponse:
         )
         logger.debug("Injected %d memories for agent=%s", len(memories), req.agent_id)
 
-    # ── Route to runner ─────────────────────────────────────────────────────
-    if _is_ollama(req.model):
-        runner = OllamaRunner(
-            base_url=settings.ollama_base_url,
-            model=_ollama_model_name(req.model),
-            system_prompt=req.system_prompt,
-            max_tokens=min(req.max_tokens, settings.max_output_tokens),
-            timeout_secs=req.timeout_secs,
-        )
-
-    elif _is_openai(req.model):
-        try:
-            import openai as _openai_check  # noqa: F401
-        except ImportError as exc:
-            raise RuntimeError("openai package not installed — run: pip install openai") from exc
-
-        if not settings.openai_api_key:
-            raise RuntimeError(f"OPENAI_API_KEY is not set but model '{req.model}' requires it")
-
-        from .openai_runner import OpenAIRunner
-
-        runner = OpenAIRunner(
-            api_key=settings.openai_api_key,
-            model=req.model,
-            system_prompt=req.system_prompt,
-            max_tokens=min(req.max_tokens, settings.max_output_tokens),
-            timeout_secs=req.timeout_secs,
-        )
-
-    else:
-        # Anthropic (claude-*) or unknown prefix treated as Anthropic
-        if not settings.anthropic_api_key:
-            raise RuntimeError(f"ANTHROPIC_API_KEY is not set but model '{req.model}' requires it")
-
-        try:
-            import anthropic
-        except ImportError as exc:
-            raise RuntimeError("anthropic package not installed") from exc
-
-        from maschina_runtime import AgentRunner
-
-        tools = build_tools(req.skills, req.skill_configs)
-        client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
-        runner = AgentRunner(
-            client=client,
-            system_prompt=req.system_prompt,
-            model=req.model,
-            max_tokens=min(req.max_tokens, settings.max_output_tokens),
-            tools=tools,
-            timeout_secs=req.timeout_secs,
-        )
-
     run_input = RunInput(
         run_id=req.run_id,
         message=user_message,
@@ -181,13 +212,16 @@ async def execute(req: RunRequest) -> RunResponse:
         input_message=user_message,
     )
 
-    try:
-        result = await runner.run(run_input)
-    except Exception as exc:
-        await fail_trace(req.run_id, str(exc))
-        raise
+    # ── Route + cascade fallback ─────────────────────────────────────────────
+    result, actual_model = await _execute_with_fallback(req, run_input)
+    if actual_model != req.model:
+        logger.warning(
+            "cascade fallback: ran with model=%s (requested=%s)",
+            actual_model,
+            req.model,
+        )
 
-    # ── Post-run risk scan ──────────────────────────────────────────────────
+    # ── Post-run risk scan (result from cascade fallback) ───────────────────
     output_risk = check_output(result.output)
     if output_risk.flags:
         logger.warning(
