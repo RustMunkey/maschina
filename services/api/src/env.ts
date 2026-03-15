@@ -25,6 +25,9 @@ const schema = z.object({
   APP_URL: z.string().default("http://localhost:5173"),
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().optional(),
+
+  // Helius — optional; if set, inbound webhook signature is verified
+  HELIUS_WEBHOOK_SECRET: z.string().optional(),
 });
 
 function parseEnv() {
