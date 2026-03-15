@@ -4,6 +4,7 @@ members = [
   "services/daemon",
   "services/gateway",
   "services/realtime",
+  "services/node",
   "apps/desktop/src-tauri",
   "packages/cli",
   "packages/code",

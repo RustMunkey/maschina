@@ -166,7 +166,7 @@ jobs:
         with:
           toolchain: "1.88"
           components: rustfmt
-      - run: cargo fmt -p maschina-gateway -p maschina-daemon -p maschina-realtime -- --check
+      - run: cargo fmt -p maschina-gateway -p maschina-daemon -p maschina-realtime -p maschina-node -- --check
 
   rust-clippy:
     name: Rust / clippy
@@ -184,6 +184,7 @@ jobs:
           -p maschina-gateway
           -p maschina-daemon
           -p maschina-realtime
+          -p maschina-node
           -- -D warnings
 
   rust-test:
@@ -196,7 +197,7 @@ jobs:
           toolchain: "1.88"
       - uses: Swatinem/rust-cache@v2
       - run: sudo apt-get install -y pkg-config libssl-dev
-      - run: cargo test -p maschina-gateway -p maschina-daemon -p maschina-realtime
+      - run: cargo test -p maschina-gateway -p maschina-daemon -p maschina-realtime -p maschina-node
 
   rust-build:
     name: Rust / build (release)
@@ -213,6 +214,7 @@ jobs:
           -p maschina-gateway
           -p maschina-daemon
           -p maschina-realtime
+          -p maschina-node
 
   # ── Python ────────────────────────────────────────────────────────────────
 
