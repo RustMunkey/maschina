@@ -8,6 +8,22 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-15 — Node binary / feat/node-binary)
+- `services/node/` — new `maschina-node` Rust binary for compute node operators:
+  - `src/identity.rs` — Ed25519 keypair generation + persistence to
+    `~/.config/maschina-node/identity.toml`; `sign()` stub for Phase 5 receipt signing
+  - `src/config.rs` — env-driven config: `MASCHINA_API_URL`, `MASCHINA_API_KEY`,
+    `NODE_NAME`, `NODE_REGION`, `NODE_INTERNAL_URL`, `NODE_HEARTBEAT_INTERVAL_SECS`,
+    `NODE_MAX_CONCURRENT_TASKS`, `NODE_CONFIG_DIR`
+  - `src/api.rs` — typed API client: `register_node()`, `submit_public_key()`, `heartbeat()`
+  - `src/heartbeat.rs` — periodic heartbeat loop with `ActiveTaskCounter` + `send_once()` for
+    startup/shutdown
+  - `src/main.rs` — full lifecycle: load/generate identity → register (idempotent) →
+    submit public key → initial heartbeat → heartbeat loop → graceful shutdown
+- `Cargo.toml` (workspace) — `services/node` added to workspace members
+- `.github/workflows/ci.yml` — `maschina-node` added to all 4 Rust CI steps
+  (fmt, clippy, test, build)
+
 ### Added (2026-03-15 — Task watchdog / feat/task-watchdog)
 - `services/daemon/src/watchdog.rs` — standalone watchdog loop that sweeps `agent_runs`
   every 30s for runs stuck in `running` status beyond the timeout threshold; force-fails

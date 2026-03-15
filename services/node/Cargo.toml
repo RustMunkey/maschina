@@ -1,0 +1,42 @@
+[package]
+name = "maschina-node"
+version = "0.0.0"
+edition = "2021"
+
+[[bin]]
+name = "maschina-node"
+path = "src/main.rs"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Error handling
+anyhow = "1"
+
+# Observability
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# HTTP client (API calls to register, heartbeat, submit receipt)
+reqwest = { version = "0.12", features = ["json"] }
+
+# Config + env
+dotenvy = "0.15"
+
+# Identity + crypto
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+rand = "0.8"
+hex = "0.4"
+
+# Persistent config (node identity stored as TOML)
+toml = "0.8"
+
+# Signal handling
+tokio-util = { version = "0.7", features = ["rt"] }
