@@ -1422,6 +1422,9 @@ importers:
       '@maschina/types':
         specifier: workspace:*
         version: link:../../packages/types
+      posthog-node:
+        specifier: ^4
+        version: 4.18.0
     devDependencies:
       '@maschina/tsconfig':
         specifier: workspace:*
@@ -1441,6 +1444,9 @@ importers:
       '@hono/node-server':
         specifier: ^1.13
         version: 1.19.11(hono@4.12.5)
+      '@maschina/analytics':
+        specifier: workspace:*
+        version: link:../analytics
       '@maschina/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -10748,6 +10754,10 @@ packages:
   postgres@3.4.8:
     resolution: {integrity: sha512-d+JFcLM17njZaOLkv6SCev7uoLaBtfK86vMUXhW1Z4glPWh4jozno9APvW/XKFJ3CCxVoC7OL38BqRydtu5nGg==}
     engines: {node: '>=12'}
+
+  posthog-node@4.18.0:
+    resolution: {integrity: sha512-XROs1h+DNatgKh/AlIlCtDxWzwrKdYDb2mOs58n4yN8BkGN9ewqeQwG5ApS4/IzwCb7HPttUkOVulkYatd2PIw==}
+    engines: {node: '>=15.0.0'}
 
   powershell-utils@0.1.0:
     resolution: {integrity: sha512-dM0jVuXJPsDN6DvRpea484tCUaMiXWjuCn++HGTqUWzGDjv5tZkEZldAJ/UMlqRYGFrD/etByo4/xOuC/snX2A==}
@@ -24435,6 +24445,12 @@ snapshots:
       xtend: 4.0.2
 
   postgres@3.4.8: {}
+
+  posthog-node@4.18.0:
+    dependencies:
+      axios: 1.13.2
+    transitivePeerDependencies:
+      - debug
 
   powershell-utils@0.1.0: {}
 

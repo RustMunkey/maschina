@@ -24,6 +24,7 @@ from .memory import retrieve_memories, store_memory
 from .models import RunRequest, RunResponse
 from .ollama_runner import OllamaRunner
 from .skills import build_tools
+from .tracing import end_trace, fail_trace, start_trace
 
 logger = logging.getLogger(__name__)
 
@@ -172,7 +173,19 @@ async def execute(req: RunRequest) -> RunResponse:
         message=user_message,
     )
 
-    result = await runner.run(run_input)
+    trace_start = await start_trace(
+        run_id=req.run_id,
+        agent_id=req.agent_id,
+        user_id=req.user_id,
+        model=req.model,
+        input_message=user_message,
+    )
+
+    try:
+        result = await runner.run(run_input)
+    except Exception as exc:
+        await fail_trace(req.run_id, str(exc))
+        raise
 
     # ── Post-run risk scan ──────────────────────────────────────────────────
     output_risk = check_output(result.output)
@@ -181,6 +194,15 @@ async def execute(req: RunRequest) -> RunResponse:
             "output risk flags",
             extra={"run_id": req.run_id, "flags": [f.code for f in output_risk.flags]},
         )
+
+    # ── LangSmith trace ─────────────────────────────────────────────────────
+    await end_trace(
+        run_id=req.run_id,
+        output=result.output,
+        input_tokens=result.input_tokens,
+        output_tokens=result.output_tokens,
+        start_time=trace_start,
+    )
 
     # ── Store episodic memory ───────────────────────────────────────────────
     store_memory(req.agent_id, req.user_id, req.run_id, result.output, role="output")
