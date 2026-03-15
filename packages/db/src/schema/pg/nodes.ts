@@ -10,7 +10,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { nodeStatusEnum, nodeTierEnum } from "./enums.js";
+import { nodeStatusEnum, nodeTierEnum, stakeEventTypeEnum } from "./enums.js";
 import { users } from "./users.js";
 
 // ─── Nodes ────────────────────────────────────────────────────────────────────
@@ -63,6 +63,11 @@ export const nodes = pgTable(
 
     // Last time this node sent a heartbeat
     lastHeartbeatAt: timestamp("last_heartbeat_at", { withTimezone: true }),
+
+    // Ed25519 public key submitted by the node binary on first registration.
+    // Hex-encoded 32-byte public key. Used to verify execution receipt signatures.
+    // Null until the node submits its keypair via POST /nodes/:id/public-key.
+    publicKey: text("public_key"),
 
     // TEE attestation — set when a verified-tier node submits attestation proof
     teeAttested: boolean("tee_attested").notNull().default(false),
@@ -215,6 +220,47 @@ export const nodeEarnings = pgTable(
   }),
 );
 
+// ─── Node Stake Events ────────────────────────────────────────────────────────
+// Append-only ledger of staking activity: deposits, withdrawals, and slashes.
+// The running balance (stakedUsdc on nodes) is the source of truth for routing;
+// this table provides the audit trail for on-chain settlement.
+
+export const nodeStakeEvents = pgTable(
+  "node_stake_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    nodeId: uuid("node_id")
+      .notNull()
+      .references(() => nodes.id, { onDelete: "cascade" }),
+
+    // Event type: deposit | withdraw | slash
+    eventType: stakeEventTypeEnum("event_type").notNull(),
+
+    // Amount in USDC (positive for deposit, negative for withdraw/slash)
+    amountUsdc: numeric("amount_usdc", { precision: 18, scale: 6 }).notNull(),
+
+    // Balance snapshot after this event
+    balanceAfterUsdc: numeric("balance_after_usdc", { precision: 18, scale: 6 }).notNull(),
+
+    // For slashes — reason code and who triggered it
+    reason: text("reason"),
+    triggeredBy: uuid("triggered_by").references(() => users.id, { onDelete: "set null" }),
+
+    // Percentage slashed (0–100), null unless eventType = slash
+    slashPct: numeric("slash_pct", { precision: 5, scale: 2 }),
+
+    // Optional on-chain transaction reference (Solana signature)
+    txSignature: text("tx_signature"),
+
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    nodeIdIdx: index("node_stake_events_node_id_idx").on(t.nodeId),
+    eventTypeIdx: index("node_stake_events_event_type_idx").on(t.eventType),
+    nodeCreatedIdx: index("node_stake_events_node_created_idx").on(t.nodeId, t.createdAt),
+  }),
+);
+
 export type Node = typeof nodes.$inferSelect;
 export type NewNode = typeof nodes.$inferInsert;
 export type NodeCapabilities = typeof nodeCapabilities.$inferSelect;
@@ -223,3 +269,5 @@ export type NodeHeartbeat = typeof nodeHeartbeats.$inferSelect;
 export type NewNodeHeartbeat = typeof nodeHeartbeats.$inferInsert;
 export type NodeEarning = typeof nodeEarnings.$inferSelect;
 export type NewNodeEarning = typeof nodeEarnings.$inferInsert;
+export type NodeStakeEvent = typeof nodeStakeEvents.$inferSelect;
+export type NewNodeStakeEvent = typeof nodeStakeEvents.$inferInsert;
