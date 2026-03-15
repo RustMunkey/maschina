@@ -13,6 +13,7 @@ import keyRoutes from "./routes/keys.js";
 import marketplaceRoutes from "./routes/marketplace.js";
 import memoryRoutes from "./routes/memory.js";
 import nodeRoutes from "./routes/nodes.js";
+import orgRoutes from "./routes/orgs.js";
 import permissionRoutes from "./routes/permissions.js";
 import receiptRoutes, { agentReceiptsApp } from "./routes/receipts.js";
 import searchRoutes from "./routes/search.js";
@@ -43,6 +44,7 @@ export function createApp() {
   app.route("/search", searchRoutes);
   app.route("/compliance", complianceRoutes);
   app.route("/nodes", nodeRoutes);
+  app.route("/orgs", orgRoutes);
   app.route("/agents", memoryRoutes);
   app.route("/agents", skillRoutes);
   app.route("/skills", skillCatalogRoutes);
