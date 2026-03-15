@@ -1,9 +1,11 @@
 //! Resource scheduling — selects the best available node for a given run.
 //!
-//! Scoring factors (higher = better):
-//!   Load      — (1 - active/capacity) * 50   nodes at full capacity are excluded
-//!   Model     — +30 if node's supported_models list contains this model's prefix
-//!   GPU       — +20 if node has GPU and model is a local/ollama model
+//! Scoring factors (higher = better, max ~125):
+//!   Load       — (1 - active/capacity) * 50   nodes at full capacity are excluded
+//!   Model      — +30 if node's supported_models list contains this model's prefix
+//!   GPU        — +20 if node has GPU and model is a local/ollama model
+//!   Reputation — (reputation_score / 100) * 20  rewards high-reliability nodes
+//!   Stake      — min(staked_usdc / 1000, 1) * 5  small trust bonus for staked nodes
 //!
 //! Falls back to config.runtime_url when no registered nodes are available
 //! or all nodes are at capacity.
@@ -20,6 +22,8 @@ struct CandidateNode {
     has_gpu: Option<bool>,
     supported_models: Option<serde_json::Value>, // JSON array of strings
     active_task_count: i64,
+    reputation_score: f64, // 0–100, cast from numeric in SQL
+    staked_usdc: f64,      // collateral amount, cast from numeric in SQL
 }
 
 /// Compute a scheduling score for a node. Higher is better.
@@ -62,7 +66,13 @@ fn score(node: &CandidateNode, model: &str) -> Option<f64> {
         0.0
     };
 
-    Some(load_score + model_score + gpu_score)
+    // Reputation bonus — proportional to rolling reliability score (0–100 → 0–20 pts)
+    let reputation_score = (node.reputation_score.clamp(0.0, 100.0) / 100.0) * 20.0;
+
+    // Stake bonus — small trust signal; capped at 1000 USDC for full bonus (0–5 pts)
+    let stake_score = (node.staked_usdc / 1000.0).min(1.0) * 5.0;
+
+    Some(load_score + model_score + gpu_score + reputation_score + stake_score)
 }
 
 /// Select the best available node for this run.
@@ -78,7 +88,9 @@ pub async fn select_node(state: &AppState, model: &str) -> (String, Option<uuid:
             nc.max_concurrent_tasks,
             nc.has_gpu,
             nc.supported_models,
-            COALESCE(h.active_task_count, 0) AS active_task_count
+            COALESCE(h.active_task_count, 0) AS active_task_count,
+            CAST(n.reputation_score AS FLOAT8)  AS reputation_score,
+            CAST(n.staked_usdc      AS FLOAT8)  AS staked_usdc
         FROM nodes n
         LEFT JOIN node_capabilities nc ON nc.node_id = n.id
         LEFT JOIN LATERAL (
