@@ -8,6 +8,39 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-15 — Auto-suspend / feat/auto-suspend)
+- `services/api/src/routes/nodes.ts` — slash handler now auto-suspends node
+  (`status = 'suspended'`, `suspendedAt`) when post-slash `stakedUsdc` drops below
+  the tier minimum; response includes `suspended: true` flag
+- `services/daemon/src/orchestrator/analyze.rs` — `update_node_reputation()` now
+  auto-suspends active nodes whose `reputation_score` drops below 20 with ≥10 tasks
+  of signal; prevents degraded nodes from continuing to receive work
+
+### Added (2026-03-15 — Solana settlement program / feat/solana-program)
+- `programs/settlement/src/instructions/mod.rs` — exports all 5 instruction modules
+- `programs/settlement/src/instructions/anchor_receipt.rs` — AnchorReceipt context + handler:
+  Ed25519 signature verification (stub), receipt PDA init, earnings split (65/20/10/5)
+  accumulated into SettlementPool, ReceiptAnchored event emitted
+- `programs/settlement/src/instructions/deposit_stake.rs` — DepositStake: NodeStake + SettlementPool
+  PDAs init_if_needed on first deposit; staked_amount accumulated; StakeDeposited event
+- `programs/settlement/src/instructions/withdraw_stake.rs` — WithdrawStake (7-day lock) +
+  FinaliseWithdrawal (post-lock SPL transfer stub); Clock::get() validation
+- `programs/settlement/src/instructions/slash_stake.rs` — SlashStake: bps validation (1–10000),
+  proportional slash from staked_amount, total_slashed tracking; StakeSlashed event
+- `programs/settlement/src/instructions/settle_earnings.rs` — SettleEarnings: drains pool to
+  node/developer/treasury/validators wallets (SPL CPI stub); EarningsSettled event
+- `programs/settlement/src/lib.rs` — added finalise_withdrawal instruction
+- `programs/Anchor.toml` — settlement program registered under [programs.localnet]
+- `packages/chain/src/settlement.ts` — TypeScript Anchor client: PDA helpers (receiptPda, stakePda,
+  poolPda), getSettlementProgram, fetchReceipt, isReceiptAnchored, UUID<->bytes utilities
+- `packages/chain/src/webhook.ts` — Helius webhook processing: HeliusWebhookPayload types,
+  processHeliusWebhook dispatcher, registerSettlementWebhook helper
+- `packages/chain/src/index.ts` — exports for settlement + webhook modules
+- `packages/chain/package.json` — added @coral-xyz/anchor ^0.30.1
+- `services/api/src/routes/webhooks.ts` — POST /webhooks/helius: Helius auth header verification,
+  processHeliusWebhook dispatch, onReceiptAnchored handler stub
+- `services/api/src/env.ts` — HELIUS_WEBHOOK_SECRET optional env var
+
 ### Added (2026-03-15 — Run streaming / feat/run-streaming)
 - `services/runtime/src/streaming.py` — SSE streaming endpoint for all three runners
   (Anthropic, OpenAI, Ollama); chunk/done/error event types; `POST /stream` added to FastAPI app
