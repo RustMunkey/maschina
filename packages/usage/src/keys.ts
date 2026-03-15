@@ -40,3 +40,13 @@ export function planKey(tier: string): string {
 export function userPlanKey(userId: string): string {
   return `user_plan:${userId}`;
 }
+
+/** Alert dedup: tracks whether a quota threshold alert has been fired this period */
+export function alertFiredKey(
+  userId: string,
+  type: UsageEventType,
+  period: string,
+  level: "warning" | "exceeded",
+): string {
+  return `alert_fired:${userId}:${type}:${period}:${level}`;
+}
