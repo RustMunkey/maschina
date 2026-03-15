@@ -64,6 +64,79 @@ export const SKILL_CATALOG: Record<string, SkillDef> = {
       },
     },
   },
+
+  // ─── Connector-backed skills ───────────────────────────────────────────────
+
+  slack: {
+    slug: "slack",
+    name: "Slack",
+    description: "Post messages and read channel history from a connected Slack workspace.",
+    minTier: "m1",
+    configSchema: {
+      access_token: {
+        type: "string",
+        description: "Slack bot token (injected automatically after OAuth).",
+        required: true,
+      },
+      default_channel: {
+        type: "string",
+        description: "Default channel to post to (e.g. #general).",
+        default: "",
+      },
+    },
+  },
+
+  github: {
+    slug: "github",
+    name: "GitHub",
+    description: "Create and list issues, read pull requests in connected GitHub repositories.",
+    minTier: "m1",
+    configSchema: {
+      access_token: {
+        type: "string",
+        description: "GitHub access token (injected automatically after OAuth).",
+        required: true,
+      },
+      default_repo: {
+        type: "string",
+        description: "Default repo in owner/repo format (e.g. acme/backend).",
+        default: "",
+      },
+    },
+  },
+
+  notion: {
+    slug: "notion",
+    name: "Notion",
+    description: "Create and search pages in connected Notion workspaces.",
+    minTier: "m1",
+    configSchema: {
+      access_token: {
+        type: "string",
+        description: "Notion integration token.",
+        required: true,
+      },
+    },
+  },
+
+  linear: {
+    slug: "linear",
+    name: "Linear",
+    description: "Create, list, and update issues in Linear projects.",
+    minTier: "m1",
+    configSchema: {
+      access_token: {
+        type: "string",
+        description: "Linear API key.",
+        required: true,
+      },
+      default_team: {
+        type: "string",
+        description: "Default Linear team ID or key.",
+        default: "",
+      },
+    },
+  },
 };
 
 // Tier order for gate checks
