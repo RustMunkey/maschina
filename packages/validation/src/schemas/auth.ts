@@ -5,7 +5,7 @@ import { z } from "zod";
 // z.infer<typeof Schema> gives the TypeScript type for free.
 
 export const RegisterSchema = z.object({
-  email: z.string().email("Invalid email address").max(320, "Email too long").toLowerCase().trim(),
+  email: z.string().trim().toLowerCase().email("Invalid email address").max(320, "Email too long"),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
@@ -14,7 +14,7 @@ export const RegisterSchema = z.object({
 });
 
 export const LoginSchema = z.object({
-  email: z.string().email().toLowerCase().trim(),
+  email: z.string().trim().toLowerCase().email(),
   password: z.string().min(1, "Password is required").max(128),
 });
 
@@ -34,7 +34,7 @@ export const ChangePasswordSchema = z
   });
 
 export const RequestPasswordResetSchema = z.object({
-  email: z.string().email().toLowerCase().trim(),
+  email: z.string().trim().toLowerCase().email(),
 });
 
 export const ResetPasswordSchema = z

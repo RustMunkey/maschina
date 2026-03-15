@@ -70,7 +70,8 @@ describe("m1 tier model access", () => {
   });
 
   it("can use unknown model passthrough (M1+ allowed)", () => {
-    const result = validateModelAccess("m1", "gpt-5-mini");
+    // Use a model ID with a known prefix but not in the catalog
+    const result = validateModelAccess("m1", "gpt-unknown-future-model-xyz");
     expect(result.allowed).toBe(true);
     expect(result.passthrough).toBe(true);
   });
