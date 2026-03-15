@@ -1,7 +1,7 @@
+use crate::{client::ApiClient, output::Output};
 use anyhow::Result;
 use console::style;
 use serde::{Deserialize, Serialize};
-use crate::{client::ApiClient, output::Output};
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -32,9 +32,17 @@ pub async fn show(client: &ApiClient, run_id: String, out: &Output) -> Result<()
     }
 
     println!("{}", style("Run details").bold());
-    println!("  {:<14} {}", style("Run ID:").dim(),   style(&run.id).cyan());
-    println!("  {:<14} {}", style("Agent:").dim(),    style(&run.agent_id).dim());
-    println!("  {:<14} {}", style("Status:").dim(),   status_styled(&run.status));
+    println!("  {:<14} {}", style("Run ID:").dim(), style(&run.id).cyan());
+    println!(
+        "  {:<14} {}",
+        style("Agent:").dim(),
+        style(&run.agent_id).dim()
+    );
+    println!(
+        "  {:<14} {}",
+        style("Status:").dim(),
+        status_styled(&run.status)
+    );
     if let Some(started) = &run.created_at {
         println!("  {:<14} {}", style("Started:").dim(), started);
     }

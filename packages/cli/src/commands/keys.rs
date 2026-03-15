@@ -25,7 +25,9 @@ struct CreatedKey {
 }
 
 #[derive(Serialize)]
-struct CreateBody { name: String }
+struct CreateBody {
+    name: String,
+}
 
 pub async fn list(client: &ApiClient, out: &Output) -> Result<()> {
     let keys: Vec<ApiKey> = client.get("/keys").await?;
@@ -42,7 +44,10 @@ pub async fn list(client: &ApiClient, out: &Output) -> Result<()> {
 
     println!(
         "  {:<38} {:<24} {:<22} {}",
-        style("ID").dim(), style("NAME").dim(), style("PREFIX").dim(), style("LAST USED").dim()
+        style("ID").dim(),
+        style("NAME").dim(),
+        style("PREFIX").dim(),
+        style("LAST USED").dim()
     );
     for k in &keys {
         println!(
@@ -67,10 +72,17 @@ pub async fn create(client: &ApiClient, name: String, out: &Output) -> Result<()
 
     println!("{} API key created", style("✓").green().bold());
     println!("  {:<12} {}", style("Name:").dim(), &key.name);
-    println!("  {:<12} {}", style("Key:").dim(), style(&key.key).cyan().bold());
+    println!(
+        "  {:<12} {}",
+        style("Key:").dim(),
+        style(&key.key).cyan().bold()
+    );
     println!("  {:<12} {}", style("ID:").dim(), style(&key.id).dim());
     println!();
-    println!("  {} Copy this key — it will not be shown again.", style("!").yellow().bold());
+    println!(
+        "  {} Copy this key — it will not be shown again.",
+        style("!").yellow().bold()
+    );
 
     Ok(())
 }

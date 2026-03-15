@@ -84,7 +84,7 @@ pub async fn dispatch_nats(
     run: &QueuedRun,
     node_id: uuid::Uuid,
 ) -> Result<RunOutput, DaemonError> {
-    let subject = format!("maschina.nodes.{}.execute", node_id);
+    let subject = format!("maschina.nodes.{node_id}.execute");
 
     // Serialize the full RuntimeRequest as the NATS payload
     let body = RuntimeRequest {
@@ -110,7 +110,7 @@ pub async fn dispatch_nats(
         state.nats.request(subject.clone(), payload.into()),
     )
     .await
-    .map_err(|_| DaemonError::Runtime(format!("NATS dispatch to node {} timed out", node_id)))?
+    .map_err(|_| DaemonError::Runtime(format!("NATS dispatch to node {node_id} timed out")))?
     .map_err(|e| DaemonError::Runtime(format!("NATS request failed: {e}")))?;
 
     // Check for error envelope from node binary

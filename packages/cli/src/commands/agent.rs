@@ -59,7 +59,10 @@ pub async fn list(client: &ApiClient, out: &Output) -> Result<()> {
 
     println!(
         "  {:<38} {:<20} {:<14} {}",
-        style("ID").dim(), style("NAME").dim(), style("TYPE").dim(), style("STATUS").dim()
+        style("ID").dim(),
+        style("NAME").dim(),
+        style("TYPE").dim(),
+        style("STATUS").dim()
     );
     for a in &agents {
         println!(
@@ -83,13 +86,21 @@ pub async fn deploy(client: &ApiClient, name: String, out: &Output) -> Result<()
     ];
 
     let selected = Select::new("Agent type:", type_options).prompt()?;
-    let agent_type = selected.split_whitespace().next().unwrap_or("signal").to_string();
+    let agent_type = selected
+        .split_whitespace()
+        .next()
+        .unwrap_or("signal")
+        .to_string();
 
     let description = Text::new("Description (optional):")
         .prompt_skippable()?
         .filter(|s: &String| !s.is_empty());
 
-    let body = CreateAgentBody { name: name.clone(), agent_type, description };
+    let body = CreateAgentBody {
+        name: name.clone(),
+        agent_type,
+        description,
+    };
     let agent: Agent = client.post("/agents", &body).await?;
 
     if out.is_json() {
@@ -102,7 +113,10 @@ pub async fn deploy(client: &ApiClient, name: String, out: &Output) -> Result<()
     println!("  {:<12} {}", style("Name:").dim(), &agent.name);
     println!("  {:<12} {}", style("Type:").dim(), &agent.agent_type);
     println!();
-    println!("  Run it:  {}", style(format!("maschina agent run {}", &agent.id)).cyan());
+    println!(
+        "  Run it:  {}",
+        style(format!("maschina agent run {}", &agent.id)).cyan()
+    );
 
     Ok(())
 }
@@ -113,8 +127,15 @@ pub async fn stop(client: &ApiClient, id: String, out: &Output) -> Result<()> {
     Ok(())
 }
 
-pub async fn run_agent(client: &ApiClient, id: String, payload: serde_json::Value, out: &Output) -> Result<()> {
-    let run: AgentRun = client.post(&format!("/agents/{}/run", id), &RunBody { input: payload }).await?;
+pub async fn run_agent(
+    client: &ApiClient,
+    id: String,
+    payload: serde_json::Value,
+    out: &Output,
+) -> Result<()> {
+    let run: AgentRun = client
+        .post(&format!("/agents/{}/run", id), &RunBody { input: payload })
+        .await?;
 
     if out.is_json() {
         out.data(&run);
@@ -122,10 +143,21 @@ pub async fn run_agent(client: &ApiClient, id: String, payload: serde_json::Valu
     }
 
     println!("{} Agent run queued", style("✓").green().bold());
-    println!("  {:<12} {}", style("Run ID:").dim(), style(&run.run_id).cyan());
-    println!("  {:<12} {}", style("Status:").dim(), status_styled(&run.status));
+    println!(
+        "  {:<12} {}",
+        style("Run ID:").dim(),
+        style(&run.run_id).cyan()
+    );
+    println!(
+        "  {:<12} {}",
+        style("Status:").dim(),
+        status_styled(&run.status)
+    );
     println!();
-    println!("  View logs:  {}", style(format!("maschina logs {}", &run.run_id)).cyan());
+    println!(
+        "  View logs:  {}",
+        style(format!("maschina logs {}", &run.run_id)).cyan()
+    );
 
     Ok(())
 }
@@ -145,7 +177,9 @@ pub async fn runs(client: &ApiClient, id: String, out: &Output) -> Result<()> {
 
     println!(
         "  {:<38} {:<16} {}",
-        style("RUN ID").dim(), style("STATUS").dim(), style("STARTED").dim()
+        style("RUN ID").dim(),
+        style("STATUS").dim(),
+        style("STARTED").dim()
     );
     for r in &runs {
         let started = r.started_at.as_deref().unwrap_or("—");
@@ -168,10 +202,18 @@ pub async fn inspect(client: &ApiClient, id: String, out: &Output) -> Result<()>
     }
 
     println!();
-    println!("  {:<16} {}", style("ID").dim(),          style(&agent.id).cyan());
-    println!("  {:<16} {}", style("Name").dim(),        &agent.name);
-    println!("  {:<16} {}", style("Type").dim(),        style(&agent.agent_type).cyan());
-    println!("  {:<16} {}", style("Status").dim(),      status_styled(&agent.status));
+    println!("  {:<16} {}", style("ID").dim(), style(&agent.id).cyan());
+    println!("  {:<16} {}", style("Name").dim(), &agent.name);
+    println!(
+        "  {:<16} {}",
+        style("Type").dim(),
+        style(&agent.agent_type).cyan()
+    );
+    println!(
+        "  {:<16} {}",
+        style("Status").dim(),
+        status_styled(&agent.status)
+    );
     if let Some(desc) = &agent.description {
         println!("  {:<16} {}", style("Description").dim(), desc);
     }
@@ -179,8 +221,14 @@ pub async fn inspect(client: &ApiClient, id: String, out: &Output) -> Result<()>
         println!("  {:<16} {}", style("Created").dim(), style(created).dim());
     }
     println!();
-    println!("  Run:   {}", style(format!("maschina agent run {}", &agent.id)).cyan());
-    println!("  Runs:  {}", style(format!("maschina agent runs {}", &agent.id)).cyan());
+    println!(
+        "  Run:   {}",
+        style(format!("maschina agent run {}", &agent.id)).cyan()
+    );
+    println!(
+        "  Runs:  {}",
+        style(format!("maschina agent runs {}", &agent.id)).cyan()
+    );
     println!();
     Ok(())
 }
