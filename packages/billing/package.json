@@ -18,9 +18,9 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@maschina/cache": "workspace:*",
     "@maschina/db": "workspace:*",
     "@maschina/plans": "workspace:*",
-    "@maschina/cache": "workspace:*",
     "drizzle-orm": "^0.39.3",
     "stripe": "^17"
   },

@@ -5,6 +5,7 @@ skip-lint = false
 [programs.localnet]
 treasury = "TRSYxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 marketplace = "MKTPxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+settlement = "STLMxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 [registry]
 url = "https://api.apr.dev"

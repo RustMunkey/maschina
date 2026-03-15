@@ -1,6 +1,7 @@
 // maschina-daemon — agent orchestration service
 // SCAN → EVALUATE → EXECUTE → ANALYZE
 
+mod chain;
 mod config;
 mod db;
 mod error;

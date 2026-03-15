@@ -26,6 +26,27 @@ pub async fn finalize_run(
             update_node_reputation(state, node_id, "success");
             update_agent_reputation(state, run.agent_id, "success");
             notify_realtime(state, run, "completed", None).await;
+
+            // Submit receipt hash to the on-chain settlement program (fire-and-forget).
+            // No-op when CHAIN_ENABLED is false (default in dev).
+            let total = task_price_cents(
+                output.input_tokens as i64,
+                output.output_tokens as i64,
+                &run.model,
+            );
+            // Convert cents → USDC lamports (6 decimals): cents / 100 * 1_000_000
+            let billed_usdc_lamports = (total as u64).saturating_mul(10_000);
+            crate::chain::submit_receipt(
+                state,
+                run.id,
+                run.agent_id,
+                run.user_id,
+                node_id,
+                output.input_tokens,
+                output.output_tokens,
+                billed_usdc_lamports,
+                chrono::Utc::now().timestamp(),
+            );
         }
 
         Err(DaemonError::Timeout { .. }) => {

@@ -30,6 +30,10 @@ pub struct Config {
     /// Secret used to sign Proof of Compute execution receipts (HMAC-SHA256).
     /// Falls back to a dev default when unset — set PROOF_SECRET in production.
     pub proof_secret: String,
+
+    /// Enable on-chain receipt anchoring via NATS event dispatch.
+    /// Off by default — set CHAIN_ENABLED=true once the chain worker is deployed.
+    pub chain_enabled: bool,
 }
 
 impl Config {
@@ -68,6 +72,9 @@ impl Config {
             env: env::var("NODE_ENV").unwrap_or_else(|_| "development".into()),
             proof_secret: env::var("PROOF_SECRET")
                 .unwrap_or_else(|_| "dev-proof-secret-change-in-production".into()),
+            chain_enabled: env::var("CHAIN_ENABLED")
+                .map(|v| v == "true" || v == "1")
+                .unwrap_or(false),
         })
     }
 

@@ -1,4 +1,6 @@
 import { constructWebhookEvent, handleWebhookEvent } from "@maschina/billing";
+import type { HeliusWebhookPayload } from "@maschina/chain";
+import { processHeliusWebhook } from "@maschina/chain";
 import { db, webhookDeliveries, webhooks } from "@maschina/db";
 import { and, desc, eq } from "@maschina/db";
 import { dispatchWebhookJob } from "@maschina/jobs";
@@ -12,6 +14,36 @@ import { env } from "../env.js";
 import { requireAuth } from "../middleware/auth.js";
 
 const app = new Hono<{ Variables: Variables }>();
+
+// ─── Helius inbound webhook (settlement program events) ──────────────────────
+// Helius POSTs enhanced transaction events when the settlement program
+// processes a transaction.  We verify the auth header then dispatch.
+
+app.post("/helius", async (c) => {
+  const authHeader = c.req.header("authorization");
+  const expected = env.HELIUS_WEBHOOK_SECRET;
+  if (expected && authHeader !== expected) {
+    throw new HTTPException(401, { message: "Invalid Helius webhook secret" });
+  }
+
+  const payload = (await c.req.json().catch(() => null)) as HeliusWebhookPayload | null;
+  if (!payload || !Array.isArray(payload.transactions)) {
+    throw new HTTPException(400, { message: "Invalid Helius webhook payload" });
+  }
+
+  await processHeliusWebhook(payload, {
+    onReceiptAnchored: async (event) => {
+      // Future: look up the run in the DB by signature/run_id and mark it as anchored.
+      console.info("[helius] receipt anchored", {
+        signature: event.signature,
+        slot: event.slot,
+        completedAt: event.completedAt,
+      });
+    },
+  });
+
+  return c.json({ received: true });
+});
 
 // ─── Stripe inbound webhook (no auth — raw body required) ────────────────────
 

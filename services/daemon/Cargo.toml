@@ -55,3 +55,5 @@ tokio-cron-scheduler = "0.13"
 
 # Prometheus metrics
 prometheus = { version = "0.13", features = ["process"] }
+
+# no additional deps needed — chain wiring uses existing NATS JetStream client

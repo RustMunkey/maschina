@@ -8,6 +8,17 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-15 — Chain wiring / feat/chain-wiring)
+- `services/daemon/src/chain.rs` — on-chain receipt anchoring: computes deterministic
+  SHA-256 payload hash, builds Anchor `anchor_receipt` instruction (discriminator + borsh args),
+  derives receipt + pool PDAs, loads authority keypair, submits via Helius RPC; fire-and-forget
+- `services/daemon/src/orchestrator/analyze.rs` — calls `chain::submit_receipt()` after
+  every successful run; converts task price cents → USDC lamports; no-op when CHAIN_ENABLED=false
+- `services/daemon/src/config.rs` — added `helius_rpc_url`, `settlement_program_id`,
+  `solana_authority_keypair`, `chain_enabled` fields
+- `services/daemon/src/main.rs` — registered `mod chain`
+- `services/daemon/Cargo.toml` — added `solana-sdk`, `solana-rpc-client`, `borsh`
+
 ### Added (2026-03-15 — Auto-suspend / feat/auto-suspend)
 - `services/api/src/routes/nodes.ts` — slash handler now auto-suspends node
   (`status = 'suspended'`, `suspendedAt`) when post-slash `stakedUsdc` drops below
