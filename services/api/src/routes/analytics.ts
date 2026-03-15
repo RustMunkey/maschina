@@ -12,7 +12,8 @@ import {
   usageEvents,
 } from "@maschina/db";
 import { can } from "@maschina/plans";
-import { Hono, createMiddleware } from "hono";
+import { Hono } from "hono";
+import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
 import type { Variables } from "../context.js";
 import { requireAuth } from "../middleware/auth.js";
