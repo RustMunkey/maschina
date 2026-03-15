@@ -9,7 +9,16 @@ import logging
 import os
 from typing import Any
 
-from maschina_runtime.tools import CodeExecTool, HttpFetchTool, Tool, WebSearchTool
+from maschina_runtime.tools import (
+    CodeExecTool,
+    GitHubTool,
+    HttpFetchTool,
+    LinearTool,
+    NotionTool,
+    SlackTool,
+    Tool,
+    WebSearchTool,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +81,42 @@ def _build_one(slug: str, cfg: dict[str, Any]) -> Tool | None:
                 else 512,
                 cpu_limit_secs=settings.sandbox_cpu_limit_secs if settings.sandbox_enabled else 30,
             )
+
+        case "slack":
+            token = cfg.get("access_token", "")
+            if not token:
+                logger.warning(
+                    "slack skill enabled but access_token not set in skill config — skipping"
+                )
+                return None
+            return SlackTool(access_token=token)
+
+        case "github":
+            token = cfg.get("access_token", "")
+            if not token:
+                logger.warning(
+                    "github skill enabled but access_token not set in skill config — skipping"
+                )
+                return None
+            return GitHubTool(access_token=token, default_repo=cfg.get("default_repo", ""))
+
+        case "notion":
+            token = cfg.get("access_token", "")
+            if not token:
+                logger.warning(
+                    "notion skill enabled but access_token not set in skill config — skipping"
+                )
+                return None
+            return NotionTool(access_token=token)
+
+        case "linear":
+            token = cfg.get("access_token", "")
+            if not token:
+                logger.warning(
+                    "linear skill enabled but access_token not set in skill config — skipping"
+                )
+                return None
+            return LinearTool(access_token=token, default_team=cfg.get("default_team", ""))
 
         case _:
             logger.warning("Unknown skill slug: %s — skipping", slug)

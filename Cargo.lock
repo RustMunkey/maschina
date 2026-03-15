@@ -3094,11 +3094,14 @@ dependencies = [
  "chrono",
  "dotenvy",
  "futures",
+ "hex",
+ "hmac",
  "prometheus",
  "redis",
  "reqwest 0.12.28",
  "serde",
  "serde_json",
+ "sha2",
  "sqlx",
  "thiserror 1.0.69",
  "tokio",
@@ -3175,7 +3178,7 @@ dependencies = [
 
 [[package]]
 name = "maschina-sdk"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "chrono",
  "mockito",

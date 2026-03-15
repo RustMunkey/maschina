@@ -8,6 +8,7 @@ import agentRoutes from "./routes/agents.js";
 import authRoutes from "./routes/auth.js";
 import billingRoutes from "./routes/billing.js";
 import complianceRoutes from "./routes/compliance.js";
+import connectorRoutes from "./routes/connectors.js";
 import healthRoutes from "./routes/health.js";
 import keyRoutes from "./routes/keys.js";
 import marketplaceRoutes from "./routes/marketplace.js";
@@ -45,6 +46,7 @@ export function createApp() {
   app.route("/compliance", complianceRoutes);
   app.route("/nodes", nodeRoutes);
   app.route("/orgs", orgRoutes);
+  app.route("/connectors", connectorRoutes);
   app.route("/agents", memoryRoutes);
   app.route("/agents", skillRoutes);
   app.route("/skills", skillCatalogRoutes);

@@ -6,7 +6,7 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ---
 
-## [Unreleased]
+## [Unreleased]\n\n### Added (2026-03-15 — Connector integrations / feat/connectors)\n- `packages/connectors/src/definitions.ts` — connector catalog: Slack (OAuth), GitHub (OAuth), Notion (API key), Linear (API key)\n- `packages/connectors/src/crypto.ts` — AES-256-GCM encrypt/decrypt for credential storage\n- `packages/connectors/src/skills.ts` — added slack, github, notion, linear to SKILL_CATALOG\n- `packages/connectors/src/index.ts` — exports crypto + definitions\n- `services/api/src/routes/connectors.ts` — full connector API: definitions list, CRUD, OAuth flow, incoming webhook receivers (Slack, GitHub, Linear signature verification)\n- `services/api/src/app.ts` — connector routes registered at /connectors\n- `packages/runtime/src/maschina_runtime/tools.py` — SlackTool, GitHubTool, NotionTool, LinearTool\n- `services/runtime/src/skills.py` — slack, github, notion, linear wired into build_tools()
 
 ### Added (2026-03-14 — Organization management / feat/orgs)
 - `packages/validation/src/schemas/org.ts` — `CreateOrgSchema`, `UpdateOrgSchema`, `InviteMemberSchema`, `UpdateMemberRoleSchema`

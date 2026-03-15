@@ -113,6 +113,362 @@ class WebSearchTool(Tool):
         return "\n".join(lines).strip()[:6_000]
 
 
+class SlackTool(Tool):
+    """Post messages and read channel history from Slack."""
+
+    name = "slack"
+    description = (
+        "Interact with Slack. Can post messages to channels and list recent messages. "
+        "Requires a connected Slack workspace."
+    )
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "action": {
+                "type": "string",
+                "enum": ["post_message", "list_channels", "get_messages"],
+                "description": "Action to perform",
+            },
+            "channel": {"type": "string", "description": "Channel name or ID"},
+            "text": {"type": "string", "description": "Message text (for post_message)"},
+            "limit": {
+                "type": "integer",
+                "description": "Number of messages to retrieve",
+                "default": 10,
+            },
+        },
+        "required": ["action"],
+    }
+
+    def __init__(self, access_token: str) -> None:
+        self._token = access_token
+
+    async def execute(self, inputs: dict[str, Any]) -> str:
+        import httpx
+
+        action = inputs["action"]
+        headers = {"Authorization": f"Bearer {self._token}", "Content-Type": "application/json"}
+
+        async with httpx.AsyncClient(timeout=10) as client:
+            if action == "post_message":
+                channel = inputs.get("channel", "")
+                text = inputs.get("text", "")
+                if not channel or not text:
+                    return "Error: channel and text are required for post_message"
+                resp = await client.post(
+                    "https://slack.com/api/chat.postMessage",
+                    headers=headers,
+                    json={"channel": channel, "text": text},
+                )
+                data = resp.json()
+                return "Message sent." if data.get("ok") else f"Error: {data.get('error')}"
+
+            elif action == "list_channels":
+                resp = await client.get("https://slack.com/api/conversations.list", headers=headers)
+                data = resp.json()
+                if not data.get("ok"):
+                    return f"Error: {data.get('error')}"
+                channels = data.get("channels", [])
+                lines = [f"#{c['name']} ({c['id']})" for c in channels[:20]]
+                return "\n".join(lines) or "No channels found."
+
+            elif action == "get_messages":
+                channel = inputs.get("channel", "")
+                limit = int(inputs.get("limit", 10))
+                if not channel:
+                    return "Error: channel is required for get_messages"
+                resp = await client.get(
+                    "https://slack.com/api/conversations.history",
+                    headers=headers,
+                    params={"channel": channel, "limit": limit},
+                )
+                data = resp.json()
+                if not data.get("ok"):
+                    return f"Error: {data.get('error')}"
+                messages = data.get("messages", [])
+                lines = [f"[{m.get('ts', '')}] {m.get('text', '')}" for m in messages]
+                return "\n".join(lines) or "No messages."
+
+            return f"Unknown action: {action}"
+
+
+class GitHubTool(Tool):
+    """Create and list issues, read pull requests in GitHub repositories."""
+
+    name = "github"
+    description = (
+        "Interact with GitHub. Can create issues, list issues, and read pull requests. "
+        "Requires a connected GitHub account."
+    )
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "action": {
+                "type": "string",
+                "enum": ["create_issue", "list_issues", "get_pull_request"],
+                "description": "Action to perform",
+            },
+            "repo": {"type": "string", "description": "Repository in owner/repo format"},
+            "title": {"type": "string", "description": "Issue title (for create_issue)"},
+            "body": {"type": "string", "description": "Issue body (for create_issue)"},
+            "number": {"type": "integer", "description": "PR or issue number"},
+            "state": {"type": "string", "enum": ["open", "closed", "all"], "default": "open"},
+        },
+        "required": ["action", "repo"],
+    }
+
+    def __init__(self, access_token: str, default_repo: str = "") -> None:
+        self._token = access_token
+        self._default_repo = default_repo
+
+    async def execute(self, inputs: dict[str, Any]) -> str:
+        import httpx
+
+        action = inputs["action"]
+        repo = inputs.get("repo") or self._default_repo
+        if not repo:
+            return "Error: repo is required (e.g. owner/repo)"
+
+        headers = {
+            "Authorization": f"Bearer {self._token}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        }
+
+        async with httpx.AsyncClient(timeout=10) as client:
+            if action == "create_issue":
+                title = inputs.get("title", "")
+                body = inputs.get("body", "")
+                if not title:
+                    return "Error: title is required for create_issue"
+                resp = await client.post(
+                    f"https://api.github.com/repos/{repo}/issues",
+                    headers=headers,
+                    json={"title": title, "body": body},
+                )
+                if resp.status_code == 201:
+                    data = resp.json()
+                    return f"Created issue #{data['number']}: {data['html_url']}"
+                return f"Error {resp.status_code}: {resp.text[:500]}"
+
+            elif action == "list_issues":
+                state = inputs.get("state", "open")
+                resp = await client.get(
+                    f"https://api.github.com/repos/{repo}/issues",
+                    headers=headers,
+                    params={"state": state, "per_page": 20},
+                )
+                if resp.status_code != 200:
+                    return f"Error {resp.status_code}: {resp.text[:500]}"
+                issues = resp.json()
+                lines = [f"#{i['number']} [{i['state']}] {i['title']}" for i in issues]
+                return "\n".join(lines) or "No issues found."
+
+            elif action == "get_pull_request":
+                number = inputs.get("number")
+                if not number:
+                    return "Error: number is required for get_pull_request"
+                resp = await client.get(
+                    f"https://api.github.com/repos/{repo}/pulls/{number}",
+                    headers=headers,
+                )
+                if resp.status_code != 200:
+                    return f"Error {resp.status_code}: {resp.text[:500]}"
+                pr = resp.json()
+                return (
+                    f"PR #{pr['number']}: {pr['title']}\n"
+                    f"State: {pr['state']}\n"
+                    f"Author: {pr['user']['login']}\n"
+                    f"URL: {pr['html_url']}\n"
+                    f"Body: {(pr.get('body') or '')[:500]}"
+                )
+
+            return f"Unknown action: {action}"
+
+
+class NotionTool(Tool):
+    """Create and search pages in Notion workspaces."""
+
+    name = "notion"
+    description = (
+        "Interact with Notion. Can create pages and search existing content. "
+        "Requires a connected Notion integration."
+    )
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "action": {
+                "type": "string",
+                "enum": ["search", "create_page"],
+                "description": "Action to perform",
+            },
+            "query": {"type": "string", "description": "Search query (for search)"},
+            "parent_page_id": {"type": "string", "description": "Parent page ID (for create_page)"},
+            "title": {"type": "string", "description": "Page title (for create_page)"},
+            "content": {"type": "string", "description": "Page content as plain text"},
+        },
+        "required": ["action"],
+    }
+
+    def __init__(self, access_token: str) -> None:
+        self._token = access_token
+
+    async def execute(self, inputs: dict[str, Any]) -> str:
+        import httpx
+
+        action = inputs["action"]
+        headers = {
+            "Authorization": f"Bearer {self._token}",
+            "Notion-Version": "2022-06-28",
+            "Content-Type": "application/json",
+        }
+
+        async with httpx.AsyncClient(timeout=10) as client:
+            if action == "search":
+                query = inputs.get("query", "")
+                resp = await client.post(
+                    "https://api.notion.com/v1/search",
+                    headers=headers,
+                    json={"query": query, "page_size": 10},
+                )
+                if resp.status_code != 200:
+                    return f"Error {resp.status_code}: {resp.text[:500]}"
+                results = resp.json().get("results", [])
+                lines = []
+                for r in results:
+                    title = ""
+                    props = r.get("properties", {})
+                    title_prop = props.get("title") or props.get("Name") or {}
+                    for t in title_prop.get("title", []):
+                        title += t.get("plain_text", "")
+                    lines.append(f"[{r['object']}] {title} ({r['id']})")
+                return "\n".join(lines) or "No results."
+
+            elif action == "create_page":
+                parent_id = inputs.get("parent_page_id", "")
+                title = inputs.get("title", "Untitled")
+                content = inputs.get("content", "")
+                if not parent_id:
+                    return "Error: parent_page_id is required for create_page"
+                body: dict[str, Any] = {
+                    "parent": {"page_id": parent_id},
+                    "properties": {"title": {"title": [{"text": {"content": title}}]}},
+                }
+                if content:
+                    body["children"] = [
+                        {
+                            "object": "block",
+                            "type": "paragraph",
+                            "paragraph": {"rich_text": [{"text": {"content": content[:2000]}}]},
+                        }
+                    ]
+                resp = await client.post(
+                    "https://api.notion.com/v1/pages",
+                    headers=headers,
+                    json=body,
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    return f"Created page: {data.get('url', data['id'])}"
+                return f"Error {resp.status_code}: {resp.text[:500]}"
+
+            return f"Unknown action: {action}"
+
+
+class LinearTool(Tool):
+    """Create, list, and update issues in Linear projects."""
+
+    name = "linear"
+    description = (
+        "Interact with Linear. Can create issues, list issues, and update issue status. "
+        "Requires a connected Linear account."
+    )
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "action": {
+                "type": "string",
+                "enum": ["create_issue", "list_issues", "update_issue"],
+                "description": "Action to perform",
+            },
+            "team_id": {"type": "string", "description": "Linear team ID or key"},
+            "title": {"type": "string", "description": "Issue title (for create_issue)"},
+            "description": {"type": "string", "description": "Issue description"},
+            "issue_id": {"type": "string", "description": "Issue ID (for update_issue)"},
+            "state_id": {"type": "string", "description": "Target state ID (for update_issue)"},
+        },
+        "required": ["action"],
+    }
+
+    def __init__(self, access_token: str, default_team: str = "") -> None:
+        self._token = access_token
+        self._default_team = default_team
+
+    async def _graphql(self, query: str, variables: dict[str, Any]) -> dict[str, Any]:
+        import httpx
+
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.post(
+                "https://api.linear.app/graphql",
+                headers={"Authorization": self._token, "Content-Type": "application/json"},
+                json={"query": query, "variables": variables},
+            )
+            resp.raise_for_status()
+            return resp.json()
+
+    async def execute(self, inputs: dict[str, Any]) -> str:
+        action = inputs["action"]
+
+        if action == "create_issue":
+            team_id = inputs.get("team_id") or self._default_team
+            title = inputs.get("title", "")
+            if not team_id or not title:
+                return "Error: team_id and title are required for create_issue"
+            result = await self._graphql(
+                "mutation CreateIssue($teamId: String!, $title: String!, $description: String) {"
+                "  issueCreate(input: {teamId: $teamId, title: $title, description: $description}) {"
+                "    issue { id identifier title url } } }",
+                {"teamId": team_id, "title": title, "description": inputs.get("description", "")},
+            )
+            issue = result.get("data", {}).get("issueCreate", {}).get("issue")
+            if issue:
+                return f"Created {issue['identifier']}: {issue['title']}\n{issue['url']}"
+            return f"Error: {result.get('errors', 'Unknown error')}"
+
+        elif action == "list_issues":
+            team_id = inputs.get("team_id") or self._default_team
+            result = await self._graphql(
+                "query Issues($teamId: String) { issues(filter: {team: {id: {eq: $teamId}}}, first: 20) {"
+                "  nodes { identifier title state { name } priority } } }",
+                {"teamId": team_id or None},
+            )
+            nodes = result.get("data", {}).get("issues", {}).get("nodes", [])
+            lines = [f"[{n['identifier']}] {n['title']} — {n['state']['name']}" for n in nodes]
+            return "\n".join(lines) or "No issues found."
+
+        elif action == "update_issue":
+            issue_id = inputs.get("issue_id", "")
+            state_id = inputs.get("state_id", "")
+            if not issue_id:
+                return "Error: issue_id is required for update_issue"
+            update: dict[str, Any] = {}
+            if state_id:
+                update["stateId"] = state_id
+            if inputs.get("title"):
+                update["title"] = inputs["title"]
+            result = await self._graphql(
+                "mutation UpdateIssue($id: String!, $input: IssueUpdateInput!) {"
+                "  issueUpdate(id: $id, input: $input) { issue { identifier title } } }",
+                {"id": issue_id, "input": update},
+            )
+            issue = result.get("data", {}).get("issueUpdate", {}).get("issue")
+            if issue:
+                return f"Updated {issue['identifier']}: {issue['title']}"
+            return f"Error: {result.get('errors', 'Unknown error')}"
+
+        return f"Unknown action: {action}"
+
+
 class CodeExecTool(Tool):
     """Execute a Python code snippet in a sandboxed subprocess."""
 
