@@ -1,6 +1,13 @@
+import { createMarketplacePaymentIntent } from "@maschina/billing";
 import { db } from "@maschina/db";
-import { agents, marketplaceListings, marketplaceOrders, marketplaceReviews } from "@maschina/db";
-import { and, desc, eq, isNull } from "@maschina/db";
+import {
+  agents,
+  creditTransactions,
+  marketplaceListings,
+  marketplaceOrders,
+  marketplaceReviews,
+} from "@maschina/db";
+import { and, desc, eq, isNull, like, sum } from "@maschina/db";
 import { generateSlug, listingToDoc } from "@maschina/marketplace";
 import { deleteDocument, search, upsertDocument } from "@maschina/search";
 import { Hono } from "hono";
@@ -363,6 +370,91 @@ app.get("/listings/mine", requireAuth, async (c) => {
     .orderBy(desc(marketplaceListings.createdAt));
 
   return c.json(rows);
+});
+
+// ─── POST /marketplace/listings/:id/buy ───────────────────────────────────────
+// Creates a Stripe PaymentIntent for a paid listing.
+// Returns clientSecret for the frontend to confirm with Stripe.js.
+// Fulfillment (agent fork + seller credit) fires in payment_intent.succeeded webhook.
+
+app.post("/listings/:id/buy", requireAuth, async (c) => {
+  const { id: userId, email } = c.get("user");
+  const listingId = c.req.param("id");
+
+  const result = await createMarketplacePaymentIntent({
+    buyerId: userId,
+    buyerEmail: email,
+    listingId,
+  }).catch((err: unknown) => {
+    const msg = err instanceof Error ? err.message : "Payment setup failed";
+    throw new HTTPException(400, { message: msg });
+  });
+
+  return c.json(result, 201);
+});
+
+// ─── GET /marketplace/orders ──────────────────────────────────────────────────
+// Returns the authenticated user's purchase history (as buyer).
+
+app.get("/orders", requireAuth, async (c) => {
+  const { id: userId } = c.get("user");
+
+  const rows = await db
+    .select({
+      id: marketplaceOrders.id,
+      listingId: marketplaceOrders.listingId,
+      listingName: marketplaceListings.name,
+      status: marketplaceOrders.status,
+      amountUsd: marketplaceOrders.amountUsd,
+      stripePaymentIntentId: marketplaceOrders.stripePaymentIntentId,
+      createdAt: marketplaceOrders.createdAt,
+      completedAt: marketplaceOrders.completedAt,
+    })
+    .from(marketplaceOrders)
+    .innerJoin(marketplaceListings, eq(marketplaceOrders.listingId, marketplaceListings.id))
+    .where(eq(marketplaceOrders.buyerId, userId))
+    .orderBy(desc(marketplaceOrders.createdAt));
+
+  return c.json(rows);
+});
+
+// ─── GET /marketplace/earnings ────────────────────────────────────────────────
+// Returns the authenticated user's seller earnings from marketplace sales.
+
+app.get("/earnings", requireAuth, async (c) => {
+  const { id: userId } = c.get("user");
+
+  // All credit_transactions with description matching marketplace sales
+  const rows = await db
+    .select({
+      id: creditTransactions.id,
+      amount: creditTransactions.amount,
+      description: creditTransactions.description,
+      createdAt: creditTransactions.createdAt,
+    })
+    .from(creditTransactions)
+    .where(
+      and(
+        eq(creditTransactions.userId, userId),
+        like(creditTransactions.description, "Marketplace sale:%"),
+      ),
+    )
+    .orderBy(desc(creditTransactions.createdAt));
+
+  const [totals] = await db
+    .select({ totalEarnedCents: sum(creditTransactions.amount) })
+    .from(creditTransactions)
+    .where(
+      and(
+        eq(creditTransactions.userId, userId),
+        like(creditTransactions.description, "Marketplace sale:%"),
+      ),
+    );
+
+  return c.json({
+    totalEarnedCents: Number(totals?.totalEarnedCents ?? 0),
+    transactions: rows,
+  });
 });
 
 export default app;

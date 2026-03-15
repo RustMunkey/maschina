@@ -1,10 +1,18 @@
 import { db } from "@maschina/db";
-import { billingEvents, plans, subscriptions } from "@maschina/db";
-import { eq } from "@maschina/db";
+import {
+  agents,
+  billingEvents,
+  marketplaceListings,
+  marketplaceOrders,
+  plans,
+  subscriptions,
+} from "@maschina/db";
+import { eq, sql } from "@maschina/db";
 import type { PlanTier } from "@maschina/plans";
 import type Stripe from "stripe";
 import { getStripe } from "./client.js";
 import { addCredits } from "./credits.js";
+import { calcMarketplaceRevenue } from "./marketplace.js";
 import { CREDIT_PACKAGES } from "./types.js";
 
 // ─── Webhook signature verification ──────────────────────────────────────────
@@ -89,6 +97,10 @@ async function routeEvent(event: Stripe.Event): Promise<void> {
 
     case "checkout.session.completed":
       await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+      break;
+
+    case "payment_intent.succeeded":
+      await handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
       break;
 
     default:
@@ -204,5 +216,70 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
     tokens: pkg.tokens,
     stripePaymentIntentId: paymentIntentId,
     description: `Top-up: ${pkg.name}`,
+  });
+}
+
+async function handlePaymentIntentSucceeded(pi: Stripe.PaymentIntent): Promise<void> {
+  // Only handle marketplace listing purchases
+  if (pi.metadata.maschinaProduct !== "marketplace_listing") return;
+
+  const {
+    maschinaOrderId: orderId,
+    maschinaListingId: listingId,
+    maschinaSellerUserId: sellerId,
+    maschinaUserId: buyerId,
+  } = pi.metadata;
+  if (!orderId || !listingId || !sellerId || !buyerId) {
+    throw new Error("Missing marketplace metadata on PaymentIntent");
+  }
+
+  const [order] = await db
+    .select()
+    .from(marketplaceOrders)
+    .where(eq(marketplaceOrders.id, orderId))
+    .limit(1);
+
+  // Idempotent — already fulfilled
+  if (!order || order.status === "completed") return;
+
+  // Complete the order
+  await db
+    .update(marketplaceOrders)
+    .set({ status: "completed", completedAt: new Date() })
+    .where(eq(marketplaceOrders.id, orderId));
+
+  // Credit seller 70% of the sale amount (stored in cents)
+  const { sellerCents } = calcMarketplaceRevenue(order.amountUsd ?? 0);
+  await addCredits({
+    userId: sellerId,
+    tokens: sellerCents,
+    stripePaymentIntentId: pi.id,
+    description: `Marketplace sale: listing ${listingId}`,
+  });
+
+  // Increment download counter on the listing
+  const [listing] = await db
+    .select()
+    .from(marketplaceListings)
+    .where(eq(marketplaceListings.id, listingId))
+    .limit(1);
+
+  if (!listing) return;
+
+  await db
+    .update(marketplaceListings)
+    .set({ downloads: sql`${marketplaceListings.downloads} + 1`, updatedAt: new Date() })
+    .where(eq(marketplaceListings.id, listingId));
+
+  // Fork the agent config as a new agent owned by the buyer
+  await db.insert(agents).values({
+    userId: buyerId,
+    name: `${listing.name} (purchased)`,
+    description: listing.description ?? null,
+    type:
+      ((listing.agentConfig as Record<string, unknown>)
+        ?.type as (typeof agents.$inferInsert)["type"]) ?? "execution",
+    config: listing.agentConfig ?? {},
+    status: "idle",
   });
 }

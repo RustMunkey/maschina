@@ -34,6 +34,10 @@ export {
 // Webhooks
 export { constructWebhookEvent, handleWebhookEvent } from "./webhooks.js";
 
+// Marketplace payments
+export { createMarketplacePaymentIntent, calcMarketplaceRevenue } from "./marketplace.js";
+export type { MarketplacePaymentResult } from "./marketplace.js";
+
 // Pricing rates + top-up options
 export {
   PRICING_RATES,

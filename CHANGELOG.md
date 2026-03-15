@@ -8,6 +8,20 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-14 — Marketplace payments / feat/marketplace-payments)
+- `packages/billing/src/marketplace.ts` — `createMarketplacePaymentIntent()`:
+  creates a pending order + Stripe PaymentIntent for a paid listing; returns
+  `{clientSecret, paymentIntentId, orderId}` for Stripe.js confirmation
+- `packages/billing/src/webhooks.ts` — handles `payment_intent.succeeded`:
+  detects `maschinaProduct: "marketplace_listing"`, completes the order,
+  credits seller 70% via credit ledger, increments download count, forks
+  the agent config as a new agent owned by the buyer (idempotent)
+- `packages/billing/src/index.ts` — exports new marketplace helpers
+- `services/api/src/routes/marketplace.ts`:
+  - `POST /marketplace/listings/:id/buy` — creates PI, returns clientSecret
+  - `GET /marketplace/orders` — buyer purchase history with listing names
+  - `GET /marketplace/earnings` — seller earnings total + transaction list
+
 ### Added (2026-03-15 — Workflow wiring / feat/workflow-wiring)
 - `services/worker/src/worker/workflows/activities.py` — `run_agent_step` fully wired:
   - Fetches agent config (system_prompt, model) + enabled skills from DB via asyncpg
