@@ -1,6 +1,6 @@
 {
   "extends": "@maschina/tsconfig/node.json",
   "compilerOptions": { "outDir": "./dist", "rootDir": "./src" },
-  "include": ["src"],
+  "include": ["src", "examples"],
   "exclude": ["node_modules", "dist"]
 }

@@ -8,6 +8,16 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-15 — Workflow wiring / feat/workflow-wiring)
+- `services/worker/src/worker/workflows/activities.py` — `run_agent_step` fully wired:
+  - Fetches agent config (system_prompt, model) + enabled skills from DB via asyncpg
+  - Fetches user plan_tier from subscriptions table
+  - Generates per-step `run_id` (UUID) for runtime tracing
+  - Fixes payload to match `RunRequest`: `input_payload: {"message": prompt}` (was `"prompt"`)
+  - Includes all required fields: `run_id`, `plan_tier`, `model`, `system_prompt`, `max_tokens`, `timeout_secs`, `skills`, `skill_configs`
+  - Returns normalised `{"step_id", "step_run_id", "output", "output_payload", "input_tokens", "output_tokens"}`
+- `packages/sdk/ts/tsconfig.json` — added `"examples"` to include array (fixes red files in IDE)
+
 ### Added (2026-03-15 — Agent collaboration / feat/agent-collaboration)
 - `packages/runtime/src/maschina_runtime/tools.py` — `DelegateAgentTool`: delegates a subtask to another agent via `POST /internal/delegate`, returns output synchronously; guards against self-delegation
 - `packages/runtime/src/maschina_runtime/__init__.py` — exports `DelegateAgentTool`
