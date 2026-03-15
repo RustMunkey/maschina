@@ -15,7 +15,7 @@ import {
 } from "./misc.js";
 import { nodeCapabilities, nodeHeartbeats, nodes } from "./nodes.js";
 import { notifications } from "./notifications.js";
-import { organizations } from "./organizations.js";
+import { organizationInvites, organizationMembers, organizations } from "./organizations.js";
 import { plans } from "./plans.js";
 import { executionReceipts } from "./receipts.js";
 import { subscriptions as subs } from "./subscriptions.js";
@@ -179,6 +179,34 @@ export const featureFlagOverridesRelations = relations(featureFlagOverrides, ({ 
 
 export const reputationScoresRelations = relations(reputationScores, ({ one }) => ({
   user: one(users, { fields: [reputationScores.userId], references: [users.id] }),
+}));
+
+// ─── Organizations ────────────────────────────────────────────────────────────
+
+export const organizationsRelations = relations(organizations, ({ many }) => ({
+  members: many(organizationMembers),
+  invites: many(organizationInvites),
+}));
+
+export const organizationMembersRelations = relations(organizationMembers, ({ one }) => ({
+  org: one(organizations, { fields: [organizationMembers.orgId], references: [organizations.id] }),
+  user: one(users, { fields: [organizationMembers.userId], references: [users.id] }),
+  invitedBy: one(users, {
+    fields: [organizationMembers.invitedByUserId],
+    references: [users.id],
+    relationName: "invitedByUser",
+  }),
+}));
+
+export const organizationInvitesRelations = relations(organizationInvites, ({ one }) => ({
+  org: one(organizations, {
+    fields: [organizationInvites.orgId],
+    references: [organizations.id],
+  }),
+  invitedBy: one(users, {
+    fields: [organizationInvites.invitedByUserId],
+    references: [users.id],
+  }),
 }));
 
 // ─── Nodes ────────────────────────────────────────────────────────────────────

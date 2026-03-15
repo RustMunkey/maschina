@@ -8,6 +8,12 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-14 — Organization management / feat/orgs)
+- `packages/validation/src/schemas/org.ts` — `CreateOrgSchema`, `UpdateOrgSchema`, `InviteMemberSchema`, `UpdateMemberRoleSchema`
+- `packages/db/src/schema/pg/relations.ts` — `organizationsRelations`, `organizationMembersRelations`, `organizationInvitesRelations`
+- `services/api/src/routes/orgs.ts` — full org API: `POST /orgs`, `GET /orgs`, `GET /orgs/:id`, `PATCH /orgs/:id`, `DELETE /orgs/:id`, `GET /orgs/:id/members`, `PATCH /orgs/:id/members/:memberId`, `DELETE /orgs/:id/members/:memberId`, `POST /orgs/:id/invites`, `GET /orgs/:id/invites`, `DELETE /orgs/:id/invites/:inviteId`, `POST /orgs/invites/:token/accept`, `GET /orgs/:id/agents`, `GET /orgs/:id/usage`
+- `services/api/src/app.ts` — org routes registered at `/orgs`
+
 ### Added (2026-03-14 — Agent sandboxing)
 - `packages/runtime/src/maschina_runtime/tools.py` — `CodeExecTool` gains `memory_limit_mb` + `cpu_limit_secs`; applies `resource.setrlimit` (RLIMIT_AS, RLIMIT_CPU, RLIMIT_FSIZE) via `preexec_fn` on Unix; no-op on Windows
 - `services/runtime/src/config.py` — `SANDBOX_ENABLED`, `SANDBOX_MEMORY_LIMIT_MB`, `SANDBOX_CPU_LIMIT_SECS` settings
