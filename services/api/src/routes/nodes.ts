@@ -1,5 +1,12 @@
-import { db, nodeCapabilities, nodeEarnings, nodeHeartbeats, nodes } from "@maschina/db";
-import { and, desc, eq, isNull, sum } from "@maschina/db";
+import {
+  db,
+  nodeCapabilities,
+  nodeEarnings,
+  nodeHeartbeats,
+  nodeStakeEvents,
+  nodes,
+} from "@maschina/db";
+import { and, desc, eq, sum } from "@maschina/db";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
@@ -298,6 +305,250 @@ app.get("/:id/earnings", requireAuth, async (c) => {
     totalPendingCents: Number(totals?.totalPendingCents ?? 0),
     totalSettledCents: Number(settled?.totalSettledCents ?? 0),
     earnings: rows,
+  });
+});
+
+// ─── POST /nodes/:id/public-key ───────────────────────────────────────────────
+// Node binary submits its Ed25519 public key after generating a keypair locally.
+// Idempotent — calling again updates the stored key (key rotation).
+
+app.post("/:id/public-key", requireAuth, async (c) => {
+  const { id: userId } = c.get("user");
+  const nodeId = c.req.param("id");
+  const body = await c.req.json().catch(() => null);
+
+  const Schema = z.object({
+    publicKey: z.string().regex(/^[0-9a-f]{64}$/i, "publicKey must be 64-char hex (Ed25519)"),
+  });
+  const parsed = Schema.safeParse(body);
+  if (!parsed.success) {
+    throw new HTTPException(400, { message: parsed.error.issues[0]?.message ?? "Invalid input" });
+  }
+
+  const [node] = await db
+    .select({ id: nodes.id })
+    .from(nodes)
+    .where(and(eq(nodes.id, nodeId), eq(nodes.userId, userId)))
+    .limit(1);
+
+  if (!node) throw new HTTPException(404, { message: "Node not found" });
+
+  const [updated] = await db
+    .update(nodes)
+    .set({ publicKey: parsed.data.publicKey, updatedAt: new Date() })
+    .where(eq(nodes.id, nodeId))
+    .returning({ id: nodes.id, publicKey: nodes.publicKey });
+
+  return c.json(updated);
+});
+
+// ─── Staking helpers ──────────────────────────────────────────────────────────
+
+// Minimum USDC stake required to remain in each tier.
+// If a node's stake falls below the minimum (e.g. due to slashing),
+// the daemon routing logic will downgrade the effective tier.
+const STAKE_MINIMUMS: Record<string, number> = {
+  micro: 0,
+  edge: 100,
+  standard: 500,
+  verified: 5000,
+  datacenter: 25000,
+};
+
+// ─── POST /nodes/:id/stake ────────────────────────────────────────────────────
+// Record a USDC stake deposit. Off-chain for now; Phase 5 anchors on-chain.
+
+app.post("/:id/stake", requireAuth, async (c) => {
+  const { id: userId } = c.get("user");
+  const nodeId = c.req.param("id");
+  const body = await c.req.json().catch(() => null);
+
+  const Schema = z.object({
+    amountUsdc: z.number().positive(),
+    txSignature: z.string().optional(),
+  });
+  const parsed = Schema.safeParse(body);
+  if (!parsed.success) {
+    throw new HTTPException(400, { message: parsed.error.issues[0]?.message ?? "Invalid input" });
+  }
+
+  const [node] = await db
+    .select({ id: nodes.id, tier: nodes.tier, stakedUsdc: nodes.stakedUsdc })
+    .from(nodes)
+    .where(and(eq(nodes.id, nodeId), eq(nodes.userId, userId)))
+    .limit(1);
+
+  if (!node) throw new HTTPException(404, { message: "Node not found" });
+
+  const currentStake = Number(node.stakedUsdc ?? 0);
+  const newBalance = currentStake + parsed.data.amountUsdc;
+
+  const [event] = await db.transaction(async (tx: typeof db) => {
+    await tx
+      .update(nodes)
+      .set({ stakedUsdc: newBalance.toFixed(6), updatedAt: new Date() })
+      .where(eq(nodes.id, nodeId));
+
+    return tx
+      .insert(nodeStakeEvents)
+      .values({
+        nodeId,
+        eventType: "deposit",
+        amountUsdc: parsed.data.amountUsdc.toFixed(6),
+        balanceAfterUsdc: newBalance.toFixed(6),
+        txSignature: parsed.data.txSignature ?? null,
+      })
+      .returning();
+  });
+
+  return c.json({ nodeId, event }, 201);
+});
+
+// ─── POST /nodes/:id/unstake ──────────────────────────────────────────────────
+// Request a stake withdrawal. Validates remaining balance >= tier minimum.
+
+app.post("/:id/unstake", requireAuth, async (c) => {
+  const { id: userId } = c.get("user");
+  const nodeId = c.req.param("id");
+  const body = await c.req.json().catch(() => null);
+
+  const Schema = z.object({
+    amountUsdc: z.number().positive(),
+    txSignature: z.string().optional(),
+  });
+  const parsed = Schema.safeParse(body);
+  if (!parsed.success) {
+    throw new HTTPException(400, { message: parsed.error.issues[0]?.message ?? "Invalid input" });
+  }
+
+  const [node] = await db
+    .select({ id: nodes.id, tier: nodes.tier, stakedUsdc: nodes.stakedUsdc })
+    .from(nodes)
+    .where(and(eq(nodes.id, nodeId), eq(nodes.userId, userId)))
+    .limit(1);
+
+  if (!node) throw new HTTPException(404, { message: "Node not found" });
+
+  const currentStake = Number(node.stakedUsdc ?? 0);
+  const newBalance = currentStake - parsed.data.amountUsdc;
+
+  if (newBalance < 0) {
+    throw new HTTPException(400, { message: "Withdrawal exceeds staked balance" });
+  }
+
+  const tierMin = STAKE_MINIMUMS[node.tier] ?? 0;
+  if (newBalance < tierMin) {
+    throw new HTTPException(400, {
+      message: `Balance after withdrawal (${newBalance} USDC) would fall below ${node.tier} tier minimum (${tierMin} USDC)`,
+    });
+  }
+
+  const [event] = await db.transaction(async (tx: typeof db) => {
+    await tx
+      .update(nodes)
+      .set({ stakedUsdc: newBalance.toFixed(6), updatedAt: new Date() })
+      .where(eq(nodes.id, nodeId));
+
+    return tx
+      .insert(nodeStakeEvents)
+      .values({
+        nodeId,
+        eventType: "withdraw",
+        amountUsdc: (-parsed.data.amountUsdc).toFixed(6),
+        balanceAfterUsdc: newBalance.toFixed(6),
+        txSignature: parsed.data.txSignature ?? null,
+      })
+      .returning();
+  });
+
+  return c.json({ nodeId, event });
+});
+
+// ─── POST /nodes/:id/slash ────────────────────────────────────────────────────
+// Admin-triggered slash. Burns slashPct% of current stake.
+
+app.post("/:id/slash", requireAuth, requireRole("admin"), async (c) => {
+  const { id: adminId } = c.get("user");
+  const nodeId = c.req.param("id");
+  const body = await c.req.json().catch(() => null);
+
+  const Schema = z.object({
+    slashPct: z.number().min(1).max(100),
+    reason: z.string().min(1).max(500),
+  });
+  const parsed = Schema.safeParse(body);
+  if (!parsed.success) {
+    throw new HTTPException(400, { message: parsed.error.issues[0]?.message ?? "Invalid input" });
+  }
+
+  const [node] = await db
+    .select({ id: nodes.id, stakedUsdc: nodes.stakedUsdc })
+    .from(nodes)
+    .where(eq(nodes.id, nodeId))
+    .limit(1);
+
+  if (!node) throw new HTTPException(404, { message: "Node not found" });
+
+  const currentStake = Number(node.stakedUsdc ?? 0);
+  const slashAmount = (currentStake * parsed.data.slashPct) / 100;
+  const newBalance = currentStake - slashAmount;
+
+  const [event] = await db.transaction(async (tx: typeof db) => {
+    await tx
+      .update(nodes)
+      .set({ stakedUsdc: newBalance.toFixed(6), updatedAt: new Date() })
+      .where(eq(nodes.id, nodeId));
+
+    return tx
+      .insert(nodeStakeEvents)
+      .values({
+        nodeId,
+        eventType: "slash",
+        amountUsdc: (-slashAmount).toFixed(6),
+        balanceAfterUsdc: newBalance.toFixed(6),
+        reason: parsed.data.reason,
+        triggeredBy: adminId,
+        slashPct: parsed.data.slashPct.toFixed(2),
+      })
+      .returning();
+  });
+
+  return c.json({ nodeId, slashAmount, newBalance, event });
+});
+
+// ─── GET /nodes/:id/stake ─────────────────────────────────────────────────────
+// Returns current stake balance + event history. Node owner or admin only.
+
+app.get("/:id/stake", requireAuth, async (c) => {
+  const { id: userId, role } = c.get("user");
+  const nodeId = c.req.param("id");
+  const limit = Math.min(Number(c.req.query("limit") ?? 50), 200);
+  const offset = Number(c.req.query("offset") ?? 0);
+
+  const [node] = await db
+    .select({ id: nodes.id, stakedUsdc: nodes.stakedUsdc, tier: nodes.tier })
+    .from(nodes)
+    .where(
+      role === "admin" ? eq(nodes.id, nodeId) : and(eq(nodes.id, nodeId), eq(nodes.userId, userId)),
+    )
+    .limit(1);
+
+  if (!node) throw new HTTPException(404, { message: "Node not found" });
+
+  const events = await db
+    .select()
+    .from(nodeStakeEvents)
+    .where(eq(nodeStakeEvents.nodeId, nodeId))
+    .orderBy(desc(nodeStakeEvents.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  return c.json({
+    nodeId,
+    stakedUsdc: Number(node.stakedUsdc ?? 0),
+    tier: node.tier,
+    tierMinimumUsdc: STAKE_MINIMUMS[node.tier] ?? 0,
+    events,
   });
 });
 

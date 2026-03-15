@@ -139,6 +139,8 @@ export const nodeTierEnum = pgEnum("node_tier", [
   "datacenter",
 ]);
 
+export const stakeEventTypeEnum = pgEnum("stake_event_type", ["deposit", "withdraw", "slash"]);
+
 // ─── Compliance ───────────────────────────────────────────────────────────────
 export const consentTypeEnum = pgEnum("consent_type", [
   "terms_of_service",

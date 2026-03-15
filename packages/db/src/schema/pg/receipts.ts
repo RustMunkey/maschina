@@ -33,8 +33,22 @@ export const executionReceipts = pgTable("execution_receipts", {
 
   /** The exact JSON payload that was signed */
   payload: jsonb("payload").notNull(),
-  /** HMAC-SHA256 hex digest of the canonical payload */
+  /** HMAC-SHA256 hex digest of the canonical payload (legacy shared-secret signing) */
   signature: text("signature").notNull(),
+
+  /**
+   * Ed25519 signature from the node's keypair (hex-encoded).
+   * Null for runs executed by the local runtime fallback (no node keypair).
+   * When present, verifiable using nodes.publicKey — no shared secret required.
+   * Phase 5: this signature is anchored on-chain via Solana.
+   */
+  nodeSignature: text("node_signature"),
+
+  /**
+   * Signing algorithm used for nodeSignature.
+   * "ed25519" once the node binary ships; null until then.
+   */
+  signingAlg: text("signing_alg"),
 
   issuedAt: timestamp("issued_at", { withTimezone: true }).notNull().defaultNow(),
 });

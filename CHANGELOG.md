@@ -8,6 +8,23 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-15 — Node identity + staking / feat/node-identity)
+- `packages/db/src/schema/pg/enums.ts` — `stakeEventTypeEnum` ("deposit" | "withdraw" | "slash")
+- `packages/db/src/schema/pg/nodes.ts` — `publicKey: text` column on nodes table (Ed25519
+  public key hex, 64 chars); `nodeStakeEvents` table: append-only staking ledger with
+  amountUsdc, balanceAfterUsdc, reason, triggeredBy, slashPct, txSignature columns;
+  `NodeStakeEvent` / `NewNodeStakeEvent` type exports
+- `packages/db/src/schema/pg/receipts.ts` — `nodeSignature: text` (Ed25519 sig, nullable) and
+  `signingAlg: text` (null until node binary ships; "ed25519" when present) columns on
+  execution_receipts — backward-compatible alongside existing HMAC signature column
+- `services/api/src/routes/nodes.ts` — 5 new endpoints:
+  - `POST /nodes/:id/public-key` — node submits Ed25519 public key (idempotent, supports rotation)
+  - `POST /nodes/:id/stake` — record USDC deposit, updates nodes.stakedUsdc atomically
+  - `POST /nodes/:id/unstake` — stake withdrawal; validates balance stays >= tier minimum
+  - `POST /nodes/:id/slash` — admin-triggered slash (slashPct%); inserts stake event
+  - `GET /nodes/:id/stake` — returns balance + stake event history (paginated)
+  Stake minimums enforced: micro=0, edge=100, standard=500, verified=5000, datacenter=25000 USDC
+
 ### Added (2026-03-15 — Node earnings / feat/node-earnings)
 - `packages/db/src/schema/pg/nodes.ts` — `nodeEarnings` table: append-only
   per-run earnings ledger with 65/20/10/5 split columns (nodeCents,
