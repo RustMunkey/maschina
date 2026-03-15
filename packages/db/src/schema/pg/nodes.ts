@@ -168,9 +168,58 @@ export const nodeHeartbeats = pgTable(
   }),
 );
 
+// ─── Node Earnings ────────────────────────────────────────────────────────────
+// Append-only ledger of per-run earnings for each compute node.
+// Written by the daemon ANALYZE phase after every successful run.
+// Used by the on-chain settlement layer to determine payout amounts.
+
+export const nodeEarnings = pgTable(
+  "node_earnings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    nodeId: uuid("node_id")
+      .notNull()
+      .references(() => nodes.id, { onDelete: "cascade" }),
+
+    // Run context
+    runId: uuid("run_id").notNull(), // agent_runs.id (no FK — runs can be pruned)
+    agentId: uuid("agent_id").notNull(),
+    userId: uuid("user_id").notNull(), // the user who triggered the run
+    model: text("model").notNull(),
+
+    // Token accounting
+    inputTokens: integer("input_tokens").notNull().default(0),
+    outputTokens: integer("output_tokens").notNull().default(0),
+    billingMultiplier: numeric("billing_multiplier", { precision: 5, scale: 2 })
+      .notNull()
+      .default("1"),
+
+    // Task price and 65/20/10/5 split — all in USD cents
+    totalCents: integer("total_cents").notNull(),
+    nodeCents: integer("node_cents").notNull(), // 65% — this node
+    developerCents: integer("developer_cents").notNull(), // 20% — agent developer
+    treasuryCents: integer("treasury_cents").notNull(), // 10% — protocol treasury
+    validatorCents: integer("validator_cents").notNull(), //  5% — validators
+
+    // Settlement lifecycle: pending → settled (on-chain) | slashed
+    status: text("status").notNull().default("pending"),
+    settledAt: timestamp("settled_at", { withTimezone: true }),
+
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    nodeIdIdx: index("node_earnings_node_id_idx").on(t.nodeId),
+    runIdIdx: index("node_earnings_run_id_idx").on(t.runId),
+    statusIdx: index("node_earnings_status_idx").on(t.status),
+    nodeStatusIdx: index("node_earnings_node_status_idx").on(t.nodeId, t.status),
+  }),
+);
+
 export type Node = typeof nodes.$inferSelect;
 export type NewNode = typeof nodes.$inferInsert;
 export type NodeCapabilities = typeof nodeCapabilities.$inferSelect;
 export type NewNodeCapabilities = typeof nodeCapabilities.$inferInsert;
 export type NodeHeartbeat = typeof nodeHeartbeats.$inferSelect;
 export type NewNodeHeartbeat = typeof nodeHeartbeats.$inferInsert;
+export type NodeEarning = typeof nodeEarnings.$inferSelect;
+export type NewNodeEarning = typeof nodeEarnings.$inferInsert;
