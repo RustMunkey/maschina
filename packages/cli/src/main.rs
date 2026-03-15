@@ -1,6 +1,7 @@
 mod client;
 mod commands;
 mod config;
+mod hardware;
 mod output;
 mod project;
 mod services;
@@ -85,6 +86,12 @@ pub enum Commands {
         /// Follow (tail -f)
         #[arg(short, long)]
         follow: bool,
+    },
+
+    /// Join or manage the Maschina compute network
+    Node {
+        #[command(subcommand)]
+        cmd: NodeCommands,
     },
 
     /// Self-update the CLI
@@ -213,6 +220,22 @@ pub enum ModelCommands {
     },
 }
 
+// ── node ──────────────────────────────────────────────────────────────────────
+
+#[derive(Subcommand)]
+pub enum NodeCommands {
+    /// Join the network: detect hardware, register, and start processing tasks
+    Join,
+    /// Leave the network gracefully (marks node offline)
+    Leave {
+        /// Also clear stored node credentials (allows fresh re-registration)
+        #[arg(long)]
+        forget: bool,
+    },
+    /// Show this node's status, reputation score, and earnings
+    Status,
+}
+
 // ── config ────────────────────────────────────────────────────────────────────
 
 #[derive(Subcommand)]
@@ -225,10 +248,7 @@ pub enum ConfigCommands {
         key: String,
     },
     /// Set a config value
-    Set {
-        key:   String,
-        value: String,
-    },
+    Set { key: String, value: String },
 }
 
 // ── entry points ──────────────────────────────────────────────────────────────
@@ -247,47 +267,47 @@ async fn run() -> Result<()> {
 
     match cli.command {
         // ── no args → TUI launcher ────────────────────────────────────────────
-        None => {
-            match tui::run(&cli.profile)? {
-                None => {}
+        None => match tui::run(&cli.profile)? {
+            None => {}
 
-                Some(tui::LaunchTarget::Setup) => {
-                    commands::setup::run(&cli.profile).await?;
-                }
-
-                Some(tui::LaunchTarget::Agents) => {
-                    match commands::require_auth(&cli.profile) {
-                        Ok((_, client)) => commands::agent::list(&client, &out).await?,
-                        Err(_) => {
-                            println!();
-                            println!("  {} not logged in", console::style("→").dim());
-                            println!("  run {} to get started", console::style("maschina setup").cyan());
-                            println!();
-                        }
-                    }
-                }
-
-                Some(tui::LaunchTarget::Usage) => {
-                    match commands::require_auth(&cli.profile) {
-                        Ok((_, client)) => commands::usage::run(&client, &out).await?,
-                        Err(_) => {
-                            println!();
-                            println!("  {} not logged in", console::style("→").dim());
-                            println!("  run {} to get started", console::style("maschina setup").cyan());
-                            println!();
-                        }
-                    }
-                }
-
-                Some(tui::LaunchTarget::Models) => {
-                    models_add(&cli.profile, None, false).await?;
-                }
-
-                Some(tui::LaunchTarget::Code) => {
-                    launch_code_tool()?;
-                }
+            Some(tui::LaunchTarget::Setup) => {
+                commands::setup::run(&cli.profile).await?;
             }
-        }
+
+            Some(tui::LaunchTarget::Agents) => match commands::require_auth(&cli.profile) {
+                Ok((_, client)) => commands::agent::list(&client, &out).await?,
+                Err(_) => {
+                    println!();
+                    println!("  {} not logged in", console::style("→").dim());
+                    println!(
+                        "  run {} to get started",
+                        console::style("maschina setup").cyan()
+                    );
+                    println!();
+                }
+            },
+
+            Some(tui::LaunchTarget::Usage) => match commands::require_auth(&cli.profile) {
+                Ok((_, client)) => commands::usage::run(&client, &out).await?,
+                Err(_) => {
+                    println!();
+                    println!("  {} not logged in", console::style("→").dim());
+                    println!(
+                        "  run {} to get started",
+                        console::style("maschina setup").cyan()
+                    );
+                    println!();
+                }
+            },
+
+            Some(tui::LaunchTarget::Models) => {
+                models_add(&cli.profile, None, false).await?;
+            }
+
+            Some(tui::LaunchTarget::Code) => {
+                launch_code_tool()?;
+            }
+        },
 
         // ── setup ─────────────────────────────────────────────────────────────
         Some(Commands::Setup) => {
@@ -302,7 +322,7 @@ async fn run() -> Result<()> {
         Some(Commands::Logout) => {
             let mut cfg = config::load(&cli.profile)?;
             cfg.api_key = None;
-            cfg.email   = None;
+            cfg.email = None;
             config::save(&cfg, &cli.profile)?;
             out.success("Logged out", None::<()>);
         }
@@ -317,15 +337,13 @@ async fn run() -> Result<()> {
         }
 
         // ── service ───────────────────────────────────────────────────────────
-        Some(Commands::Service { cmd }) => {
-            match cmd {
-                ServiceCommands::Start   { name } => commands::service::start(name.as_deref(), &out)?,
-                ServiceCommands::Stop    { name } => commands::service::stop(name.as_deref(), &out)?,
-                ServiceCommands::Restart { name } => commands::service::restart(name.as_deref(), &out)?,
-                ServiceCommands::Status          => commands::service::status(&out)?,
-                ServiceCommands::Logs { name, follow } => commands::service::logs(&name, follow)?,
-            }
-        }
+        Some(Commands::Service { cmd }) => match cmd {
+            ServiceCommands::Start { name } => commands::service::start(name.as_deref(), &out)?,
+            ServiceCommands::Stop { name } => commands::service::stop(name.as_deref(), &out)?,
+            ServiceCommands::Restart { name } => commands::service::restart(name.as_deref(), &out)?,
+            ServiceCommands::Status => commands::service::status(&out)?,
+            ServiceCommands::Logs { name, follow } => commands::service::logs(&name, follow)?,
+        },
 
         // ── agents ────────────────────────────────────────────────────────────
         Some(Commands::Agent { cmd }) => {
@@ -361,21 +379,21 @@ async fn run() -> Result<()> {
         Some(Commands::Keys { cmd }) => {
             let (_, client) = commands::require_auth(&cli.profile)?;
             match cmd {
-                KeyCommands::List           => commands::keys::list(&client, &out).await?,
+                KeyCommands::List => commands::keys::list(&client, &out).await?,
                 KeyCommands::Create { name } => commands::keys::create(&client, name, &out).await?,
-                KeyCommands::Revoke { id }   => commands::keys::revoke(&client, id, &out).await?,
+                KeyCommands::Revoke { id } => commands::keys::revoke(&client, id, &out).await?,
             }
         }
 
         // ── models ────────────────────────────────────────────────────────────
-        Some(Commands::Model { cmd }) => {
-            match cmd {
-                ModelCommands::List                    => models_list(&cli.profile, &out)?,
-                ModelCommands::Status                  => models_status(&cli.profile, &out)?,
-                ModelCommands::Add { name, all }       => models_add(&cli.profile, name.as_deref(), all).await?,
-                ModelCommands::Remove { name }         => models_remove(&cli.profile, &name, &out)?,
+        Some(Commands::Model { cmd }) => match cmd {
+            ModelCommands::List => models_list(&cli.profile, &out)?,
+            ModelCommands::Status => models_status(&cli.profile, &out)?,
+            ModelCommands::Add { name, all } => {
+                models_add(&cli.profile, name.as_deref(), all).await?
             }
-        }
+            ModelCommands::Remove { name } => models_remove(&cli.profile, &name, &out)?,
+        },
 
         // ── usage ─────────────────────────────────────────────────────────────
         Some(Commands::Usage) => {
@@ -394,6 +412,19 @@ async fn run() -> Result<()> {
             }
         }
 
+        // ── node ──────────────────────────────────────────────────────────────
+        Some(Commands::Node { cmd }) => match cmd {
+            NodeCommands::Join => {
+                commands::node::join::run(&cli.profile, &out).await?;
+            }
+            NodeCommands::Leave { forget } => {
+                commands::node::leave::run(&cli.profile, forget, &out).await?;
+            }
+            NodeCommands::Status => {
+                commands::node::status::run(&cli.profile, &out).await?;
+            }
+        },
+
         // ── update ────────────────────────────────────────────────────────────
         Some(Commands::Update) => {
             self_update(&out)?;
@@ -405,24 +436,22 @@ async fn run() -> Result<()> {
         }
 
         // ── config ────────────────────────────────────────────────────────────
-        Some(Commands::Config { cmd }) => {
-            match cmd {
-                ConfigCommands::Path => {
-                    println!("{}", config::path_display(&cli.profile));
-                }
-                ConfigCommands::Get { key } => {
-                    let cfg = config::load(&cli.profile)?;
-                    let val = config_get_value(&cfg, &key);
-                    println!("{}", val.unwrap_or_else(|| "(not set)".into()));
-                }
-                ConfigCommands::Set { key, value } => {
-                    let mut cfg = config::load(&cli.profile)?;
-                    config_set_value(&mut cfg, &key, &value)?;
-                    config::save(&cfg, &cli.profile)?;
-                    out.success(&format!("{} = {}", key, value), None::<()>);
-                }
+        Some(Commands::Config { cmd }) => match cmd {
+            ConfigCommands::Path => {
+                println!("{}", config::path_display(&cli.profile));
             }
-        }
+            ConfigCommands::Get { key } => {
+                let cfg = config::load(&cli.profile)?;
+                let val = config_get_value(&cfg, &key);
+                println!("{}", val.unwrap_or_else(|| "(not set)".into()));
+            }
+            ConfigCommands::Set { key, value } => {
+                let mut cfg = config::load(&cli.profile)?;
+                config_set_value(&mut cfg, &key, &value)?;
+                config::save(&cfg, &cli.profile)?;
+                out.success(&format!("{} = {}", key, value), None::<()>);
+            }
+        },
     }
 
     Ok(())
@@ -461,11 +490,14 @@ fn models_status(profile: &str, out: &output::Output) -> Result<()> {
     let cfg = config::load(profile)?;
     println!();
     if cfg.model_providers.is_empty() {
-        println!("  {} No providers configured — run `maschina models add`", console::style("→").dim());
+        println!(
+            "  {} No providers configured — run `maschina models add`",
+            console::style("→").dim()
+        );
     } else {
         for p in &cfg.model_providers {
-            let configured = p.api_key.as_ref().map(|k| !k.is_empty()).unwrap_or(false)
-                || p.base_url.is_some();
+            let configured =
+                p.api_key.as_ref().map(|k| !k.is_empty()).unwrap_or(false) || p.base_url.is_some();
             out.check(&p.name, configured, None);
         }
     }
@@ -476,13 +508,25 @@ fn models_status(profile: &str, out: &output::Output) -> Result<()> {
 async fn models_add(profile: &str, name: Option<&str>, add_all: bool) -> Result<()> {
     use inquire::{Password, Select, Text};
 
-    static ALL_PROVIDERS: &[&str] = &["anthropic", "openai", "ollama", "openrouter", "gemini", "mistral", "custom"];
+    static ALL_PROVIDERS: &[&str] = &[
+        "anthropic",
+        "openai",
+        "ollama",
+        "openrouter",
+        "gemini",
+        "mistral",
+        "custom",
+    ];
 
     let providers_to_add: Vec<&str> = if add_all {
         ALL_PROVIDERS.to_vec()
     } else if let Some(n) = name {
         if !ALL_PROVIDERS.contains(&n) {
-            anyhow::bail!("unknown provider '{}'. Choices: {}", n, ALL_PROVIDERS.join(", "));
+            anyhow::bail!(
+                "unknown provider '{}'. Choices: {}",
+                n,
+                ALL_PROVIDERS.join(", ")
+            );
         }
         vec![n]
     } else {
@@ -500,7 +544,9 @@ async fn models_add(profile: &str, name: Option<&str>, add_all: bool) -> Result<
             (None, Some(url))
         } else if *provider == "custom" {
             let url = Text::new("Base URL (OpenAI-compatible):").prompt()?;
-            let key = Password::new("API key (optional):").without_confirmation().prompt_skippable()?;
+            let key = Password::new("API key (optional):")
+                .without_confirmation()
+                .prompt_skippable()?;
             (key, Some(url))
         } else {
             let key = Password::new(&format!("{} API key:", provider))
@@ -544,21 +590,21 @@ fn models_remove(profile: &str, name: &str, out: &output::Output) -> Result<()> 
 
 fn config_get_value(cfg: &config::Config, key: &str) -> Option<String> {
     match key {
-        "api_url"  => Some(cfg.api_url.clone()),
-        "email"    => cfg.email.clone(),
-        "db_url"   => cfg.db_url.clone(),
-        "profile"  => Some(cfg.profile.clone()),
-        "api_key"  => cfg.api_key.as_ref().map(|_| "(set, hidden)".into()),
-        _          => None,
+        "api_url" => Some(cfg.api_url.clone()),
+        "email" => cfg.email.clone(),
+        "db_url" => cfg.db_url.clone(),
+        "profile" => Some(cfg.profile.clone()),
+        "api_key" => cfg.api_key.as_ref().map(|_| "(set, hidden)".into()),
+        _ => None,
     }
 }
 
 fn config_set_value(cfg: &mut config::Config, key: &str, value: &str) -> Result<()> {
     match key {
         "api_url" => cfg.api_url = value.to_string(),
-        "db_url"  => cfg.db_url  = Some(value.to_string()),
-        "email"   => cfg.email   = Some(value.to_string()),
-        _         => anyhow::bail!("unknown config key: {}", key),
+        "db_url" => cfg.db_url = Some(value.to_string()),
+        "email" => cfg.email = Some(value.to_string()),
+        _ => anyhow::bail!("unknown config key: {}", key),
     }
     Ok(())
 }
@@ -601,11 +647,15 @@ fn launch_code_tool() -> Result<()> {
 
     // 3. Not found
     println!();
-    println!("  {} maschina code tool not installed", console::style("→").dim());
+    println!(
+        "  {} maschina code tool not installed",
+        console::style("→").dim()
+    );
     println!();
     println!(
         "  Install it with: {}",
-        console::style("cargo install --git https://github.com/RustMunkey/maschina maschina-code").cyan()
+        console::style("cargo install --git https://github.com/RustMunkey/maschina maschina-code")
+            .cyan()
     );
     println!();
 

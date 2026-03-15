@@ -4,22 +4,38 @@ use indicatif::{ProgressBar, ProgressStyle};
 use inquire::{Confirm, MultiSelect, Password, Select, Text};
 use std::time::Duration;
 
-use crate::{client::ApiClient, config::{self, Config, ModelProvider}, project, services};
+use crate::{
+    client::ApiClient,
+    config::{self, Config, ModelProvider},
+    project, services,
+};
 
 // ── wire types ────────────────────────────────────────────────────────────────
 
 #[derive(serde::Serialize)]
-struct LoginBody    { email: String, password: String }
+struct LoginBody {
+    email: String,
+    password: String,
+}
 #[derive(serde::Serialize)]
-struct RegisterBody { email: String, password: String }
+struct RegisterBody {
+    email: String,
+    password: String,
+}
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct AuthResponse { access_token: String }
+struct AuthResponse {
+    access_token: String,
+}
 #[derive(serde::Serialize)]
-struct CreateKeyBody { name: String }
+struct CreateKeyBody {
+    name: String,
+}
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct CreatedKey { key: String }
+struct CreatedKey {
+    key: String,
+}
 
 // ── entry point ───────────────────────────────────────────────────────────────
 
@@ -58,13 +74,18 @@ pub async fn run(profile: &str) -> Result<()> {
     section("2/5  account");
     let auth_choice = Select::new(
         "How would you like to authenticate?",
-        vec!["Log in to existing account", "Create a new account", "Paste an API key"],
-    ).prompt()?;
+        vec![
+            "Log in to existing account",
+            "Create a new account",
+            "Paste an API key",
+        ],
+    )
+    .prompt()?;
 
     let (api_key, email) = match auth_choice {
         "Log in to existing account" => login_flow(&api_url).await?,
-        "Create a new account"       => register_flow(&api_url).await?,
-        _                            => paste_key_flow()?,
+        "Create a new account" => register_flow(&api_url).await?,
+        _ => paste_key_flow()?,
     };
     println!();
 
@@ -76,6 +97,7 @@ pub async fn run(profile: &str) -> Result<()> {
         email: email.clone(),
         db_url: None,
         model_providers: vec![],
+        node: None,
         profile: profile.to_string(),
     };
     let client = ApiClient::new(&tmp)?;
@@ -84,7 +106,11 @@ pub async fn run(profile: &str) -> Result<()> {
     let (verified_email, tier) = match me {
         Ok(ref v) => (
             v["email"].as_str().unwrap_or("").to_string(),
-            v["tier"].as_str().or_else(|| v["plan"].as_str()).unwrap_or("access").to_string(),
+            v["tier"]
+                .as_str()
+                .or_else(|| v["plan"].as_str())
+                .unwrap_or("access")
+                .to_string(),
         ),
         Err(e) => {
             sp.finish_with_message(format!("{} {}", style("✗").red(), e));
@@ -101,7 +127,10 @@ pub async fn run(profile: &str) -> Result<()> {
 
     // ─── Step 3: AI providers ─────────────────────────────────────────────────
     section("3/5  ai providers");
-    println!("  {}", style("Configure which AI providers Maschina can use.").dim());
+    println!(
+        "  {}",
+        style("Configure which AI providers Maschina can use.").dim()
+    );
     println!();
 
     let provider_options = vec![
@@ -201,7 +230,8 @@ pub async fn run(profile: &str) -> Result<()> {
             "PostgreSQL  (self-hosted or Docker)",
             "Neon  (serverless Postgres — recommended for cloud)",
         ],
-    ).prompt()?;
+    )
+    .prompt()?;
 
     let db_url = match db_choice {
         "SQLite  (local, zero setup — recommended for getting started)" => {
@@ -210,7 +240,11 @@ pub async fn run(profile: &str) -> Result<()> {
                 .join("maschina")
                 .join("data.db");
             let path = Text::new("SQLite database path:")
-                .with_default(default_path.to_str().unwrap_or("~/.local/share/maschina/data.db"))
+                .with_default(
+                    default_path
+                        .to_str()
+                        .unwrap_or("~/.local/share/maschina/data.db"),
+                )
                 .prompt()?;
             Some(format!("sqlite:{}", path))
         }
@@ -223,7 +257,9 @@ pub async fn run(profile: &str) -> Result<()> {
         }
         "Neon  (serverless Postgres — recommended for cloud)" => {
             let url = Text::new("Neon connection string:")
-                .with_help_message("postgresql://user:password@ep-xxx.neon.tech/dbname?sslmode=require")
+                .with_help_message(
+                    "postgresql://user:password@ep-xxx.neon.tech/dbname?sslmode=require",
+                )
                 .prompt()?;
             Some(url)
         }
@@ -238,6 +274,7 @@ pub async fn run(profile: &str) -> Result<()> {
         email: Some(email.unwrap_or_else(|| verified_email.clone())),
         db_url,
         model_providers,
+        node: None,
         profile: profile.to_string(),
     };
     config::save(&cfg, profile)?;
@@ -255,7 +292,10 @@ pub async fn run(profile: &str) -> Result<()> {
     let dot = cwd.join(".maschina");
 
     if !dot.exists() {
-        let cwd_name = cwd.file_name().and_then(|n| n.to_str()).unwrap_or("project");
+        let cwd_name = cwd
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("project");
         let init = Confirm::new(&format!("Initialize a Maschina project in ./{cwd_name}?"))
             .with_default(true)
             .prompt()?;
@@ -275,7 +315,9 @@ pub async fn run(profile: &str) -> Result<()> {
 
     // ─── Check services ───────────────────────────────────────────────────────
     let bin_dir = services::bin_dir();
-    let any_installed = services::all().iter().any(|s| bin_dir.join(s.name).exists());
+    let any_installed = services::all()
+        .iter()
+        .any(|s| bin_dir.join(s.name).exists());
     if !any_installed {
         println!();
         println!(
@@ -303,7 +345,7 @@ pub async fn run(profile: &str) -> Result<()> {
 // ── auth flows ────────────────────────────────────────────────────────────────
 
 async fn login_flow(api_url: &str) -> Result<(String, Option<String>)> {
-    let email    = Text::new("Email:").prompt()?;
+    let email = Text::new("Email:").prompt()?;
     let password = Password::new("Password:").without_confirmation().prompt()?;
 
     let sp = spinner("Authenticating...");
@@ -311,8 +353,12 @@ async fn login_flow(api_url: &str) -> Result<(String, Option<String>)> {
 
     let resp = http
         .post(format!("{}/auth/login", api_url.trim_end_matches('/')))
-        .json(&LoginBody { email: email.clone(), password })
-        .send().await?;
+        .json(&LoginBody {
+            email: email.clone(),
+            password,
+        })
+        .send()
+        .await?;
 
     if !resp.status().is_success() {
         let msg = extract_error(resp.text().await?);
@@ -328,7 +374,7 @@ async fn login_flow(api_url: &str) -> Result<(String, Option<String>)> {
 }
 
 async fn register_flow(api_url: &str) -> Result<(String, Option<String>)> {
-    let email    = Text::new("Email:").prompt()?;
+    let email = Text::new("Email:").prompt()?;
     let password = Password::new("Password:")
         .with_help_message("min 12 chars, mix of letters, numbers, and symbols")
         .prompt()?;
@@ -338,8 +384,12 @@ async fn register_flow(api_url: &str) -> Result<(String, Option<String>)> {
 
     let resp = http
         .post(format!("{}/auth/register", api_url.trim_end_matches('/')))
-        .json(&RegisterBody { email: email.clone(), password })
-        .send().await?;
+        .json(&RegisterBody {
+            email: email.clone(),
+            password,
+        })
+        .send()
+        .await?;
 
     if !resp.status().is_success() {
         let msg = extract_error(resp.text().await?);
@@ -375,11 +425,17 @@ async fn create_cli_key(api_url: &str, access_token: &str) -> Result<String> {
         email: None,
         db_url: None,
         model_providers: vec![],
+        node: None,
         profile: "default".into(),
     };
     let client = ApiClient::new(&tmp)?;
     let created: CreatedKey = client
-        .post("/keys", &CreateKeyBody { name: "maschina-cli".into() })
+        .post(
+            "/keys",
+            &CreateKeyBody {
+                name: "maschina-cli".into(),
+            },
+        )
         .await?;
     sp.finish_with_message(format!("{} CLI key created", style("✓").green()));
     Ok(created.key)
@@ -406,7 +462,7 @@ fn spinner(msg: &str) -> ProgressBar {
     pb.set_style(
         ProgressStyle::with_template("  {spinner:.dim} {msg}")
             .unwrap()
-            .tick_strings(&["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"]),
+            .tick_strings(&["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]),
     );
     pb.set_message(msg.to_string());
     pb.enable_steady_tick(Duration::from_millis(80));
@@ -431,13 +487,33 @@ fn print_done(email: &str, tier: &str) {
     println!("  {}  setup complete", style("✓").green().bold());
     println!("  {}", style("─".repeat(48)).dim());
     println!();
-    println!("  {:<22} {}", style("signed in as").dim(), style(email).bold());
+    println!(
+        "  {:<22} {}",
+        style("signed in as").dim(),
+        style(email).bold()
+    );
     println!("  {:<22} {}", style("plan").dim(), style(tier).yellow());
     println!();
     println!("  next steps:");
-    println!("  {:<40} {}", style("maschina service start").cyan(), "start all services");
-    println!("  {:<40} {}", style("maschina agent list").cyan(), "list your agents");
-    println!("  {:<40} {}", style("maschina agent deploy <name>").cyan(), "deploy a new agent");
-    println!("  {:<40} {}", style("maschina --help").cyan(), "see all commands");
+    println!(
+        "  {:<40} {}",
+        style("maschina service start").cyan(),
+        "start all services"
+    );
+    println!(
+        "  {:<40} {}",
+        style("maschina agent list").cyan(),
+        "list your agents"
+    );
+    println!(
+        "  {:<40} {}",
+        style("maschina agent deploy <name>").cyan(),
+        "deploy a new agent"
+    );
+    println!(
+        "  {:<40} {}",
+        style("maschina --help").cyan(),
+        "see all commands"
+    );
     println!();
 }

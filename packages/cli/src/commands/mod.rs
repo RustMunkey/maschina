@@ -3,13 +3,14 @@ pub mod doctor;
 pub mod keys;
 pub mod login;
 pub mod logs;
+pub mod node;
 pub mod service;
 pub mod setup;
 pub mod status;
 pub mod usage;
 
-use anyhow::Result;
 use crate::{client::ApiClient, config};
+use anyhow::Result;
 
 /// Load config and return an authenticated client, or fail with a helpful message.
 pub fn require_auth(profile: &str) -> Result<(config::Config, ApiClient)> {
