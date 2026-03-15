@@ -1,12 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ValidationError, assertValid, parseBody } from "./parse.js";
-import {
-  CreateAgentSchema,
-  LoginSchema,
-  RegisterSchema,
-  RunAgentSchema,
-  UpdateAgentSchema,
-} from "./schemas/agent.js";
+import { CreateAgentSchema, RunAgentSchema, UpdateAgentSchema } from "./schemas/agent.js";
+import { LoginSchema, RegisterSchema } from "./schemas/auth.js";
 
 // ─── parseBody ────────────────────────────────────────────────────────────────
 
