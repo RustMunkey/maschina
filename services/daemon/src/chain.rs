@@ -37,6 +37,7 @@ pub struct AnchorReceiptEvent {
 /// Fire-and-forget: publish a receipt anchoring event to NATS JetStream.
 /// The chain worker consumes this and submits to the Anchor settlement program.
 /// No-op when `CHAIN_ENABLED` is false (default in dev).
+#[allow(clippy::too_many_arguments)]
 pub fn submit_receipt(
     state: &AppState,
     run_id: Uuid,
