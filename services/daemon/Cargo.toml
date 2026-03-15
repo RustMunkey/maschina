@@ -56,7 +56,4 @@ tokio-cron-scheduler = "0.13"
 # Prometheus metrics
 prometheus = { version = "0.13", features = ["process"] }
 
-# Solana chain wiring (receipt anchoring)
-solana-sdk = "1.18"
-solana-rpc-client = "1.18"
-borsh = "1"
+# no additional deps needed — chain wiring uses existing NATS JetStream client
