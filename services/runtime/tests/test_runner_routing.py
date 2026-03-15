@@ -47,6 +47,7 @@ _stub_module(
     HttpFetchTool=mock.MagicMock,
     WebSearchTool=mock.MagicMock,
     CodeExecTool=mock.MagicMock,
+    DelegateAgentTool=mock.MagicMock,
     SlackTool=mock.MagicMock,
     GitHubTool=mock.MagicMock,
     NotionTool=mock.MagicMock,

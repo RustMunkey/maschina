@@ -65,6 +65,15 @@ export const SKILL_CATALOG: Record<string, SkillDef> = {
     },
   },
 
+  delegate_agent: {
+    slug: "delegate_agent",
+    name: "Agent Delegation",
+    description:
+      "Delegate subtasks to other Maschina agents and receive their output. Enables multi-agent collaboration patterns.",
+    minTier: "access",
+    configSchema: {},
+  },
+
   // ─── Connector-backed skills ───────────────────────────────────────────────
 
   slack: {

@@ -13,6 +13,7 @@ import budgetRoutes from "./routes/budget.js";
 import complianceRoutes from "./routes/compliance.js";
 import connectorRoutes from "./routes/connectors.js";
 import healthRoutes from "./routes/health.js";
+import internalRoutes from "./routes/internal.js";
 import keyRoutes from "./routes/keys.js";
 import marketplaceRoutes from "./routes/marketplace.js";
 import memoryRoutes from "./routes/memory.js";
@@ -62,6 +63,7 @@ export function createApp() {
   app.route("/receipts", receiptRoutes);
   app.route("/agents", agentReceiptsApp);
   app.route("/agents", permissionRoutes);
+  app.route("/internal", internalRoutes);
 
   // ─── Error handling ───────────────────────────────────────────────────────
   app.onError(errorHandler);

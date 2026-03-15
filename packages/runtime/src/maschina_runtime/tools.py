@@ -469,6 +469,74 @@ class LinearTool(Tool):
         return f"Unknown action: {action}"
 
 
+class DelegateAgentTool(Tool):
+    """Delegate a subtask to another Maschina agent and await its result."""
+
+    name = "delegate_agent"
+    description = (
+        "Delegate a subtask to another Maschina agent by ID and get back its result. "
+        "Use for multi-agent collaboration — hand off specialised work to the right agent. "
+        "Call GET /agents/discover to find available agents."
+    )
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "agent_id": {
+                "type": "string",
+                "description": "ID of the target agent to delegate to",
+            },
+            "message": {
+                "type": "string",
+                "description": "The task or question to send to the target agent",
+            },
+        },
+        "required": ["agent_id", "message"],
+    }
+
+    def __init__(
+        self,
+        api_url: str,
+        internal_secret: str,
+        caller_agent_id: str,
+        user_id: str,
+    ) -> None:
+        self._api_url = api_url.rstrip("/")
+        self._secret = internal_secret
+        self._caller_agent_id = caller_agent_id
+        self._user_id = user_id
+
+    async def execute(self, inputs: dict[str, Any]) -> str:
+        import httpx
+
+        agent_id = inputs["agent_id"]
+        message = inputs["message"]
+
+        # Guard against self-delegation
+        if agent_id == self._caller_agent_id:
+            return "Error: an agent cannot delegate to itself."
+
+        async with httpx.AsyncClient(timeout=135) as client:
+            resp = await client.post(
+                f"{self._api_url}/internal/delegate",
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Internal-Secret": self._secret,
+                },
+                json={
+                    "agent_id": agent_id,
+                    "message": message,
+                    "caller_agent_id": self._caller_agent_id,
+                    "user_id": self._user_id,
+                },
+            )
+
+        if resp.status_code != 200:
+            return f"Delegation failed ({resp.status_code}): {resp.text[:500]}"
+
+        data = resp.json()
+        return data.get("output", "(no output)")
+
+
 class CodeExecTool(Tool):
     """Execute a Python code snippet in a sandboxed subprocess."""
 

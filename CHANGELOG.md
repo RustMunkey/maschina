@@ -8,6 +8,18 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-15 — Agent collaboration / feat/agent-collaboration)
+- `packages/runtime/src/maschina_runtime/tools.py` — `DelegateAgentTool`: delegates a subtask to another agent via `POST /internal/delegate`, returns output synchronously; guards against self-delegation
+- `packages/runtime/src/maschina_runtime/__init__.py` — exports `DelegateAgentTool`
+- `services/runtime/src/config.py` — `MASCHINA_API_URL` + `INTERNAL_SECRET` settings
+- `services/runtime/src/skills.py` — `delegate_agent` slug wired; `build_tools()` gains `caller_agent_id` + `user_id` params for delegation context
+- `services/runtime/src/runner.py` — passes `caller_agent_id` + `user_id` to `build_tools()`
+- `services/api/src/routes/internal.ts` — `POST /internal/delegate`: secret-gated, fetches target agent config + skills, calls runtime synchronously, returns output
+- `services/api/src/routes/agents.ts` — `GET /agents/discover`: lists own agents available for delegation (filterable by type)
+- `services/api/src/app.ts` — `/internal` routes registered
+- `packages/connectors/src/skills.ts` — `delegate_agent` added to SKILL_CATALOG (access+ tier)
+- `services/runtime/tests/test_runner_routing.py` — `DelegateAgentTool` added to maschina_runtime.tools stub
+
 ### Added (2026-03-15 — Reputation / feat/reputation)
 - `services/daemon/src/scheduler/mod.rs` — `select_node()` now returns `(String, Option<Uuid>)` (url + node_id)
 - `services/daemon/src/runtime/mod.rs` — `dispatch()` renamed to `dispatch_to(state, run, node_url)` — takes explicit URL

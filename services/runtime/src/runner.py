@@ -88,7 +88,12 @@ def _extract_user_message(input_payload: dict[str, Any]) -> str:
 
 def _build_runner(model: str, req: RunRequest) -> AgentRunner | OllamaRunner | OpenAIRunner:
     """Instantiate the appropriate runner for the given model."""
-    tools = build_tools(req.skills, req.skill_configs)
+    tools = build_tools(
+        req.skills,
+        req.skill_configs,
+        caller_agent_id=req.agent_id,
+        user_id=req.user_id,
+    )
 
     if _is_ollama(model):
         return OllamaRunner(
