@@ -266,3 +266,199 @@ fn weighted_random_pick<'a>(
     // Rounding fallback
     scored.last().map(|(n, s)| (*n, *s))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_node(
+        user_id: uuid::Uuid,
+        active: i64,
+        capacity: i32,
+        has_gpu: bool,
+        models: Option<&[&str]>,
+        reputation: f64,
+        stake: f64,
+        internal_url: Option<&str>,
+    ) -> CandidateNode {
+        CandidateNode {
+            id: uuid::Uuid::new_v4(),
+            user_id,
+            internal_url: internal_url.map(String::from),
+            max_concurrent_tasks: Some(capacity),
+            has_gpu: Some(has_gpu),
+            supported_models: models.map(|ms| {
+                serde_json::Value::Array(ms.iter().map(|s| serde_json::json!(s)).collect())
+            }),
+            active_task_count: active,
+            reputation_score: reputation,
+            staked_usdc: stake,
+        }
+    }
+
+    // ─── score() ─────────────────────────────────────────────────────────────
+
+    #[test]
+    fn score_returns_none_at_full_capacity() {
+        let uid = uuid::Uuid::new_v4();
+        let node = make_node(uid, 4, 4, false, None, 80.0, 0.0, None);
+        assert!(score(&node, "claude-haiku-4-5").is_none());
+    }
+
+    #[test]
+    fn score_returns_none_when_active_exceeds_capacity() {
+        let uid = uuid::Uuid::new_v4();
+        let node = make_node(uid, 5, 4, false, None, 80.0, 0.0, None);
+        assert!(score(&node, "claude-haiku-4-5").is_none());
+    }
+
+    #[test]
+    fn score_below_capacity_uses_load_and_reputation() {
+        let uid = uuid::Uuid::new_v4();
+        // active=2, capacity=4 → load = (1 - 0.5) * 50 = 25.0
+        // reputation=80 → (80/100) * 20 = 16.0
+        // total = 41.0
+        let node = make_node(uid, 2, 4, false, None, 80.0, 0.0, None);
+        let s = score(&node, "claude-haiku-4-5").unwrap();
+        assert!((s - 41.0).abs() < 0.01, "expected 41.0, got {s}");
+    }
+
+    #[test]
+    fn score_idle_node_max_load_score() {
+        let uid = uuid::Uuid::new_v4();
+        // active=0, capacity=4 → load = 1.0 * 50 = 50.0
+        let node = make_node(uid, 0, 4, false, None, 0.0, 0.0, None);
+        let s = score(&node, "claude-haiku-4-5").unwrap();
+        assert!((s - 50.0).abs() < 0.01, "expected 50.0, got {s}");
+    }
+
+    #[test]
+    fn score_adds_model_bonus_when_prefix_matches() {
+        let uid = uuid::Uuid::new_v4();
+        // model "claude-haiku-4-5" starts with "claude-haiku"
+        // load: 50.0 + model: 30.0 = 80.0
+        let node = make_node(uid, 0, 4, false, Some(&["claude-haiku"]), 0.0, 0.0, None);
+        let s = score(&node, "claude-haiku-4-5").unwrap();
+        assert!((s - 80.0).abs() < 0.01, "expected 80.0, got {s}");
+    }
+
+    #[test]
+    fn score_adds_gpu_bonus_for_ollama_model() {
+        let uid = uuid::Uuid::new_v4();
+        // load: 50.0 + gpu: 20.0 = 70.0
+        let node = make_node(uid, 0, 4, true, None, 0.0, 0.0, None);
+        let s = score(&node, "ollama/llama3").unwrap();
+        assert!((s - 70.0).abs() < 0.01, "expected 70.0, got {s}");
+    }
+
+    #[test]
+    fn score_no_gpu_bonus_for_non_ollama_model() {
+        let uid = uuid::Uuid::new_v4();
+        // has GPU but model is cloud — no gpu bonus
+        let node = make_node(uid, 0, 4, true, None, 0.0, 0.0, None);
+        let s = score(&node, "claude-sonnet-4-6").unwrap();
+        assert!((s - 50.0).abs() < 0.01, "expected 50.0, got {s}");
+    }
+
+    #[test]
+    fn score_stake_bonus_capped_at_1000_usdc() {
+        let uid = uuid::Uuid::new_v4();
+        let n1 = make_node(uid, 0, 1, false, None, 0.0, 1_000.0, None);
+        let n2 = make_node(uid, 0, 1, false, None, 0.0, 5_000.0, None);
+        let s1 = score(&n1, "claude-haiku-4-5").unwrap();
+        let s2 = score(&n2, "claude-haiku-4-5").unwrap();
+        assert!(
+            (s1 - s2).abs() < 0.01,
+            "stake bonus should be capped: {s1} vs {s2}"
+        );
+    }
+
+    #[test]
+    fn score_default_capacity_is_1_when_none() {
+        let uid = uuid::Uuid::new_v4();
+        let mut node = make_node(uid, 0, 1, false, None, 0.0, 0.0, None);
+        node.max_concurrent_tasks = None;
+        // capacity defaults to 1, active=0 → load = 1.0 * 50 = 50.0
+        let s = score(&node, "claude-haiku-4-5").unwrap();
+        assert!((s - 50.0).abs() < 0.01, "expected 50.0, got {s}");
+    }
+
+    // ─── weighted_random_pick() ───────────────────────────────────────────────
+
+    #[test]
+    fn weighted_random_pick_empty_returns_none() {
+        let empty: Vec<(&CandidateNode, f64)> = vec![];
+        assert!(weighted_random_pick(&empty).is_none());
+    }
+
+    #[test]
+    fn weighted_random_pick_single_item_returns_it() {
+        let uid = uuid::Uuid::new_v4();
+        let node = make_node(uid, 0, 4, false, None, 50.0, 0.0, None);
+        let scored = vec![(&node, 75.0_f64)];
+        let result = weighted_random_pick(&scored).unwrap();
+        assert_eq!(result.0.id, node.id);
+        assert!((result.1 - 75.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn weighted_random_pick_zero_total_returns_first() {
+        let uid = uuid::Uuid::new_v4();
+        let n1 = make_node(uid, 0, 4, false, None, 0.0, 0.0, None);
+        let n2 = make_node(uid, 0, 4, false, None, 0.0, 0.0, None);
+        let scored = vec![(&n1, 0.0_f64), (&n2, 0.0_f64)];
+        let result = weighted_random_pick(&scored).unwrap();
+        assert_eq!(result.0.id, n1.id);
+    }
+
+    #[test]
+    fn weighted_random_pick_always_returns_valid_node() {
+        let uid = uuid::Uuid::new_v4();
+        let n1 = make_node(uid, 0, 4, false, None, 100.0, 0.0, None);
+        let n2 = make_node(uid, 0, 4, false, None, 50.0, 0.0, None);
+        let n3 = make_node(uid, 0, 4, false, None, 10.0, 0.0, None);
+        let s1 = score(&n1, "claude-haiku-4-5").unwrap();
+        let s2 = score(&n2, "claude-haiku-4-5").unwrap();
+        let s3 = score(&n3, "claude-haiku-4-5").unwrap();
+        let scored = vec![(&n1, s1), (&n2, s2), (&n3, s3)];
+        let ids = [n1.id, n2.id, n3.id];
+        for _ in 0..100 {
+            let result = weighted_random_pick(&scored).unwrap();
+            assert!(
+                ids.contains(&result.0.id),
+                "returned unexpected node id: {}",
+                result.0.id
+            );
+        }
+    }
+
+    #[test]
+    fn weighted_random_pick_high_score_wins_more_often() {
+        // Run 1000 times: node with 10x score should win substantially more
+        let uid = uuid::Uuid::new_v4();
+        let high = make_node(uid, 0, 4, false, None, 100.0, 1000.0, None);
+        let low = make_node(uid, 0, 4, false, None, 0.0, 0.0, None);
+        let s_high = score(&high, "claude-haiku-4-5").unwrap(); // ~75
+        let s_low = score(&low, "claude-haiku-4-5").unwrap(); // ~50
+        let scored = vec![(&high, s_high), (&low, s_low)];
+
+        let mut high_wins = 0usize;
+        for _ in 0..1000 {
+            if let Some((node, _)) = weighted_random_pick(&scored) {
+                if node.id == high.id {
+                    high_wins += 1;
+                }
+            }
+        }
+        // High score node should win ~60% of the time (75/(75+50) = 60%)
+        // Allow wide tolerance for randomness: > 45% and < 80%
+        assert!(
+            high_wins > 450,
+            "high-score node won too rarely: {high_wins}/1000"
+        );
+        assert!(
+            high_wins < 800,
+            "high-score node won too often: {high_wins}/1000"
+        );
+    }
+}
