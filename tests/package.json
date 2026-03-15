@@ -10,7 +10,7 @@
   },
   "devDependencies": {
     "@maschina/tsconfig": "workspace:*",
-    "hono": "^4.6",
+    "@maschina/vitest-config": "workspace:*",
     "vitest": "^4.0.18"
   }
 }

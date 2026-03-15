@@ -11,7 +11,6 @@
  * These run WITHOUT a real server — they use Hono's request() method with
  * all external dependencies mocked.
  */
-import { Hono } from "hono";
 import { describe, expect, it, vi } from "vitest";
 
 // ─── Mocks (same as auth_flow.test.ts) ────────────────────────────────────────
