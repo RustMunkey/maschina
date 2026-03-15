@@ -29,7 +29,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use axum::{
-    routing::{any, get},
+    routing::{any, get, post},
     Router,
 };
 use tokio_util::sync::CancellationToken;
@@ -76,6 +76,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/ws/*path", any(handlers::ws_handler))
         .route("/events", get(handlers::sse_handler))
         .route("/events/*path", get(handlers::sse_handler))
+        .route("/internal/run-event", post(handlers::run_event_handler))
         .layer(CorsLayer::very_permissive())
         .layer(TraceLayer::new_for_http())
         .with_state(state);
