@@ -2,8 +2,7 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "@maschina/tsconfig/base.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": ".",
+    "noEmit": true,
     "baseUrl": "..",
     "paths": {
       "@maschina/*": ["packages/*/src/index.ts"]

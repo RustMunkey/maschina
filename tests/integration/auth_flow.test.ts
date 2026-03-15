@@ -141,7 +141,20 @@ vi.mock("@maschina/compliance", () => ({}));
 vi.mock("@maschina/connectors", () => ({}));
 vi.mock("@maschina/marketplace", () => ({}));
 vi.mock("@maschina/storage", () => ({}));
-vi.mock("@maschina/webhooks", () => ({}));
+vi.mock("@maschina/webhooks", () => ({
+  WEBHOOK_EVENTS: [
+    "agent.run.started",
+    "agent.run.completed",
+    "agent.run.failed",
+    "subscription.updated",
+    "usage.quota_warning",
+    "usage.quota_exceeded",
+  ] as const,
+  generateSecret: vi.fn().mockResolvedValue("whsec_testsecret"),
+  hashSecret: vi.fn().mockResolvedValue("hashed_secret"),
+  verifySecret: vi.fn().mockResolvedValue(true),
+  deliver: vi.fn(),
+}));
 vi.mock("@maschina/analytics", () => ({}));
 vi.mock("@maschina/chain", () => ({}));
 

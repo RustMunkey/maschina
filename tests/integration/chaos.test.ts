@@ -134,7 +134,20 @@ vi.mock("@maschina/compliance", () => ({}));
 vi.mock("@maschina/connectors", () => ({}));
 vi.mock("@maschina/marketplace", () => ({}));
 vi.mock("@maschina/storage", () => ({}));
-vi.mock("@maschina/webhooks", () => ({}));
+vi.mock("@maschina/webhooks", () => ({
+  WEBHOOK_EVENTS: [
+    "agent.run.started",
+    "agent.run.completed",
+    "agent.run.failed",
+    "subscription.updated",
+    "usage.quota_warning",
+    "usage.quota_exceeded",
+  ] as const,
+  generateSecret: vi.fn().mockResolvedValue("whsec_testsecret"),
+  hashSecret: vi.fn().mockResolvedValue("hashed_secret"),
+  verifySecret: vi.fn().mockResolvedValue(true),
+  deliver: vi.fn(),
+}));
 vi.mock("@maschina/analytics", () => ({}));
 vi.mock("@maschina/chain", () => ({}));
 
@@ -213,7 +226,7 @@ describe("Redis fault", () => {
   it("validation errors still return 400 when Redis is down (rate limit fallback)", async () => {
     const { getRedis } = await import("@maschina/cache");
     // Redis fails on incr (rate limit check)
-    vi.mocked(getRedis).mockReturnValue({
+    vi.mocked(getRedis).mockReturnValueOnce({
       ping: vi.fn().mockRejectedValue(new Error("ECONNREFUSED")),
       incr: vi.fn().mockRejectedValue(new Error("ECONNREFUSED 6379")),
       expire: vi.fn().mockRejectedValue(new Error("ECONNREFUSED 6379")),
