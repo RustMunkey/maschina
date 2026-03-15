@@ -11,15 +11,29 @@ use tracing::{error, info, instrument, warn};
 pub async fn execute_run(state: AppState, run: QueuedRun) {
     let timeout_dur = Duration::from_secs(run.timeout_secs as u64);
 
-    info!(run_id = %run.id, timeout_secs = run.timeout_secs, "Executing agent run");
+    // Select node before starting the timeout clock so scheduling latency
+    // doesn't eat into the agent's execution budget.
+    let (node_url, node_id) = crate::scheduler::select_node(&state, &run.model).await;
 
-    let result = timeout(timeout_dur, crate::runtime::dispatch(&state, &run)).await;
+    info!(
+        run_id = %run.id,
+        timeout_secs = run.timeout_secs,
+        node_url = %node_url,
+        node_id = ?node_id,
+        "Executing agent run"
+    );
+
+    let result = timeout(
+        timeout_dur,
+        crate::runtime::dispatch_to(&state, &run, &node_url),
+    )
+    .await;
 
     match result {
         // Runtime completed within timeout
         Ok(Ok(output)) => {
             info!(run_id = %run.id, "Agent run completed successfully");
-            super::analyze::finalize_run(&state, &run, Ok(output)).await;
+            super::analyze::finalize_run(&state, &run, Ok(output), node_id).await;
             state.metrics.runs_executing.dec();
             state.metrics.runs_completed.inc();
         }
@@ -27,7 +41,7 @@ pub async fn execute_run(state: AppState, run: QueuedRun) {
         // Runtime returned an error
         Ok(Err(e)) => {
             warn!(run_id = %run.id, error = %e, "Agent run returned error");
-            super::analyze::finalize_run(&state, &run, Err(e)).await;
+            super::analyze::finalize_run(&state, &run, Err(e), node_id).await;
             state.metrics.runs_executing.dec();
             state.metrics.runs_failed.inc();
         }
@@ -39,7 +53,7 @@ pub async fn execute_run(state: AppState, run: QueuedRun) {
                 run_id: run.id,
                 timeout_secs: run.timeout_secs as u64,
             };
-            super::analyze::finalize_run(&state, &run, Err(err)).await;
+            super::analyze::finalize_run(&state, &run, Err(err), node_id).await;
             state.metrics.runs_executing.dec();
             state.metrics.runs_timed_out.inc();
         }

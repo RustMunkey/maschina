@@ -27,13 +27,17 @@ export interface ListingDoc {
   category: string;
   tags: string[];
   rating: number | null;
+  reputationScore: number;
   downloads: number;
   sellerId: string;
   slug: string;
   createdAt: string;
 }
 
-export function listingToDoc(listing: MarketplaceListing): ListingDoc {
+export function listingToDoc(
+  listing: MarketplaceListing,
+  agentReputationScore?: number | null,
+): ListingDoc {
   return {
     id: listing.id,
     name: listing.name,
@@ -41,6 +45,7 @@ export function listingToDoc(listing: MarketplaceListing): ListingDoc {
     category: listing.category,
     tags: Array.isArray(listing.tags) ? (listing.tags as string[]) : [],
     rating: listing.rating ? Number(listing.rating) : null,
+    reputationScore: agentReputationScore != null ? Number(agentReputationScore) : 50,
     downloads: listing.downloads,
     sellerId: listing.sellerId,
     slug: listing.slug,

@@ -6,7 +6,24 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ---
 
-## [Unreleased]\n\n### Added (2026-03-15 — Analytics / feat/analytics)\n- `packages/analytics/src/posthog.ts` — PostHog client, lazy-init, typed event helpers (agent.created, agent.run.completed, connector.installed, subscription.upgraded, etc.)\n- `packages/analytics/src/langsmith.ts` — LangSmith HTTP tracing client (startTrace, endTrace, failTrace)\n- `packages/analytics/src/index.ts` — package exports\n- `packages/analytics/package.json` + `tsconfig.json` — new package\n- `services/api/src/routes/analytics.ts` — GET /analytics/overview, /runs, /tokens, /agents/top (M5+ gate)\n- `services/api/src/app.ts` — analytics routes registered\n- `services/runtime/src/tracing.py` — LangSmith async trace wrapper\n- `services/runtime/src/runner.py` — start/end/fail trace around every agent run\n\n### Added (2026-03-15 — Connector integrations / feat/connectors)\n- `packages/connectors/src/definitions.ts` — connector catalog: Slack (OAuth), GitHub (OAuth), Notion (API key), Linear (API key)\n- `packages/connectors/src/crypto.ts` — AES-256-GCM encrypt/decrypt for credential storage\n- `packages/connectors/src/skills.ts` — added slack, github, notion, linear to SKILL_CATALOG\n- `packages/connectors/src/index.ts` — exports crypto + definitions\n- `services/api/src/routes/connectors.ts` — full connector API: definitions list, CRUD, OAuth flow, incoming webhook receivers (Slack, GitHub, Linear signature verification)\n- `services/api/src/app.ts` — connector routes registered at /connectors\n- `packages/runtime/src/maschina_runtime/tools.py` — SlackTool, GitHubTool, NotionTool, LinearTool\n- `services/runtime/src/skills.py` — slack, github, notion, linear wired into build_tools()
+## [Unreleased]
+
+### Added (2026-03-15 — Reputation / feat/reputation)
+- `services/daemon/src/scheduler/mod.rs` — `select_node()` now returns `(String, Option<Uuid>)` (url + node_id)
+- `services/daemon/src/runtime/mod.rs` — `dispatch()` renamed to `dispatch_to(state, run, node_url)` — takes explicit URL
+- `services/daemon/src/orchestrator/execute.rs` — calls scheduler separately; passes `node_id` to `finalize_run`
+- `services/daemon/src/orchestrator/analyze.rs` — `finalize_run` takes `node_id: Option<Uuid>`; fires `update_node_reputation` + `update_agent_reputation` (tokio::spawn, fire-and-forget) after every run outcome
+- Node reputation formula: `completed / (completed + failed + timed_out) * 100`, clamped 0–100, frozen at current score until 5+ total tasks
+- `packages/db/src/schema/pg/agents.ts` — added `totalRunsCompleted`, `totalRunsFailed`, `reputationScore` columns
+- `packages/db/src/schema/sqlite/agents.ts` — same columns mirrored for local dev
+- `packages/marketplace/src/index.ts` — `ListingDoc` + `listingToDoc()` gains optional `reputationScore` field
+- `packages/search/src/indexes.ts` — marketplace index: `reputationScore` added to filterable + sortable + displayed attributes
+- `services/api/src/routes/marketplace.ts` — publish endpoint fetches agent `reputationScore` and includes it in Meilisearch upsert
+
+## [Unreleased - cascade-fallback]
+
+### Added (2026-03-15 — Analytics / feat/analytics)
+- `packages/analytics/src/posthog.ts` — PostHog client, lazy-init, typed event helpers (agent.created, agent.run.completed, connector.installed, subscription.upgraded, etc.)\n- `packages/analytics/src/langsmith.ts` — LangSmith HTTP tracing client (startTrace, endTrace, failTrace)\n- `packages/analytics/src/index.ts` — package exports\n- `packages/analytics/package.json` + `tsconfig.json` — new package\n- `services/api/src/routes/analytics.ts` — GET /analytics/overview, /runs, /tokens, /agents/top (M5+ gate)\n- `services/api/src/app.ts` — analytics routes registered\n- `services/runtime/src/tracing.py` — LangSmith async trace wrapper\n- `services/runtime/src/runner.py` — start/end/fail trace around every agent run\n\n### Added (2026-03-15 — Connector integrations / feat/connectors)\n- `packages/connectors/src/definitions.ts` — connector catalog: Slack (OAuth), GitHub (OAuth), Notion (API key), Linear (API key)\n- `packages/connectors/src/crypto.ts` — AES-256-GCM encrypt/decrypt for credential storage\n- `packages/connectors/src/skills.ts` — added slack, github, notion, linear to SKILL_CATALOG\n- `packages/connectors/src/index.ts` — exports crypto + definitions\n- `services/api/src/routes/connectors.ts` — full connector API: definitions list, CRUD, OAuth flow, incoming webhook receivers (Slack, GitHub, Linear signature verification)\n- `services/api/src/app.ts` — connector routes registered at /connectors\n- `packages/runtime/src/maschina_runtime/tools.py` — SlackTool, GitHubTool, NotionTool, LinearTool\n- `services/runtime/src/skills.py` — slack, github, notion, linear wired into build_tools()
 
 ### Added (2026-03-14 — Organization management / feat/orgs)
 - `packages/validation/src/schemas/org.ts` — `CreateOrgSchema`, `UpdateOrgSchema`, `InviteMemberSchema`, `UpdateMemberRoleSchema`

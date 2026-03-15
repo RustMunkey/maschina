@@ -3,13 +3,15 @@ use crate::orchestrator::scan_compat::JobToRun as QueuedRun;
 use crate::runtime::RunOutput;
 use crate::state::AppState;
 use tracing::{error, instrument, warn};
+use uuid::Uuid;
 
-/// ANALYZE phase: persist run outcome, record usage, notify realtime service.
+/// ANALYZE phase: persist run outcome, record usage, update reputation, notify realtime.
 #[instrument(skip(state, run, result), fields(run_id = %run.id))]
 pub async fn finalize_run(
     state: &AppState,
     run: &QueuedRun,
     result: Result<RunOutput, DaemonError>,
+    node_id: Option<Uuid>,
 ) {
     match result {
         Ok(output) => {
@@ -20,6 +22,8 @@ pub async fn finalize_run(
             if let Err(e) = record_usage(state, run, &output).await {
                 warn!(run_id = %run.id, error = %e, "Failed to record run usage");
             }
+            update_node_reputation(state, node_id, "success");
+            update_agent_reputation(state, run.agent_id, "success");
             notify_realtime(state, run, "completed", None).await;
         }
 
@@ -35,6 +39,8 @@ pub async fn finalize_run(
             {
                 error!(run_id = %run.id, error = %e, "Failed to persist timeout");
             }
+            update_node_reputation(state, node_id, "timed_out");
+            update_agent_reputation(state, run.agent_id, "failed");
             notify_realtime(state, run, "timed_out", Some("timeout")).await;
         }
 
@@ -43,6 +49,8 @@ pub async fn finalize_run(
             if let Err(pe) = persist_failure(state, run, "failed", code, msg).await {
                 error!(run_id = %run.id, error = %pe, "Failed to persist run failure");
             }
+            update_node_reputation(state, node_id, "failed");
+            update_agent_reputation(state, run.agent_id, "failed");
             notify_realtime(state, run, "failed", Some(code)).await;
         }
     }
@@ -177,6 +185,114 @@ async fn notify_realtime(
     if let Err(e) = result {
         warn!(run_id = %run.id, error = %e, "Failed to notify realtime service");
     }
+}
+
+/// Fire-and-forget: update node counters + recalculate reputation_score.
+///
+/// Score formula: completed / (completed + failed + timed_out) * 100,
+/// clamped 0–100. Nodes with fewer than 5 total tasks stay at their current
+/// score (not enough signal to move far from the default 50).
+fn update_node_reputation(state: &AppState, node_id: Option<Uuid>, outcome: &'static str) {
+    let Some(id) = node_id else {
+        return; // internal fallback runtime — no node row to update
+    };
+    let db = state.db.clone();
+    tokio::spawn(async move {
+        let sql = match outcome {
+            "success" => {
+                r#"
+                UPDATE nodes
+                SET total_tasks_completed = total_tasks_completed + 1,
+                    reputation_score = CASE
+                        WHEN (total_tasks_completed + 1 + total_tasks_failed + total_tasks_timed_out) < 5
+                        THEN reputation_score
+                        ELSE LEAST(100, GREATEST(0,
+                            ((total_tasks_completed + 1)::numeric /
+                             (total_tasks_completed + 1 + total_tasks_failed + total_tasks_timed_out)::numeric) * 100
+                        ))
+                    END,
+                    updated_at = NOW()
+                WHERE id = $1
+                "#
+            }
+            "failed" => {
+                r#"
+                UPDATE nodes
+                SET total_tasks_failed = total_tasks_failed + 1,
+                    reputation_score = CASE
+                        WHEN (total_tasks_completed + total_tasks_failed + 1 + total_tasks_timed_out) < 5
+                        THEN reputation_score
+                        ELSE LEAST(100, GREATEST(0,
+                            (total_tasks_completed::numeric /
+                             (total_tasks_completed + total_tasks_failed + 1 + total_tasks_timed_out)::numeric) * 100
+                        ))
+                    END,
+                    updated_at = NOW()
+                WHERE id = $1
+                "#
+            }
+            _ => {
+                // timed_out
+                r#"
+                UPDATE nodes
+                SET total_tasks_timed_out = total_tasks_timed_out + 1,
+                    reputation_score = CASE
+                        WHEN (total_tasks_completed + total_tasks_failed + total_tasks_timed_out + 1) < 5
+                        THEN reputation_score
+                        ELSE LEAST(100, GREATEST(0,
+                            (total_tasks_completed::numeric /
+                             (total_tasks_completed + total_tasks_failed + total_tasks_timed_out + 1)::numeric) * 100
+                        ))
+                    END,
+                    updated_at = NOW()
+                WHERE id = $1
+                "#
+            }
+        };
+        let _ = sqlx::query(sql).bind(id).execute(&db).await;
+    });
+}
+
+/// Fire-and-forget: update agent run counters + recalculate reputation_score.
+fn update_agent_reputation(state: &AppState, agent_id: Uuid, outcome: &'static str) {
+    let db = state.db.clone();
+    tokio::spawn(async move {
+        let sql = match outcome {
+            "success" => {
+                r#"
+                UPDATE agents
+                SET total_runs_completed = total_runs_completed + 1,
+                    reputation_score = CASE
+                        WHEN (total_runs_completed + 1 + total_runs_failed) < 5
+                        THEN reputation_score
+                        ELSE LEAST(100, GREATEST(0,
+                            ((total_runs_completed + 1)::numeric /
+                             (total_runs_completed + 1 + total_runs_failed)::numeric) * 100
+                        ))
+                    END,
+                    updated_at = NOW()
+                WHERE id = $1
+                "#
+            }
+            _ => {
+                r#"
+                UPDATE agents
+                SET total_runs_failed = total_runs_failed + 1,
+                    reputation_score = CASE
+                        WHEN (total_runs_completed + total_runs_failed + 1) < 5
+                        THEN reputation_score
+                        ELSE LEAST(100, GREATEST(0,
+                            (total_runs_completed::numeric /
+                             (total_runs_completed + total_runs_failed + 1)::numeric) * 100
+                        ))
+                    END,
+                    updated_at = NOW()
+                WHERE id = $1
+                "#
+            }
+        };
+        let _ = sqlx::query(sql).bind(agent_id).execute(&db).await;
+    });
 }
 
 fn error_code_and_message(e: &DaemonError) -> (&'static str, &'static str) {

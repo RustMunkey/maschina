@@ -192,10 +192,23 @@ app.post("/listings/:id/publish", requireAuth, async (c) => {
     .where(eq(marketplaceListings.id, listingId))
     .returning();
 
+  // Fetch agent reputation score to include in search document
+  let agentReputationScore: number | null = null;
+  if (published.agentId) {
+    const [agent] = await db
+      .select({ reputationScore: agents.reputationScore })
+      .from(agents)
+      .where(eq(agents.id, published.agentId))
+      .limit(1);
+    agentReputationScore = agent ? Number(agent.reputationScore) : null;
+  }
+
   // Sync to Meilisearch
   upsertDocument(
     "marketplace",
-    listingToDoc(published) as unknown as Record<string, unknown> & { id: string },
+    listingToDoc(published, agentReputationScore) as unknown as Record<string, unknown> & {
+      id: string;
+    },
   ).catch(() => {});
 
   return c.json(published);

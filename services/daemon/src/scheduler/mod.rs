@@ -65,12 +65,11 @@ fn score(node: &CandidateNode, model: &str) -> Option<f64> {
     Some(load_score + model_score + gpu_score)
 }
 
-/// Select the best available node URL for this run.
+/// Select the best available node for this run.
 ///
-/// Queries all active nodes with a fresh heartbeat, scores each one,
-/// and returns the URL of the highest-scoring node that has spare capacity.
-/// Falls back to config.runtime_url if no suitable node is found.
-pub async fn select_node(state: &AppState, model: &str) -> String {
+/// Returns `(url, node_id)`. `node_id` is `Some` when a registered node was
+/// selected, or `None` when falling back to the internal RUNTIME_URL.
+pub async fn select_node(state: &AppState, model: &str) -> (String, Option<uuid::Uuid>) {
     let result = sqlx::query_as::<_, CandidateNode>(
         r#"
         SELECT
@@ -101,13 +100,13 @@ pub async fn select_node(state: &AppState, model: &str) -> String {
         Ok(rows) => rows,
         Err(e) => {
             warn!(error = %e, "Scheduler query failed — falling back to RUNTIME_URL");
-            return state.config.runtime_url.clone();
+            return (state.config.runtime_url.clone(), None);
         }
     };
 
     if candidates.is_empty() {
         warn!("No active registered nodes — falling back to RUNTIME_URL");
-        return state.config.runtime_url.clone();
+        return (state.config.runtime_url.clone(), None);
     }
 
     // Score and rank
@@ -126,7 +125,7 @@ pub async fn select_node(state: &AppState, model: &str) -> String {
                 capacity = node.max_concurrent_tasks.unwrap_or(1),
                 "Scheduler selected node"
             );
-            node.internal_url.clone()
+            (node.internal_url.clone(), Some(node.id))
         }
         None => {
             // All nodes exist but are at full capacity
@@ -139,7 +138,7 @@ pub async fn select_node(state: &AppState, model: &str) -> String {
                 nodes = ?candidates.iter().map(|n| format!("{}: {}/{}", n.id, n.active_task_count, n.max_concurrent_tasks.unwrap_or(1))).collect::<Vec<_>>(),
                 "Node capacity state"
             );
-            state.config.runtime_url.clone()
+            (state.config.runtime_url.clone(), None)
         }
     }
 }
