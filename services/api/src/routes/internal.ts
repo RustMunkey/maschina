@@ -69,8 +69,10 @@ app.post("/delegate", async (c) => {
     .from(agentSkills)
     .where(and(eq(agentSkills.agentId, agent_id), eq(agentSkills.enabled, true)));
 
-  const skills = skillRows.map((r) => r.skillName);
-  const skillConfigs = Object.fromEntries(skillRows.map((r) => [r.skillName, r.config]));
+  const skills = skillRows.map((r: { skillName: string; config: unknown }) => r.skillName);
+  const skillConfigs = Object.fromEntries(
+    skillRows.map((r: { skillName: string; config: unknown }) => [r.skillName, r.config]),
+  );
 
   // Generate a delegation run ID (not persisted to agent_runs — delegation is ephemeral)
   const { randomUUID } = await import("node:crypto");
