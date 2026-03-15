@@ -160,6 +160,36 @@ app.delete("/:id", async (c) => {
   return c.json({ success: true });
 });
 
+// GET /agents/discover
+// Lists agents available for delegation — same user, not deleted, not stopped.
+// Intended to be called by an agent using DelegateAgentTool to find peers.
+app.get("/discover", async (c) => {
+  const { id: userId } = c.get("user");
+  const type = c.req.query("type");
+  const limit = Math.min(Number(c.req.query("limit") ?? 20), 100);
+
+  const rows = await db
+    .select({
+      id: agents.id,
+      name: agents.name,
+      type: agents.type,
+      description: agents.description,
+      reputationScore: agents.reputationScore,
+      totalRunsCompleted: agents.totalRunsCompleted,
+    })
+    .from(agents)
+    .where(
+      and(
+        eq(agents.userId, userId),
+        isNull(agents.deletedAt),
+        type ? eq(agents.type, type as (typeof agents.$inferSelect)["type"]) : undefined,
+      ),
+    )
+    .limit(limit);
+
+  return c.json(rows);
+});
+
 // POST /agents/:id/run
 app.post(
   "/:id/run",

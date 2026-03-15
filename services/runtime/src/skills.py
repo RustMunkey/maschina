@@ -11,6 +11,7 @@ from typing import Any
 
 from maschina_runtime.tools import (
     CodeExecTool,
+    DelegateAgentTool,
     GitHubTool,
     HttpFetchTool,
     LinearTool,
@@ -24,7 +25,10 @@ logger = logging.getLogger(__name__)
 
 
 def build_tools(
-    skill_names: list[str], configs: dict[str, dict[str, Any]] | None = None
+    skill_names: list[str],
+    configs: dict[str, dict[str, Any]] | None = None,
+    caller_agent_id: str = "",
+    user_id: str = "",
 ) -> list[Tool]:
     """
     Build Tool instances for the given skill slugs.
@@ -33,6 +37,8 @@ def build_tools(
     Args:
         skill_names: list of skill slugs (e.g. ["http_fetch", "web_search"])
         configs: per-skill config overrides from agent_skills.config column
+        caller_agent_id: ID of the agent making the run (needed for delegate_agent)
+        user_id: ID of the user who owns the agent (needed for delegate_agent)
     """
     if configs is None:
         configs = {}
@@ -42,7 +48,7 @@ def build_tools(
     for slug in skill_names:
         cfg = configs.get(slug, {})
         try:
-            tool = _build_one(slug, cfg)
+            tool = _build_one(slug, cfg, caller_agent_id=caller_agent_id, user_id=user_id)
             if tool is not None:
                 tools.append(tool)
         except Exception as exc:
@@ -51,7 +57,12 @@ def build_tools(
     return tools
 
 
-def _build_one(slug: str, cfg: dict[str, Any]) -> Tool | None:
+def _build_one(
+    slug: str,
+    cfg: dict[str, Any],
+    caller_agent_id: str = "",
+    user_id: str = "",
+) -> Tool | None:
     match slug:
         case "http_fetch":
             allowed_raw = cfg.get("allowed_domains", "")
@@ -117,6 +128,26 @@ def _build_one(slug: str, cfg: dict[str, Any]) -> Tool | None:
                 )
                 return None
             return LinearTool(access_token=token, default_team=cfg.get("default_team", ""))
+
+        case "delegate_agent":
+            from .config import settings
+
+            if not settings.internal_secret:
+                logger.warning(
+                    "delegate_agent skill enabled but INTERNAL_SECRET is not set — skipping"
+                )
+                return None
+            if not caller_agent_id or not user_id:
+                logger.warning(
+                    "delegate_agent skill requires caller_agent_id and user_id — skipping"
+                )
+                return None
+            return DelegateAgentTool(
+                api_url=settings.maschina_api_url,
+                internal_secret=settings.internal_secret,
+                caller_agent_id=caller_agent_id,
+                user_id=user_id,
+            )
 
         case _:
             logger.warning("Unknown skill slug: %s — skipping", slug)

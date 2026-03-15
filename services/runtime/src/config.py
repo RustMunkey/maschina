@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     sandbox_memory_limit_mb: int = 128
     sandbox_cpu_limit_secs: int = 10
 
+    # Agent collaboration — inter-agent delegation
+    # MASCHINA_API_URL: internal base URL of the API service
+    # INTERNAL_SECRET: shared secret for /internal/* routes (must match API service)
+    maschina_api_url: str = "http://localhost:3000"
+    internal_secret: str = ""
+
     @property
     def is_production(self) -> bool:
         return self.node_env == "production"
