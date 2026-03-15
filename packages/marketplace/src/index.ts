@@ -1,9 +1,23 @@
 import type { MarketplaceListing } from "@maschina/db";
 
 // ─── Revenue share ────────────────────────────────────────────────────────────
+//
+// Two models:
+//
+// 1. Marketplace listing sale (fiat/Stripe) — calcRevenueShare()
+//    Agent creator publishes a listing; buyer pays once to fork the agent.
+//    70% to seller (agent creator), 30% to platform.
+//
+// 2. Per-execution task revenue (on-chain/token) — calcExecutionRevenue()
+//    Used when a node executes a task on behalf of an agent. Mirrors the
+//    architecture's economic model: node earns compute revenue, developer
+//    earns usage royalty, platform treasury accumulates protocol fees,
+//    validators receive a small participation reward.
+//    65% node / 20% developer / 10% treasury / 5% validators
 
-const SELLER_SHARE = 0.7;
-const PLATFORM_SHARE = 0.3;
+// ── Listing sale (fiat) ───────────────────────────────────────────────────────
+
+const LISTING_SELLER_SHARE = 0.7;
 
 export interface RevenueShare {
   sellerCents: number;
@@ -11,11 +25,33 @@ export interface RevenueShare {
 }
 
 export function calcRevenueShare(totalCents: number): RevenueShare {
-  const sellerCents = Math.floor(totalCents * SELLER_SHARE);
+  const sellerCents = Math.floor(totalCents * LISTING_SELLER_SHARE);
   return {
     sellerCents,
     platformCents: totalCents - sellerCents,
   };
+}
+
+// ── Per-execution task revenue (on-chain) ────────────────────────────────────
+
+const EXECUTION_NODE_SHARE = 0.65;
+const EXECUTION_DEVELOPER_SHARE = 0.2;
+const EXECUTION_TREASURY_SHARE = 0.1;
+// validator share = remainder (0.05) to avoid floating-point drift
+
+export interface ExecutionRevenue {
+  nodeCents: number; // 65% — compute node operator
+  developerCents: number; // 20% — agent developer (marketplace listing owner)
+  treasuryCents: number; // 10% — protocol treasury
+  validatorCents: number; //  5% — validator nodes
+}
+
+export function calcExecutionRevenue(totalCents: number): ExecutionRevenue {
+  const nodeCents = Math.floor(totalCents * EXECUTION_NODE_SHARE);
+  const developerCents = Math.floor(totalCents * EXECUTION_DEVELOPER_SHARE);
+  const treasuryCents = Math.floor(totalCents * EXECUTION_TREASURY_SHARE);
+  const validatorCents = totalCents - nodeCents - developerCents - treasuryCents;
+  return { nodeCents, developerCents, treasuryCents, validatorCents };
 }
 
 // ─── Meilisearch document shape ───────────────────────────────────────────────

@@ -8,6 +8,14 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-15 — Scheduler v2 + revenue split / feat/scheduler-v2)
+- `services/daemon/src/scheduler/mod.rs` — reputation and stake factored into
+  node scoring: `(reputation_score / 100) * 20` pts + `min(stake / 1000, 1) * 5` pts
+  on top of existing load (50) + model match (30) + GPU (20) factors; max score ~125
+- `packages/marketplace/src/index.ts` — added `calcExecutionRevenue()` with the
+  correct 65/20/10/5 split (node/developer/treasury/validators) for per-execution
+  on-chain task revenue; `calcRevenueShare()` retained for fiat listing sales (70/30)
+
 ### Added (2026-03-14 — Marketplace payments / feat/marketplace-payments)
 - `packages/billing/src/marketplace.ts` — `createMarketplacePaymentIntent()`:
   creates a pending order + Stripe PaymentIntent for a paid listing; returns
