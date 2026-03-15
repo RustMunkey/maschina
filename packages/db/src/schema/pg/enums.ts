@@ -153,6 +153,19 @@ export const dataExportStatusEnum = pgEnum("data_export_status", [
   "expired",
 ]);
 
+// ─── Agent Permissions ────────────────────────────────────────────────────────
+export const agentPermissionEnum = pgEnum("agent_permission", [
+  "internet_access", // HTTP fetch to external URLs (guards http_fetch skill)
+  "code_execution", // Run arbitrary code (guards code_exec skill)
+  "external_api", // Call external APIs via connectors
+  "file_read", // Read from object storage
+  "file_write", // Write to object storage
+  "memory_read", // Read episodic memory (Qdrant)
+  "memory_write", // Write episodic memory (Qdrant)
+  "send_email", // Send outbound email via Resend
+  "send_webhook", // Trigger outbound webhooks
+]);
+
 // ─── Workflows ────────────────────────────────────────────────────────────────
 export const workflowTypeEnum = pgEnum("workflow_type", ["sequential", "parallel", "conditional"]);
 export const workflowRunStatusEnum = pgEnum("workflow_run_status", [

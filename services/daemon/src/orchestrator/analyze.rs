@@ -181,6 +181,9 @@ fn error_code_and_message(e: &DaemonError) -> (&'static str, &'static str) {
     match e {
         DaemonError::QuotaExceeded { .. } => ("quota_exceeded", "Monthly quota exceeded"),
         DaemonError::AgentNotFound { .. } => ("agent_not_found", "Agent not found"),
+        DaemonError::PermissionDenied { .. } => {
+            ("permission_denied", "Missing required permission")
+        }
         DaemonError::Sandbox(_) => ("sandbox_error", "Sandbox execution error"),
         DaemonError::Runtime(_) => ("runtime_error", "Runtime error"),
         DaemonError::Timeout { .. } => ("timeout", "Agent run exceeded time limit"),

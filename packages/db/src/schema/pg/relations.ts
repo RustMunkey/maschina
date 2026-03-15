@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { agentRuns, agents } from "./agents.js";
+import { agentPermissions, agentRuns, agents } from "./agents.js";
 import { apiKeys } from "./api_keys.js";
 import { oauthAccounts, sessions, verificationTokens } from "./auth.js";
 import { billingEvents } from "./billing_events.js";
@@ -87,6 +87,12 @@ export const apiKeysRelations = relations(apiKeys, ({ one, many }) => ({
 export const agentsRelations = relations(agents, ({ one, many }) => ({
   user: one(users, { fields: [agents.userId], references: [users.id] }),
   runs: many(agentRuns),
+  permissions: many(agentPermissions),
+}));
+
+export const agentPermissionsRelations = relations(agentPermissions, ({ one }) => ({
+  agent: one(agents, { fields: [agentPermissions.agentId], references: [agents.id] }),
+  grantedBy: one(users, { fields: [agentPermissions.grantedByUserId], references: [users.id] }),
 }));
 
 export const agentRunsRelations = relations(agentRuns, ({ one, many }) => ({

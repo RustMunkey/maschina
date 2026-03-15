@@ -8,7 +8,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
-import { agentStatusEnum, agentTypeEnum } from "./enums.js";
+import { agentPermissionEnum, agentStatusEnum, agentTypeEnum } from "./enums.js";
 import { users } from "./users.js";
 
 export const agents = pgTable(
@@ -116,8 +116,30 @@ export const agentSkills = pgTable(
   }),
 );
 
+// ─── Agent Permissions ────────────────────────────────────────────────────────
+
+export const agentPermissions = pgTable(
+  "agent_permissions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    agentId: uuid("agent_id")
+      .notNull()
+      .references(() => agents.id, { onDelete: "cascade" }),
+    permission: agentPermissionEnum("permission").notNull(),
+    grantedAt: timestamp("granted_at", { withTimezone: true }).notNull().defaultNow(),
+    grantedByUserId: uuid("granted_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+  (t) => ({
+    agentPermUniq: index("agent_permissions_agent_perm_uniq").on(t.agentId, t.permission),
+    agentIdIdx: index("agent_permissions_agent_id_idx").on(t.agentId),
+  }),
+);
+
 export type Agent = typeof agents.$inferSelect;
 export type NewAgent = typeof agents.$inferInsert;
 export type AgentRun = typeof agentRuns.$inferSelect;
 export type NewAgentRun = typeof agentRuns.$inferInsert;
 export type AgentSkill = typeof agentSkills.$inferSelect;
+export type AgentPermission = typeof agentPermissions.$inferSelect;
