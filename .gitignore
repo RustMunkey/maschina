@@ -61,6 +61,7 @@ dev.db
 CLAUDE.md
 .claude/
 CHECKLIST.txt
+MASTER_ARCHITECTURE.md
 
 # ─── Logs ────────────────────────────────────────────────────────────────────
 *.log
