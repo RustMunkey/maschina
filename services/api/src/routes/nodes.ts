@@ -1,5 +1,5 @@
-import { db, nodeCapabilities, nodeHeartbeats, nodes } from "@maschina/db";
-import { and, desc, eq, isNull } from "@maschina/db";
+import { db, nodeCapabilities, nodeEarnings, nodeHeartbeats, nodes } from "@maschina/db";
+import { and, desc, eq, isNull, sum } from "@maschina/db";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
@@ -246,6 +246,59 @@ app.delete("/:id", requireAuth, async (c) => {
   await db.delete(nodes).where(eq(nodes.id, nodeId));
 
   return c.json({ success: true });
+});
+
+// ─── GET /nodes/:id/earnings ──────────────────────────────────────────────────
+// Returns per-run earnings ledger for a node. Node owner or admin only.
+
+app.get("/:id/earnings", requireAuth, async (c) => {
+  const { id: userId, role } = c.get("user");
+  const nodeId = c.req.param("id");
+  const status = c.req.query("status"); // optional filter: "pending" | "settled" | "slashed"
+  const limit = Math.min(Number(c.req.query("limit") ?? 50), 200);
+  const offset = Number(c.req.query("offset") ?? 0);
+
+  // Verify ownership (admin bypasses)
+  if (role !== "admin") {
+    const [node] = await db
+      .select({ id: nodes.id })
+      .from(nodes)
+      .where(and(eq(nodes.id, nodeId), eq(nodes.userId, userId)))
+      .limit(1);
+    if (!node) throw new HTTPException(404, { message: "Node not found" });
+  }
+
+  const conditions = [eq(nodeEarnings.nodeId, nodeId)];
+  if (status) conditions.push(eq(nodeEarnings.status, status));
+
+  const rows = await db
+    .select()
+    .from(nodeEarnings)
+    .where(and(...conditions))
+    .orderBy(desc(nodeEarnings.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  const [totals] = await db
+    .select({
+      totalPendingCents: sum(nodeEarnings.nodeCents),
+    })
+    .from(nodeEarnings)
+    .where(and(eq(nodeEarnings.nodeId, nodeId), eq(nodeEarnings.status, "pending")));
+
+  const [settled] = await db
+    .select({
+      totalSettledCents: sum(nodeEarnings.nodeCents),
+    })
+    .from(nodeEarnings)
+    .where(and(eq(nodeEarnings.nodeId, nodeId), eq(nodeEarnings.status, "settled")));
+
+  return c.json({
+    nodeId,
+    totalPendingCents: Number(totals?.totalPendingCents ?? 0),
+    totalSettledCents: Number(settled?.totalSettledCents ?? 0),
+    earnings: rows,
+  });
 });
 
 export default app;

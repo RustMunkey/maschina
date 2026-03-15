@@ -22,6 +22,7 @@ pub async fn finalize_run(
             if let Err(e) = record_usage(state, run, &output).await {
                 warn!(run_id = %run.id, error = %e, "Failed to record run usage");
             }
+            record_node_earnings(state, run, &output, node_id);
             update_node_reputation(state, node_id, "success");
             update_agent_reputation(state, run.agent_id, "success");
             notify_realtime(state, run, "completed", None).await;
@@ -185,6 +186,123 @@ async fn notify_realtime(
     if let Err(e) = result {
         warn!(run_id = %run.id, error = %e, "Failed to notify realtime service");
     }
+}
+
+// ─── Pricing helpers ──────────────────────────────────────────────────────────
+
+/// Billing multiplier by model prefix. Matches packages/model/src/catalog.ts.
+fn billing_multiplier(model: &str) -> f64 {
+    if model.starts_with("ollama/") {
+        return 0.0; // local models are free
+    }
+    // Anthropic
+    if model.contains("haiku") {
+        return 1.0;
+    }
+    if model.contains("sonnet") {
+        return 3.0;
+    }
+    if model.contains("opus") {
+        return 15.0;
+    }
+    // OpenAI
+    if model == "o3-pro" {
+        return 30.0;
+    }
+    if model == "o3" {
+        return 20.0;
+    }
+    if model == "o3-mini" {
+        return 8.0;
+    }
+    if model.starts_with("gpt-5.4-pro") {
+        return 12.0;
+    }
+    if model.starts_with("gpt-5.4") {
+        return 6.0;
+    }
+    if model.starts_with("gpt-5") && model.ends_with("mini") {
+        return 1.0;
+    }
+    if model.starts_with("gpt-5") && model.ends_with("nano") {
+        return 0.5;
+    }
+    if model.starts_with("gpt-5") {
+        return 8.0;
+    }
+    2.0 // unknown — conservative default
+}
+
+/// Compute total task price in cents.
+/// Rate: $0.002 / 1k tokens × multiplier + $0.01 per execution.
+/// Matches PRICING_RATES in packages/billing/src/pricing.ts.
+fn task_price_cents(input_tokens: i64, output_tokens: i64, model: &str) -> i64 {
+    let total_tokens = (input_tokens + output_tokens) as f64;
+    let multiplier = billing_multiplier(model);
+    let token_cents = (total_tokens / 1000.0 * 0.2 * multiplier).ceil() as i64;
+    let execution_cents = 1_i64; // $0.01 per run
+    token_cents + execution_cents
+}
+
+/// Fire-and-forget: write a node_earnings row for this successful run.
+/// Applies the 65/20/10/5 split (node/developer/treasury/validators).
+fn record_node_earnings(
+    state: &AppState,
+    run: &QueuedRun,
+    output: &RunOutput,
+    node_id: Option<Uuid>,
+) {
+    let Some(nid) = node_id else {
+        return; // internal fallback runtime — no node to credit
+    };
+
+    let db = state.db.clone();
+    let run_id = run.id;
+    let agent_id = run.agent_id;
+    let user_id = run.user_id;
+    let model = run.model.clone();
+    let input_tokens = output.input_tokens as i64;
+    let output_tokens = output.output_tokens as i64;
+    let multiplier = billing_multiplier(&model);
+
+    tokio::spawn(async move {
+        let total = task_price_cents(input_tokens, output_tokens, &model);
+        let node_cents = (total as f64 * 0.65).floor() as i64;
+        let developer_cents = (total as f64 * 0.20).floor() as i64;
+        let treasury_cents = (total as f64 * 0.10).floor() as i64;
+        let validator_cents = total - node_cents - developer_cents - treasury_cents;
+
+        let _ = sqlx::query(
+            r#"
+            INSERT INTO node_earnings (
+                id, node_id, run_id, agent_id, user_id, model,
+                input_tokens, output_tokens, billing_multiplier,
+                total_cents, node_cents, developer_cents, treasury_cents, validator_cents,
+                status, created_at
+            ) VALUES (
+                gen_random_uuid(), $1, $2, $3, $4, $5,
+                $6, $7, $8,
+                $9, $10, $11, $12, $13,
+                'pending', NOW()
+            )
+            "#,
+        )
+        .bind(nid)
+        .bind(run_id)
+        .bind(agent_id)
+        .bind(user_id)
+        .bind(&model)
+        .bind(input_tokens)
+        .bind(output_tokens)
+        .bind(multiplier)
+        .bind(total)
+        .bind(node_cents)
+        .bind(developer_cents)
+        .bind(treasury_cents)
+        .bind(validator_cents)
+        .execute(&db)
+        .await;
+    });
 }
 
 /// Fire-and-forget: update node counters + recalculate reputation_score.

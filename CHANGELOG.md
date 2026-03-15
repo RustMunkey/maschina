@@ -8,6 +8,19 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-15 — Node earnings / feat/node-earnings)
+- `packages/db/src/schema/pg/nodes.ts` — `nodeEarnings` table: append-only
+  per-run earnings ledger with 65/20/10/5 split columns (nodeCents,
+  developerCents, treasuryCents, validatorCents), billing multiplier,
+  token counts, settlement status; indexed by node + status
+- `services/daemon/src/orchestrator/analyze.rs` — `record_node_earnings()`
+  fires after every successful run; `billing_multiplier()` lookup by model
+  prefix; `task_price_cents()` = tokens/1k × 0.2¢ × multiplier + 1¢/run;
+  splits total into 65/20/10/5 and inserts into node_earnings (fire-and-forget)
+- `services/api/src/routes/nodes.ts` — `GET /nodes/:id/earnings`: returns
+  per-run earnings rows + totalPendingCents + totalSettledCents; node owner
+  or admin only; filterable by status, paginated
+
 ### Added (2026-03-15 — Scheduler v2 + revenue split / feat/scheduler-v2)
 - `services/daemon/src/scheduler/mod.rs` — reputation and stake factored into
   node scoring: `(reputation_score / 100) * 20` pts + `min(stake / 1000, 1) * 5` pts
