@@ -10,6 +10,7 @@ mod runtime;
 mod scheduler;
 mod server;
 mod state;
+mod watchdog;
 
 use std::sync::Arc;
 use tokio::signal;
@@ -106,9 +107,10 @@ async fn main() -> anyhow::Result<()> {
     // --- Launch services concurrently ---
     let orchestrator = tokio::spawn(orchestrator::run(app_state.clone(), shutdown.clone()));
     let health_server = tokio::spawn(server::serve(app_state.clone(), shutdown.clone()));
+    let watchdog = tokio::spawn(watchdog::run(app_state.clone(), shutdown.clone()));
 
-    // Wait for both to finish (orchestrator drains, server closes)
-    let (orch_res, srv_res) = tokio::join!(orchestrator, health_server);
+    // Wait for all to finish
+    let (orch_res, srv_res, _) = tokio::join!(orchestrator, health_server, watchdog);
     orch_res?;
     srv_res?;
 

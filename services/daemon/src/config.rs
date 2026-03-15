@@ -22,6 +22,9 @@ pub struct Config {
     /// Agent run timeout — hard kill after this many seconds
     #[allow(dead_code)]
     pub agent_timeout_secs: u64,
+    /// Watchdog reap threshold — runs stuck in `running` longer than this are force-failed.
+    /// None = use watchdog module's default (600s). Set WATCHDOG_TIMEOUT_SECS to override.
+    pub watchdog_timeout_secs: Option<i64>,
     /// Environment: "development" | "production"
     pub env: String,
     /// Secret used to sign Proof of Compute execution receipts (HMAC-SHA256).
@@ -59,6 +62,9 @@ impl Config {
                 .unwrap_or_else(|_| "300".into())
                 .parse()
                 .context("AGENT_TIMEOUT_SECS must be a number")?,
+            watchdog_timeout_secs: env::var("WATCHDOG_TIMEOUT_SECS")
+                .ok()
+                .and_then(|v| v.parse::<i64>().ok()),
             env: env::var("NODE_ENV").unwrap_or_else(|_| "development".into()),
             proof_secret: env::var("PROOF_SECRET")
                 .unwrap_or_else(|_| "dev-proof-secret-change-in-production".into()),
