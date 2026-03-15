@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from .config import settings
 from .models import ErrorResponse, RunRequest, RunResponse
 from .runner import execute
+from .streaming import stream_run
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -51,6 +52,21 @@ async def run_agent(req: RunRequest) -> RunResponse:
         return await execute(req)
     except RuntimeError as exc:
         raise HTTPException(status_code=504, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/stream", responses={500: {"model": ErrorResponse}})
+async def stream_agent(req: RunRequest):
+    """Stream an agent run as SSE chunks.
+
+    Called by services/daemon when streaming is enabled (stream=true in job payload).
+    Returns text/event-stream with chunk, done, and error event types.
+    The daemon forwards each chunk to the realtime service for client delivery.
+    """
+    logger.info("starting streaming run", extra={"run_id": req.run_id, "model": req.model})
+    try:
+        return await stream_run(req)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 

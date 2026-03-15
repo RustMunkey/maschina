@@ -8,6 +8,13 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-15 — Run streaming / feat/run-streaming)
+- `services/runtime/src/streaming.py` — SSE streaming endpoint for all three runners
+  (Anthropic, OpenAI, Ollama); chunk/done/error event types; `POST /stream` added to FastAPI app
+- `services/realtime/src/handlers.rs` — `POST /internal/run-event` handler: receives
+  run status + chunk events from daemon and fans out to connected clients via broadcast registry
+- `services/realtime/src/main.rs` — `/internal/run-event` route registered
+
 ### Added (2026-03-15 — Solana foundation / feat/solana-foundation)
 - `packages/chain/` — Helius + Solana foundation: client singleton, wallet validation,
   Ed25519 ownership verification (buildChallenge + verifyWalletSignature via nacl)

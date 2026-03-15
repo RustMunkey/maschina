@@ -10,7 +10,7 @@ use axum::{
     },
 };
 use serde::Deserialize;
-use serde_json::json;
+use serde_json::{json, Value};
 use tokio::sync::broadcast;
 use tokio_stream::{wrappers::BroadcastStream, StreamExt};
 
@@ -119,4 +119,43 @@ pub async fn sse_handler(
     Sse::new(stream)
         .keep_alive(KeepAlive::default())
         .into_response()
+}
+
+// ─── POST /internal/run-event ─────────────────────────────────────────────────
+// Called by the daemon ANALYZE phase (and streaming forwarder) to push run
+// status events and streaming chunks to connected clients.
+//
+// Payload must include `userId` — used to route the event to the right
+// broadcast channel. The full payload is forwarded as-is to the client.
+//
+// No auth on this endpoint — it's internal-only, not exposed via the gateway.
+// Protected by network policy in production (daemon → realtime on private net).
+
+pub async fn run_event_handler(
+    State(state): State<AppState>,
+    Json(payload): Json<Value>,
+) -> impl IntoResponse {
+    let user_id = payload.get("userId").and_then(|v| v.as_str()).unwrap_or("");
+
+    if user_id.is_empty() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({"error": "userId is required"})),
+        )
+            .into_response();
+    }
+
+    let text = match serde_json::to_string(&payload) {
+        Ok(s) => s,
+        Err(e) => {
+            tracing::error!(error = %e, "Failed to serialise run event");
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
+    };
+
+    // Publish to the user's broadcast channel.
+    // If nobody is subscribed yet the send will fail silently — that's fine.
+    registry::send_to_user(&state.registry, user_id, text);
+
+    StatusCode::OK.into_response()
 }
