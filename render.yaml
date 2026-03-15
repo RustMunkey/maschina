@@ -1,0 +1,186 @@
+## Maschina — Render service definitions
+##
+## autoDeploy: false on all services.
+## Deploys are triggered exclusively by deploy.yml (prod branch push)
+## via Render deploy hooks — never on every push.
+##
+## To deploy: merge to prod → deploy.yml fires the hooks in order:
+##   api first (runs DB migrations), then gateway/realtime/daemon/runtime/worker in parallel.
+
+services:
+
+  # ─── API (TypeScript / Hono) ────────────────────────────────────────────────
+  - type: web
+    name: maschina-api
+    runtime: docker
+    repo: https://github.com/RustMunkey/maschina
+    branch: prod
+    dockerfilePath: ./services/api/Dockerfile
+    dockerContext: .
+    plan: standard
+    region: oregon
+    autoDeploy: false
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: NATS_URL
+        sync: false
+      - key: NATS_CREDS
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: MEILISEARCH_URL
+        sync: false
+      - key: MEILISEARCH_KEY
+        sync: false
+      - key: HELIUS_RPC_URL
+        sync: false
+      - key: HELIUS_WEBHOOK_SECRET
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: POSTHOG_API_KEY
+        sync: false
+
+  # ─── Gateway (Rust / Axum) ──────────────────────────────────────────────────
+  - type: web
+    name: maschina-gateway
+    runtime: docker
+    repo: https://github.com/RustMunkey/maschina
+    branch: prod
+    dockerfilePath: ./services/gateway/Dockerfile
+    dockerContext: .
+    plan: standard
+    region: oregon
+    autoDeploy: false
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: JWT_SECRET
+        sync: false
+      - key: API_BASE_URL
+        sync: false
+      - key: REALTIME_BASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+
+  # ─── Realtime (Rust / Axum) ─────────────────────────────────────────────────
+  - type: web
+    name: maschina-realtime
+    runtime: docker
+    repo: https://github.com/RustMunkey/maschina
+    branch: prod
+    dockerfilePath: ./services/realtime/Dockerfile
+    dockerContext: .
+    plan: standard
+    region: oregon
+    autoDeploy: false
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "4000"
+      - key: JWT_SECRET
+        sync: false
+      - key: NATS_URL
+        sync: false
+      - key: NATS_CREDS
+        sync: false
+
+  # ─── Daemon (Rust) ──────────────────────────────────────────────────────────
+  - type: worker
+    name: maschina-daemon
+    runtime: docker
+    repo: https://github.com/RustMunkey/maschina
+    branch: prod
+    dockerfilePath: ./services/daemon/Dockerfile
+    dockerContext: .
+    plan: standard
+    region: oregon
+    autoDeploy: false
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: NATS_URL
+        sync: false
+      - key: NATS_CREDS
+        sync: false
+      - key: RUNTIME_URL
+        sync: false
+      - key: CHAIN_ENABLED
+        value: "false"
+      - key: SOLANA_RPC_URL
+        sync: false
+      - key: SETTLEMENT_PROGRAM_ID
+        sync: false
+
+  # ─── Runtime (Python / FastAPI) ─────────────────────────────────────────────
+  - type: web
+    name: maschina-runtime
+    runtime: docker
+    repo: https://github.com/RustMunkey/maschina
+    branch: prod
+    dockerfilePath: ./services/runtime/Dockerfile
+    dockerContext: .
+    plan: standard
+    region: oregon
+    autoDeploy: false
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "8001"
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: QDRANT_URL
+        sync: false
+      - key: QDRANT_API_KEY
+        sync: false
+      - key: VOYAGE_API_KEY
+        sync: false
+      - key: LANGSMITH_API_KEY
+        sync: false
+      - key: LANGSMITH_PROJECT
+        value: maschina-prod
+
+  # ─── Worker (Python — NATS consumer + Temporal worker) ──────────────────────
+  - type: worker
+    name: maschina-worker
+    runtime: docker
+    repo: https://github.com/RustMunkey/maschina
+    branch: prod
+    dockerfilePath: ./services/worker/Dockerfile
+    dockerContext: .
+    plan: standard
+    region: oregon
+    autoDeploy: false
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: NATS_URL
+        sync: false
+      - key: NATS_CREDS
+        sync: false
+      - key: TEMPORAL_ADDRESS
+        sync: false
+      - key: RUNTIME_URL
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
