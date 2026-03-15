@@ -12,7 +12,11 @@ pub fn start(name: Option<&str>, out: &Output) -> Result<()> {
 
     let targets: Vec<_> = match name {
         Some(n) => svcs.iter().filter(|s| s.name == n).cloned().collect(),
-        None    => svcs.iter().filter(|s| !s.status.is_running()).cloned().collect(),
+        None => svcs
+            .iter()
+            .filter(|s| !s.status.is_running())
+            .cloned()
+            .collect(),
     };
 
     if targets.is_empty() {
@@ -26,7 +30,7 @@ pub fn start(name: Option<&str>, out: &Output) -> Result<()> {
 
     for svc in &targets {
         match services::start_svc(svc, &workspace) {
-            Ok(msg)  => println!("  {} {}", style("●").white(), msg),
+            Ok(msg) => println!("  {} {}", style("●").white(), msg),
             Err(err) => eprintln!("  {} {}", style("✗").red(), err),
         }
     }
@@ -41,7 +45,11 @@ pub fn stop(name: Option<&str>, out: &Output) -> Result<()> {
 
     let targets: Vec<_> = match name {
         Some(n) => svcs.iter().filter(|s| s.name == n).cloned().collect(),
-        None    => svcs.iter().filter(|s| s.status.is_running()).cloned().collect(),
+        None => svcs
+            .iter()
+            .filter(|s| s.status.is_running())
+            .cloned()
+            .collect(),
     };
 
     if targets.is_empty() {
@@ -75,18 +83,21 @@ pub fn status(out: &Output) -> Result<()> {
     services::probe_all(&mut svcs);
 
     if out.is_json() {
-        let json: Vec<_> = svcs.iter().map(|s| {
-            let pid = match &s.status {
-                services::Status::Running { pid } => pid.map(|p| p.to_string()),
-                _ => None,
-            };
-            serde_json::json!({
-                "name": s.name,
-                "port": s.port,
-                "status": s.status.label(),
-                "pid": pid,
+        let json: Vec<_> = svcs
+            .iter()
+            .map(|s| {
+                let pid = match &s.status {
+                    services::Status::Running { pid } => pid.map(|p| p.to_string()),
+                    _ => None,
+                };
+                serde_json::json!({
+                    "name": s.name,
+                    "port": s.port,
+                    "status": s.status.label(),
+                    "pid": pid,
+                })
             })
-        }).collect();
+            .collect();
         out.list(&json);
         return Ok(());
     }
@@ -127,7 +138,9 @@ pub fn logs(name: &str, follow: bool) -> Result<()> {
     if !log.exists() {
         eprintln!(
             "  {} no log file for {} — start it first with: maschina service start {}",
-            style("✗").red(), name, name
+            style("✗").red(),
+            name,
+            name
         );
         return Ok(());
     }
@@ -136,7 +149,9 @@ pub fn logs(name: &str, follow: bool) -> Result<()> {
     println!("  {}", style("─".repeat(50)).dim());
 
     let mut args = vec!["-n", "200"];
-    if follow { args.push("-f"); }
+    if follow {
+        args.push("-f");
+    }
     args.push(log.to_str().unwrap());
 
     Command::new("tail").args(&args).status()?;

@@ -5,8 +5,8 @@ use serde::{de::DeserializeOwned, Serialize};
 use crate::config::Config;
 
 pub struct ApiClient {
-    inner:   Client,
-    base:    String,
+    inner: Client,
+    base: String,
     api_key: String,
 }
 
@@ -17,9 +17,7 @@ impl ApiClient {
             .clone()
             .filter(|k| !k.is_empty())
             .ok_or_else(|| {
-                anyhow::anyhow!(
-                    "not authenticated — run `maschina setup` to get started"
-                )
+                anyhow::anyhow!("not authenticated — run `maschina setup` to get started")
             })?;
 
         let inner = Client::builder()
@@ -43,7 +41,27 @@ impl ApiClient {
     }
 
     pub async fn post<B: Serialize, T: DeserializeOwned>(&self, path: &str, body: &B) -> Result<T> {
-        parse(self.auth(self.inner.post(self.url(path))).json(body).send().await?).await
+        parse(
+            self.auth(self.inner.post(self.url(path)))
+                .json(body)
+                .send()
+                .await?,
+        )
+        .await
+    }
+
+    pub async fn patch<B: Serialize, T: DeserializeOwned>(
+        &self,
+        path: &str,
+        body: &B,
+    ) -> Result<T> {
+        parse(
+            self.auth(self.inner.patch(self.url(path)))
+                .json(body)
+                .send()
+                .await?,
+        )
+        .await
     }
 
     pub async fn delete<T: DeserializeOwned>(&self, path: &str) -> Result<T> {
@@ -74,10 +92,16 @@ async fn parse<T: DeserializeOwned>(resp: Response) -> Result<T> {
 
     // Handle empty 200/204 responses
     if body.is_empty() || body == "null" {
-        return serde_json::from_str("null").or_else(|_| serde_json::from_str("{}"))
+        return serde_json::from_str("null")
+            .or_else(|_| serde_json::from_str("{}"))
             .map_err(|e| anyhow::anyhow!("empty response: {}", e));
     }
 
-    serde_json::from_str(&body)
-        .map_err(|e| anyhow::anyhow!("failed to parse response: {}\nbody: {}", e, &body[..body.len().min(200)]))
+    serde_json::from_str(&body).map_err(|e| {
+        anyhow::anyhow!(
+            "failed to parse response: {}\nbody: {}",
+            e,
+            &body[..body.len().min(200)]
+        )
+    })
 }

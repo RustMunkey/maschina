@@ -1,5 +1,5 @@
-use anyhow::Result;
 use crate::{client::ApiClient, config, output::Output};
+use anyhow::Result;
 
 pub async fn run(profile: &str, out: &Output) -> Result<()> {
     out.header("Diagnostics");
@@ -16,7 +16,11 @@ pub async fn run(profile: &str, out: &Output) -> Result<()> {
     out.check(
         "API key configured",
         has_key,
-        if has_key { None } else { Some("run `maschina setup`") },
+        if has_key {
+            None
+        } else {
+            Some("run `maschina setup`")
+        },
     );
 
     if has_key {
@@ -50,7 +54,11 @@ pub async fn run(profile: &str, out: &Output) -> Result<()> {
     out.check(
         "Project config (.maschina/)",
         project_ok,
-        if project_ok { None } else { Some("run `maschina setup` in your project dir") },
+        if project_ok {
+            None
+        } else {
+            Some("run `maschina setup` in your project dir")
+        },
     );
 
     println!();

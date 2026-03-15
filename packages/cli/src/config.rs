@@ -16,9 +16,26 @@ pub struct Config {
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub model_providers: Vec<ModelProvider>,
 
+    /// Node participation config — set when this machine has joined the compute network
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub node: Option<NodeConfig>,
+
     /// Profile name (used for multi-environment setups)
     #[serde(skip)]
     pub profile: String,
+}
+
+/// Stored when a machine joins the Maschina compute network.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NodeConfig {
+    /// UUID assigned by the API on registration
+    pub node_id: String,
+    /// Base64-encoded Ed25519 signing key (32 bytes) — used to sign execution receipts
+    pub signing_key: String,
+    /// URL of the local Python runtime this node will forward tasks to
+    pub runtime_url: String,
+    /// NATS server URL for receiving tasks
+    pub nats_url: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -38,7 +55,10 @@ impl Config {
     }
 
     pub fn is_authenticated(&self) -> bool {
-        self.api_key.as_ref().map(|k| !k.is_empty()).unwrap_or(false)
+        self.api_key
+            .as_ref()
+            .map(|k| !k.is_empty())
+            .unwrap_or(false)
     }
 }
 
@@ -64,6 +84,7 @@ pub fn load(profile: &str) -> Result<Config> {
             email: None,
             db_url: None,
             model_providers: vec![],
+            node: None,
             profile: profile.to_string(),
         });
     }

@@ -1,6 +1,6 @@
-use anyhow::Result;
-use crate::{config, output::Output};
 use super::require_auth;
+use crate::{config, output::Output};
+use anyhow::Result;
 
 pub async fn run(profile: &str, out: &Output) -> Result<()> {
     let cfg = config::load(profile)?;
@@ -13,13 +13,16 @@ pub async fn run(profile: &str, out: &Output) -> Result<()> {
         let (_, client) = require_auth(profile)?;
         let health: serde_json::Value = client.get("/health").await.unwrap_or_default();
         let me: serde_json::Value = client.get("/users/me").await.unwrap_or_default();
-        println!("{}", serde_json::to_string_pretty(&serde_json::json!({
-            "authenticated": true,
-            "email": me["email"],
-            "plan": me["tier"].as_str().or_else(|| me["plan"].as_str()),
-            "api_url": cfg.api_url,
-            "api_status": health["status"],
-        }))?);
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&serde_json::json!({
+                "authenticated": true,
+                "email": me["email"],
+                "plan": me["tier"].as_str().or_else(|| me["plan"].as_str()),
+                "api_url": cfg.api_url,
+                "api_status": health["status"],
+            }))?
+        );
         return Ok(());
     }
 
