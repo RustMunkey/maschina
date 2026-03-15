@@ -146,3 +146,4 @@ temp/
 *.rej
 *.patch
 .actrc.local
+memory/

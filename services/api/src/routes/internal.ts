@@ -3,6 +3,7 @@
  * Authenticated by a shared INTERNAL_SECRET header, not user JWTs.
  *
  * POST /internal/delegate — synchronous agent-to-agent delegation
+ * POST /internal/run-event — realtime run status events from daemon
  */
 import { agentSkills, agents, db } from "@maschina/db";
 import { and, eq, isNull } from "@maschina/db";
