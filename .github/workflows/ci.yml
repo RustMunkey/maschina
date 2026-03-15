@@ -57,6 +57,7 @@ jobs:
           pnpm --filter @maschina/storage build
           pnpm --filter @maschina/flags build
           pnpm --filter @maschina/analytics build
+          pnpm --filter @maschina/chain build
 
       - run: pnpm typecheck
 

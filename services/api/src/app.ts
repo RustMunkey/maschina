@@ -26,6 +26,7 @@ import skillRoutes, { catalogApp as skillCatalogRoutes } from "./routes/skills.j
 import storageRoutes from "./routes/storage.js";
 import usageRoutes from "./routes/usage.js";
 import userRoutes from "./routes/users.js";
+import walletRoutes from "./routes/wallets.js";
 import webhookRoutes from "./routes/webhooks.js";
 import workflowRoutes from "./routes/workflows.js";
 
@@ -63,6 +64,7 @@ export function createApp() {
   app.route("/receipts", receiptRoutes);
   app.route("/agents", agentReceiptsApp);
   app.route("/agents", permissionRoutes);
+  app.route("/wallets", walletRoutes);
   app.route("/internal", internalRoutes);
 
   // ─── Error handling ───────────────────────────────────────────────────────

@@ -18,9 +18,9 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@maschina/types": "workspace:*",
-    "@maschina/crypto": "workspace:*",
-    "@maschina/treasury": "workspace:*"
+    "@solana/web3.js": "^1.98.0",
+    "helius-sdk": "^1.4.3",
+    "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
     "@maschina/tsconfig": "workspace:*",
