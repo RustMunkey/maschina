@@ -8,6 +8,14 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-15 — Solana foundation / feat/solana-foundation)
+- `packages/chain/` — Helius + Solana foundation: client singleton, wallet validation,
+  Ed25519 ownership verification (buildChallenge + verifyWalletSignature via nacl)
+- `services/api/src/routes/wallets.ts` — GET /wallets/challenge, POST /wallets,
+  GET /wallets, POST /wallets/verify, DELETE /wallets/:id; Helius + Orb chosen as
+  Solana RPC + usage metering layers
+- CI + api package.json updated for @maschina/chain
+
 ### Added (2026-03-15 — Node binary / feat/node-binary)
 - `services/node/` — new `maschina-node` Rust binary for compute node operators:
   - `src/identity.rs` — Ed25519 keypair generation + persistence to
