@@ -1,9 +1,18 @@
+import { createHmac } from "node:crypto";
 import { db, executionReceipts } from "@maschina/db";
 import { and, desc, eq } from "@maschina/db";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import type { Variables } from "../context.js";
 import { requireAuth } from "../middleware/auth.js";
+
+const PROOF_SECRET = process.env.PROOF_SECRET ?? "";
+
+function verifySignature(payload: unknown, signature: string): boolean {
+  const canonical = JSON.stringify(payload);
+  const expected = createHmac("sha256", PROOF_SECRET).update(canonical).digest("hex");
+  return expected === signature;
+}
 
 // ─── GET /receipts/:id ────────────────────────────────────────────────────────
 
@@ -22,6 +31,25 @@ app.get("/:id", requireAuth, async (c) => {
   }
 
   return c.json({ receipt });
+});
+
+// ─── POST /receipts/:id/verify ────────────────────────────────────────────────
+
+app.post("/:id/verify", requireAuth, async (c) => {
+  const { id: userId } = c.get("user");
+  const receiptId = c.req.param("id");
+
+  const receipt = await db.query.executionReceipts.findFirst({
+    where: and(eq(executionReceipts.id, receiptId), eq(executionReceipts.userId, userId)),
+  });
+
+  if (!receipt) {
+    throw new HTTPException(404, { message: "Receipt not found" });
+  }
+
+  const valid = verifySignature(receipt.payload, receipt.signature);
+
+  return c.json({ valid, receiptId });
 });
 
 export default app;
