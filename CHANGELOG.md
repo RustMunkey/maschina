@@ -8,6 +8,15 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-14 — Agent permissions)
+- `packages/db/src/schema/pg/enums.ts` — `agentPermissionEnum`: `internet_access`, `code_execution`, `external_api`, `file_read`, `file_write`, `memory_read`, `memory_write`, `send_email`, `send_webhook`
+- `packages/db/src/schema/pg/agents.ts` — `agentPermissions` table (agent_id, permission, granted_at, granted_by_user_id); unique index on (agent_id, permission)
+- `packages/db/src/schema/pg/relations.ts` — `agentPermissionsRelations`; `agentsRelations` gains `permissions` many-relation
+- `services/daemon/src/error.rs` — `PermissionDenied` variant
+- `services/daemon/src/orchestrator/evaluate.rs` — `check_skill_permissions()`: `code_exec` → `code_execution`, `web_search`/`http_fetch` → `internet_access`; blocks run if permission absent
+- `services/api/src/routes/permissions.ts` — `GET/PUT /agents/:id/permissions`, `DELETE /agents/:id/permissions/:permission`
+- `services/api/src/app.ts` — permission routes registered
+
 ### Added (2026-03-14 — Proof of Compute verification)
 - `services/api/src/routes/receipts.ts` — `POST /receipts/:id/verify`: re-derives HMAC-SHA256 from stored payload and confirms signature matches; returns `{ valid: boolean, receiptId }`
 - `.env.example` — `PROOF_SECRET` documented with generation hint

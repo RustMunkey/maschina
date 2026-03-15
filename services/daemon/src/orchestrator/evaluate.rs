@@ -23,6 +23,7 @@ pub async fn evaluate_and_execute(state: AppState, mut run: QueuedRun) {
             let (status, reason) = match &e {
                 DaemonError::QuotaExceeded { .. } => ("failed", "quota_exceeded"),
                 DaemonError::AgentNotFound { .. } => ("failed", "agent_not_found"),
+                DaemonError::PermissionDenied { .. } => ("failed", "permission_denied"),
                 _ => ("failed", "evaluate_error"),
             };
             let _ = fail_run(&state, &run, status, reason, &e.to_string()).await;
@@ -64,13 +65,16 @@ async fn evaluate(state: &AppState, run: &mut QueuedRun) -> crate::error::Result
     }
     run.skill_configs = serde_json::Value::Object(skill_configs);
 
-    // 3. Skip quota checks for internal tier
+    // 3. Enforce skill ↔ permission gates
+    check_skill_permissions(state, run).await?;
+
+    // 4. Skip quota checks for internal tier
     if run.plan_tier == "internal" {
         info!(run_id = %run.id, "Internal tier — skipping quota check");
         return Ok(());
     }
 
-    // 4. Check monthly agent execution quota via Redis
+    // 5. Check monthly agent execution quota via Redis
     let month = chrono::Utc::now().format("%Y-%m").to_string();
     let quota_key = format!("quota:{}:agent_execution:{}", run.user_id, month);
 
@@ -89,6 +93,41 @@ async fn evaluate(state: &AppState, run: &mut QueuedRun) -> crate::error::Result
             user_id: run.user_id,
             quota_type: "agent_execution".into(),
         });
+    }
+
+    Ok(())
+}
+
+/// Skill → required permission mapping.
+/// Returns `Err(DaemonError::PermissionDenied)` if a required permission is missing.
+async fn check_skill_permissions(state: &AppState, run: &QueuedRun) -> crate::error::Result<()> {
+    if run.skills.is_empty() {
+        return Ok(());
+    }
+
+    // Fetch all granted permissions for this agent
+    let granted: Vec<String> =
+        sqlx::query_scalar("SELECT permission::text FROM agent_permissions WHERE agent_id = $1")
+            .bind(run.agent_id)
+            .fetch_all(&state.db)
+            .await
+            .unwrap_or_default();
+
+    for skill in &run.skills {
+        let required: Option<&str> = match skill.as_str() {
+            "code_exec" => Some("code_execution"),
+            "web_search" => Some("internet_access"),
+            "http_fetch" => Some("internet_access"),
+            _ => None,
+        };
+        if let Some(perm) = required {
+            if !granted.iter().any(|g| g == perm) {
+                return Err(DaemonError::PermissionDenied {
+                    agent_id: run.agent_id,
+                    permission: perm.to_string(),
+                });
+            }
+        }
     }
 
     Ok(())
