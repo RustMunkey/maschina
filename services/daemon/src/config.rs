@@ -30,6 +30,20 @@ pub struct Config {
     /// Secret used to sign Proof of Compute execution receipts (HMAC-SHA256).
     /// Falls back to a dev default when unset — set PROOF_SECRET in production.
     pub proof_secret: String,
+
+    // ─── Solana / chain ───────────────────────────────────────────────────────
+    /// Helius (or any Solana) RPC URL. Defaults to devnet public endpoint.
+    pub helius_rpc_url: String,
+    /// Settlement program ID on Solana (base58 pubkey).
+    pub settlement_program_id: String,
+    /// Authority keypair for signing settlement transactions.
+    /// JSON byte array (Solana standard: `[1,2,...,64 bytes]`), set as raw env
+    /// var value or as a file path to a keypair JSON file.
+    /// When absent, on-chain anchoring is skipped even if chain_enabled = true.
+    pub solana_authority_keypair: Option<String>,
+    /// Enable on-chain receipt anchoring. Off by default — set CHAIN_ENABLED=true
+    /// in production once the settlement program is deployed.
+    pub chain_enabled: bool,
 }
 
 impl Config {
@@ -68,6 +82,14 @@ impl Config {
             env: env::var("NODE_ENV").unwrap_or_else(|_| "development".into()),
             proof_secret: env::var("PROOF_SECRET")
                 .unwrap_or_else(|_| "dev-proof-secret-change-in-production".into()),
+            helius_rpc_url: env::var("HELIUS_RPC_URL")
+                .unwrap_or_else(|_| "https://api.devnet.solana.com".into()),
+            settlement_program_id: env::var("SETTLEMENT_PROGRAM_ID")
+                .unwrap_or_else(|_| "STLMxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx".into()),
+            solana_authority_keypair: env::var("SOLANA_AUTHORITY_KEYPAIR").ok(),
+            chain_enabled: env::var("CHAIN_ENABLED")
+                .map(|v| v == "true" || v == "1")
+                .unwrap_or(false),
         })
     }
 
