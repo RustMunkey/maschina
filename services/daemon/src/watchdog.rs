@@ -149,7 +149,7 @@ async fn reap(state: &AppState, stuck: StuckRun, timeout_secs: i64) {
         model: stuck.model,
         system_prompt: String::new(),
         input_payload: serde_json::Value::Null,
-        timeout_secs: timeout_secs,
+        timeout_secs,
         skills: vec![],
         skill_configs: serde_json::Value::Null,
     };
