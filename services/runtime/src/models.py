@@ -34,6 +34,7 @@ class RunResponse(BaseModel):
     output_payload: dict[str, Any]
     input_tokens: int
     output_tokens: int
+    sandbox_type: str | None = None  # "subprocess_rlimit" | "subprocess" | None
 
 
 class ErrorResponse(BaseModel):

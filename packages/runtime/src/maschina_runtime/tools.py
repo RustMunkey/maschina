@@ -130,8 +130,34 @@ class CodeExecTool(Tool):
         "required": ["code"],
     }
 
-    def __init__(self, timeout_secs: int = 10) -> None:
+    def __init__(
+        self,
+        timeout_secs: int = 10,
+        memory_limit_mb: int = 128,
+        cpu_limit_secs: int = 10,
+    ) -> None:
         self._timeout = min(max(1, timeout_secs), 30)
+        self._memory_limit_bytes = memory_limit_mb * 1024 * 1024
+        self._cpu_limit_secs = min(max(1, cpu_limit_secs), 30)
+
+    def _make_preexec(self) -> Any:
+        """Return a preexec_fn that applies resource limits on Unix."""
+        import platform
+
+        if platform.system() == "Windows":
+            return None
+
+        memory_limit = self._memory_limit_bytes
+        cpu_limit = self._cpu_limit_secs
+
+        def _apply_limits() -> None:
+            import resource
+
+            resource.setrlimit(resource.RLIMIT_AS, (memory_limit, memory_limit))
+            resource.setrlimit(resource.RLIMIT_CPU, (cpu_limit, cpu_limit))
+            resource.setrlimit(resource.RLIMIT_FSIZE, (0, 0))
+
+        return _apply_limits
 
     async def execute(self, inputs: dict[str, Any]) -> str:
         import asyncio
@@ -145,6 +171,7 @@ class CodeExecTool(Tool):
                 code,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
+                preexec_fn=self._make_preexec(),
             )
             stdout, stderr = await asyncio.wait_for(
                 proc.communicate(), timeout=float(self._timeout)

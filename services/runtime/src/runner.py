@@ -204,9 +204,21 @@ async def execute(req: RunRequest) -> RunResponse:
         },
     )
 
+    sandbox_type = _sandbox_type(req.skills)
+
     return RunResponse(
         run_id=req.run_id,
         output_payload={"text": result.output},
         input_tokens=billed_input_tokens,
         output_tokens=billed_output_tokens,
+        sandbox_type=sandbox_type,
     )
+
+
+def _sandbox_type(skills: list[str]) -> str | None:
+    """Return sandbox descriptor if code_exec skill is active."""
+    import platform
+
+    if "code_exec" not in skills:
+        return None
+    return "subprocess_rlimit" if platform.system() != "Windows" else "subprocess"

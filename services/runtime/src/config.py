@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     memory_enabled: bool = True
     memory_top_k: int = 5  # number of memories to retrieve per run
 
+    # Sandboxing (code_exec skill)
+    sandbox_enabled: bool = True
+    sandbox_memory_limit_mb: int = 128
+    sandbox_cpu_limit_secs: int = 10
+
     @property
     def is_production(self) -> bool:
         return self.node_env == "production"
