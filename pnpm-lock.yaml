@@ -1304,6 +1304,12 @@ importers:
       '@maschina/db':
         specifier: workspace:*
         version: link:../db
+      '@maschina/events':
+        specifier: workspace:*
+        version: link:../events
+      '@maschina/nats':
+        specifier: workspace:*
+        version: link:../nats
       '@maschina/plans':
         specifier: workspace:*
         version: link:../plans

@@ -8,6 +8,7 @@ import agentRoutes from "./routes/agents.js";
 import analyticsRoutes from "./routes/analytics.js";
 import authRoutes from "./routes/auth.js";
 import billingRoutes from "./routes/billing.js";
+import budgetRoutes from "./routes/budget.js";
 import complianceRoutes from "./routes/compliance.js";
 import connectorRoutes from "./routes/connectors.js";
 import healthRoutes from "./routes/health.js";
@@ -49,6 +50,7 @@ export function createApp() {
   app.route("/orgs", orgRoutes);
   app.route("/connectors", connectorRoutes);
   app.route("/analytics", analyticsRoutes);
+  app.route("/budget", budgetRoutes);
   app.route("/agents", memoryRoutes);
   app.route("/agents", skillRoutes);
   app.route("/skills", skillCatalogRoutes);

@@ -19,6 +19,8 @@
   },
   "dependencies": {
     "@maschina/db": "workspace:*",
+    "@maschina/events": "workspace:*",
+    "@maschina/nats": "workspace:*",
     "@maschina/plans": "workspace:*",
     "@maschina/cache": "workspace:*",
     "drizzle-orm": "^0.39.3"

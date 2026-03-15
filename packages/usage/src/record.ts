@@ -1,5 +1,7 @@
 import { db } from "@maschina/db";
 import { usageEvents } from "@maschina/db";
+import type { PlanTier } from "@maschina/plans";
+import { maybeFireQuotaAlerts } from "./alerts.js";
 import { incrementQuota } from "./quota.js";
 import type { RecordUsageInput } from "./types.js";
 
@@ -12,11 +14,18 @@ import type { RecordUsageInput } from "./types.js";
 // The nightly reconciliation job detects and corrects drift.
 // Never fail the user request because of a usage recording failure.
 
-export async function recordUsage(input: RecordUsageInput): Promise<void> {
+export async function recordUsage(input: RecordUsageInput & { tier?: PlanTier }): Promise<void> {
   // Step 1: Increment Redis counter (must succeed — this enforces the quota)
   await incrementQuota(input.userId, input.type, input.units);
 
-  // Step 2: Append to PostgreSQL (fire-and-forget, don't await at call site if latency matters)
+  // Step 2: Fire quota threshold alerts (fire-and-forget — non-critical)
+  if (input.tier) {
+    maybeFireQuotaAlerts(input.userId, input.tier, input.type).catch((err) => {
+      console.error("[usage] Failed to fire quota alerts:", err);
+    });
+  }
+
+  // Step 3: Append to PostgreSQL (fire-and-forget, don't await at call site if latency matters)
   appendEvent(input).catch((err) => {
     // Log but don't propagate — usage recording must never break the user action
     console.error("[usage] Failed to append event to PostgreSQL:", err);

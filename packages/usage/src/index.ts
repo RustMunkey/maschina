@@ -17,6 +17,9 @@ export { quotaKey, allQuotaKeys, sessionKey, planKey, userPlanKey } from "./keys
 // Quota checking (reads Redis → falls back to PostgreSQL)
 export { checkQuota, incrementQuota, getUsageSummary, buildRateLimitHeaders } from "./quota.js";
 
+// Budget alerts (fires NATS events at 80%/100% thresholds, deduped per period)
+export { maybeFireQuotaAlerts } from "./alerts.js";
+
 // Event recording (Redis increment + PostgreSQL append)
 export {
   recordUsage,
