@@ -8,6 +8,16 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-15 — Task watchdog / feat/task-watchdog)
+- `services/daemon/src/watchdog.rs` — standalone watchdog loop that sweeps `agent_runs`
+  every 30s for runs stuck in `running` status beyond the timeout threshold; force-fails
+  them with `error_code = "watchdog_timeout"`; reuses analyze phase for reputation update
+  + realtime notification; race-safe (UPDATE WHERE status = 'running' + rows_affected check)
+- `services/daemon/src/config.rs` — `watchdog_timeout_secs: Option<i64>` field;
+  configurable via `WATCHDOG_TIMEOUT_SECS` env var; defaults to 600s
+- `services/daemon/src/main.rs` — watchdog spawned alongside orchestrator + health server;
+  `mod watchdog` registered
+
 ### Added (2026-03-15 — Node identity + staking / feat/node-identity)
 - `packages/db/src/schema/pg/enums.ts` — `stakeEventTypeEnum` ("deposit" | "withdraw" | "slash")
 - `packages/db/src/schema/pg/nodes.ts` — `publicKey: text` column on nodes table (Ed25519
