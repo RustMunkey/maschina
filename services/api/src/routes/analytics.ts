@@ -12,7 +12,7 @@ import {
   usageEvents,
 } from "@maschina/db";
 import { can } from "@maschina/plans";
-import { Hono } from "hono";
+import { Hono, createMiddleware } from "hono";
 import { HTTPException } from "hono/http-exception";
 import type { Variables } from "../context.js";
 import { requireAuth } from "../middleware/auth.js";
@@ -23,7 +23,7 @@ const app = new Hono<{ Variables: Variables }>();
 app.use("*", requireAuth, trackApiCall);
 
 function requireAnalytics() {
-  return async (c: Parameters<Parameters<typeof app.use>[1]>[0], next: () => Promise<void>) => {
+  return createMiddleware<{ Variables: Variables }>(async (c, next) => {
     const user = c.get("user");
     if (!can.useAnalytics(user.tier)) {
       throw new HTTPException(403, {
@@ -31,7 +31,7 @@ function requireAnalytics() {
       });
     }
     await next();
-  };
+  });
 }
 
 function periodStart(days: number): Date {

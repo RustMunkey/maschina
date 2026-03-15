@@ -1,2 +1,3 @@
-// @maschina/analytics — analytics ingestion and aggregation service
-export {};
+// @maschina/analytics — PostHog product analytics + LangSmith LLM tracing
+export * from "./langsmith.js";
+export * from "./posthog.js";

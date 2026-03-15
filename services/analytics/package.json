@@ -2,6 +2,15 @@
   "name": "@maschina/analytics",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -13,7 +22,8 @@
     "@maschina/db": "workspace:*",
     "@maschina/events": "workspace:*",
     "@maschina/cache": "workspace:*",
-    "@maschina/telemetry": "workspace:*"
+    "@maschina/telemetry": "workspace:*",
+    "posthog-node": "^4"
   },
   "devDependencies": {
     "@maschina/tsconfig": "workspace:*",
