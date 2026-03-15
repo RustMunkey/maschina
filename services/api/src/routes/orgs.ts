@@ -109,15 +109,19 @@ app.get("/", async (c) => {
 
   if (memberships.length === 0) return c.json([]);
 
-  const orgIds = memberships.map((m) => m.orgId);
-  const roleMap = Object.fromEntries(memberships.map((m) => [m.orgId, m.role]));
+  const orgIds = memberships.map((m: { orgId: string; role: string }) => m.orgId);
+  const roleMap = Object.fromEntries(
+    memberships.map((m: { orgId: string; role: string }) => [m.orgId, m.role]),
+  );
 
   const rows = await db
     .select()
     .from(organizations)
     .where(and(inArray(organizations.id, orgIds), isNull(organizations.deletedAt)));
 
-  return c.json(rows.map((o) => ({ ...o, myRole: roleMap[o.id] })));
+  return c.json(
+    rows.map((o: { id: string; [key: string]: unknown }) => ({ ...o, myRole: roleMap[o.id] })),
+  );
 });
 
 // ── GET /orgs/:id ─────────────────────────────────────────────────────────────
@@ -456,7 +460,7 @@ app.get("/:id/usage", async (c) => {
     .from(organizationMembers)
     .where(eq(organizationMembers.orgId, orgId));
 
-  const memberIds = memberRows.map((m) => m.userId);
+  const memberIds = memberRows.map((m: { userId: string }) => m.userId);
 
   const now = new Date();
   const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
