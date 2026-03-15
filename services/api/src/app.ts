@@ -5,6 +5,7 @@ import type { Variables } from "./context.js";
 import { corsMiddleware } from "./middleware/cors.js";
 import { errorHandler, notFound } from "./middleware/error.js";
 import agentRoutes from "./routes/agents.js";
+import analyticsRoutes from "./routes/analytics.js";
 import authRoutes from "./routes/auth.js";
 import billingRoutes from "./routes/billing.js";
 import complianceRoutes from "./routes/compliance.js";
@@ -47,6 +48,7 @@ export function createApp() {
   app.route("/nodes", nodeRoutes);
   app.route("/orgs", orgRoutes);
   app.route("/connectors", connectorRoutes);
+  app.route("/analytics", analyticsRoutes);
   app.route("/agents", memoryRoutes);
   app.route("/agents", skillRoutes);
   app.route("/skills", skillCatalogRoutes);
