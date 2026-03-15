@@ -3,6 +3,7 @@ import {
   index,
   integer,
   jsonb,
+  numeric,
   pgTable,
   text,
   timestamp,
@@ -31,6 +32,13 @@ export const agents = pgTable(
 
     lastRunAt: timestamp("last_run_at", { withTimezone: true }),
     lastError: text("last_error"),
+
+    // Reputation — updated by daemon ANALYZE phase after every run
+    totalRunsCompleted: integer("total_runs_completed").notNull().default(0),
+    totalRunsFailed: integer("total_runs_failed").notNull().default(0),
+    reputationScore: numeric("reputation_score", { precision: 5, scale: 2 })
+      .notNull()
+      .default("50"),
 
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

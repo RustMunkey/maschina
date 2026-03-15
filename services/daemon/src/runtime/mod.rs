@@ -30,10 +30,14 @@ struct RuntimeRequest<'a> {
     skill_configs: &'a serde_json::Value,
 }
 
-/// Dispatch a run to the best available node and await the result.
-/// The caller is responsible for enforcing the timeout wrapper.
-pub async fn dispatch(state: &AppState, run: &QueuedRun) -> Result<RunOutput, DaemonError> {
-    let node_url = crate::scheduler::select_node(state, &run.model).await;
+/// Dispatch a run to a specific node URL and await the result.
+/// The caller selects the node via `crate::scheduler::select_node` and is
+/// responsible for enforcing the timeout wrapper.
+pub async fn dispatch_to(
+    state: &AppState,
+    run: &QueuedRun,
+    node_url: &str,
+) -> Result<RunOutput, DaemonError> {
     let url = format!("{}/run", node_url.trim_end_matches('/'));
 
     let body = RuntimeRequest {

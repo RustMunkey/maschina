@@ -25,9 +25,19 @@ const INDEX_SETTINGS: Record<
   },
   marketplace: {
     searchableAttributes: ["name", "description", "tags", "author"],
-    filterableAttributes: ["category", "price", "rating"],
-    sortableAttributes: ["rating", "createdAt", "price"],
-    displayedAttributes: ["id", "name", "description", "tags", "price", "rating", "author"],
+    filterableAttributes: ["category", "price", "rating", "reputationScore"],
+    sortableAttributes: ["rating", "reputationScore", "downloads", "createdAt", "price"],
+    displayedAttributes: [
+      "id",
+      "name",
+      "description",
+      "tags",
+      "price",
+      "rating",
+      "reputationScore",
+      "downloads",
+      "author",
+    ],
   },
   docs: {
     searchableAttributes: ["title", "content", "section"],
