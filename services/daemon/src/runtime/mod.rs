@@ -10,6 +10,7 @@ pub struct RunOutput {
     pub output_payload: serde_json::Value,
     pub input_tokens: u64,
     pub output_tokens: u64,
+    pub sandbox_type: Option<String>,
 }
 
 /// Request body sent to the Python runtime service.

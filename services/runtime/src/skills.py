@@ -62,8 +62,16 @@ def _build_one(slug: str, cfg: dict[str, Any]) -> Tool | None:
             return WebSearchTool(api_key=api_key, max_results=max_results)
 
         case "code_exec":
+            from .config import settings
+
             timeout_secs = int(cfg.get("timeout_secs", 10))
-            return CodeExecTool(timeout_secs=timeout_secs)
+            return CodeExecTool(
+                timeout_secs=timeout_secs,
+                memory_limit_mb=settings.sandbox_memory_limit_mb
+                if settings.sandbox_enabled
+                else 512,
+                cpu_limit_secs=settings.sandbox_cpu_limit_secs if settings.sandbox_enabled else 30,
+            )
 
         case _:
             logger.warning("Unknown skill slug: %s — skipping", slug)

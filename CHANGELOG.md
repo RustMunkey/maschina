@@ -8,6 +8,16 @@ Format: [Semantic Versioning](https://semver.org) — `[version] YYYY-MM-DD`
 
 ## [Unreleased]
 
+### Added (2026-03-14 — Agent sandboxing)
+- `packages/runtime/src/maschina_runtime/tools.py` — `CodeExecTool` gains `memory_limit_mb` + `cpu_limit_secs`; applies `resource.setrlimit` (RLIMIT_AS, RLIMIT_CPU, RLIMIT_FSIZE) via `preexec_fn` on Unix; no-op on Windows
+- `services/runtime/src/config.py` — `SANDBOX_ENABLED`, `SANDBOX_MEMORY_LIMIT_MB`, `SANDBOX_CPU_LIMIT_SECS` settings
+- `services/runtime/src/skills.py` — passes sandbox limits from config when constructing `CodeExecTool`
+- `services/runtime/src/models.py` — `RunResponse` gains `sandbox_type: str | None` (`"subprocess_rlimit"` | `"subprocess"` | `None`)
+- `services/runtime/src/runner.py` — sets `sandbox_type` in response based on active skills + platform
+- `services/daemon/src/runtime/mod.rs` — `RunOutput` gains `sandbox_type: Option<String>`
+- `services/daemon/src/orchestrator/analyze.rs` — `persist_success` writes `sandbox_type` to `agent_runs` table
+- `.env.example` — sandbox env vars documented
+
 ### Added (2026-03-14 — Agent permissions)
 - `packages/db/src/schema/pg/enums.ts` — `agentPermissionEnum`: `internet_access`, `code_execution`, `external_api`, `file_read`, `file_write`, `memory_read`, `memory_write`, `send_email`, `send_webhook`
 - `packages/db/src/schema/pg/agents.ts` — `agentPermissions` table (agent_id, permission, granted_at, granted_by_user_id); unique index on (agent_id, permission)

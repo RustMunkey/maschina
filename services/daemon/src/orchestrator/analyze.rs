@@ -60,13 +60,15 @@ async fn persist_success(
             finished_at    = NOW(),
             output_payload = $1,
             input_tokens   = $2,
-            output_tokens  = $3
-        WHERE id = $4
+            output_tokens  = $3,
+            sandbox_type   = $4
+        WHERE id = $5
         "#,
     )
     .bind(&output.output_payload)
     .bind(output.input_tokens as i64)
     .bind(output.output_tokens as i64)
+    .bind(&output.sandbox_type)
     .bind(run.id)
     .execute(&state.db)
     .await?;
