@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "fastapi dev src/maschina_runtime/main.py",
-    "build": "hatch build",
-    "test": "pytest",
+    "build": "uv build",
+    "test": "python -m pytest",
     "clean": "rm -rf dist .pytest_cache __pycache__ .coverage"
   }
 }

@@ -1,5 +1,5 @@
 import { constructWebhookEvent, handleWebhookEvent } from "@maschina/billing";
-import type { HeliusWebhookPayload } from "@maschina/chain";
+import type { HeliusWebhookPayload, ReceiptAnchoredEvent } from "@maschina/chain";
 import { processHeliusWebhook } from "@maschina/chain";
 import { db, webhookDeliveries, webhooks } from "@maschina/db";
 import { and, desc, eq } from "@maschina/db";
@@ -32,7 +32,7 @@ app.post("/helius", async (c) => {
   }
 
   await processHeliusWebhook(payload, {
-    onReceiptAnchored: async (event) => {
+    onReceiptAnchored: async (event: ReceiptAnchoredEvent) => {
       // Future: look up the run in the DB by signature/run_id and mark it as anchored.
       console.info("[helius] receipt anchored", {
         signature: event.signature,

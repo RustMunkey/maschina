@@ -2,7 +2,7 @@ use tauri::Manager;
 
 #[tauri::command]
 fn greet(name: &str) -> String {
-    format!("Hello, {}! Welcome to Maschina.", name)
+    format!("Hello, {name}! Welcome to Maschina.")
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

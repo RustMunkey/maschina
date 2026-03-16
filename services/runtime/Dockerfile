@@ -7,11 +7,13 @@ RUN pip install --no-cache-dir uv
 COPY packages/runtime ./packages/runtime
 COPY packages/agents  ./packages/agents
 COPY packages/risk    ./packages/risk
+COPY packages/ml      ./packages/ml
 
 RUN uv pip install --system --no-cache \
     ./packages/runtime \
     ./packages/agents \
-    ./packages/risk
+    ./packages/risk \
+    ./packages/ml
 
 # Install runtime service deps
 COPY services/runtime/pyproject.toml ./services/runtime/pyproject.toml
