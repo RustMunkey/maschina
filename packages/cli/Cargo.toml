@@ -2,6 +2,10 @@
 name = "maschina-cli"
 version = "0.1.0"
 edition = "2021"
+description = "The Maschina CLI — manage agents, nodes, keys, and usage from the terminal"
+homepage = "https://maschina.ai"
+repository = "https://github.com/RustMunkey/maschina"
+license = "LicenseRef-Proprietary"
 
 [[bin]]
 name = "maschina"
