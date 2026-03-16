@@ -1,7 +1,7 @@
 import { revokeAllSessions } from "@maschina/auth";
 import { verifyPassword } from "@maschina/auth";
 import { db } from "@maschina/db";
-import { sessions, users } from "@maschina/db";
+import { plans, sessions, subscriptions, users } from "@maschina/db";
 import { and, eq, ne } from "@maschina/db";
 import {
   DeleteAccountSchema,
@@ -27,23 +27,29 @@ app.use("*", requireAuth, trackApiCall);
 app.get("/me", async (c) => {
   const { id } = c.get("user");
 
-  const [user] = await db
+  const [row] = await db
     .select({
       id: users.id,
       email: users.email,
       name: users.name,
       avatarUrl: users.avatarUrl,
       role: users.role,
-      emailVerified: users.emailVerified,
+      emailVerifiedAt: users.emailVerified,
       createdAt: users.createdAt,
+      tier: plans.tier,
     })
     .from(users)
+    .leftJoin(
+      subscriptions,
+      and(eq(subscriptions.userId, users.id), eq(subscriptions.status, "active")),
+    )
+    .leftJoin(plans, eq(plans.id, subscriptions.planId))
     .where(eq(users.id, id))
     .limit(1);
 
-  if (!user) throw new HTTPException(404, { message: "User not found" });
+  if (!row) throw new HTTPException(404, { message: "User not found" });
 
-  return c.json(projectUser(user));
+  return c.json(projectUser(row));
 });
 
 // PATCH /users/me

@@ -11,6 +11,7 @@ export interface PublicUser {
   avatarUrl: string | null;
   role: string;
   emailVerified: boolean;
+  tier: string;
   createdAt: Date;
 }
 
@@ -22,6 +23,7 @@ export function projectUser(row: {
   role: string;
   emailVerifiedAt: Date | null;
   createdAt: Date;
+  tier?: string | null;
   // fields we deliberately omit:
   // emailIndex, passwordHash (in user_passwords), licenseToken,
   // deletedAt, encryptedAt, keyVersion, updatedAt
@@ -33,6 +35,7 @@ export function projectUser(row: {
     avatarUrl: row.avatarUrl,
     role: row.role,
     emailVerified: row.emailVerifiedAt !== null,
+    tier: row.tier ?? "access",
     createdAt: row.createdAt,
   };
 }

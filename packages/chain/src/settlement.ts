@@ -16,8 +16,10 @@ import { getConnection } from "./connection.js";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
+// Placeholder — replace with real program ID after `anchor build` and deploy.
+// Must be a valid base58 public key even when CHAIN_ENABLED=false.
 export const SETTLEMENT_PROGRAM_ID = new web3.PublicKey(
-  "STLMxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  process.env.SETTLEMENT_PROGRAM_ID ?? "11111111111111111111111111111111",
 );
 
 // ─── PDA helpers ──────────────────────────────────────────────────────────────

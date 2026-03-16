@@ -20,6 +20,10 @@ pub struct Config {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub node: Option<NodeConfig>,
 
+    /// Cached tier from last successful auth (access/m1/m5/m10/teams/enterprise/beta)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tier: Option<String>,
+
     /// Profile name (used for multi-environment setups)
     #[serde(skip)]
     pub profile: String,
@@ -51,7 +55,7 @@ pub struct ModelProvider {
 
 impl Config {
     pub fn default_api_url() -> String {
-        "https://api.maschina.dev".to_string()
+        "https://api.maschina.ai".to_string()
     }
 
     pub fn is_authenticated(&self) -> bool {
@@ -85,6 +89,7 @@ pub fn load(profile: &str) -> Result<Config> {
             db_url: None,
             model_providers: vec![],
             node: None,
+            tier: None,
             profile: profile.to_string(),
         });
     }
