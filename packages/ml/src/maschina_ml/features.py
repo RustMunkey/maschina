@@ -11,6 +11,7 @@ import numpy as np
 @dataclass
 class RunFeatures:
     """Numeric feature vector extracted from a single agent run."""
+
     run_id: str
     # Timing
     duration_secs: float
@@ -28,16 +29,19 @@ class RunFeatures:
 
     def to_array(self) -> np.ndarray:
         """Return a fixed-length float32 feature vector (exclude categorical fields)."""
-        return np.array([
-            self.duration_secs,
-            float(self.turns),
-            float(self.input_tokens),
-            float(self.output_tokens),
-            self.tokens_per_turn,
-            float(self.tool_calls),
-            self.tool_error_rate,
-            float(self.success),
-        ], dtype=np.float32)
+        return np.array(
+            [
+                self.duration_secs,
+                float(self.turns),
+                float(self.input_tokens),
+                float(self.output_tokens),
+                self.tokens_per_turn,
+                float(self.tool_calls),
+                self.tool_error_rate,
+                float(self.success),
+            ],
+            dtype=np.float32,
+        )
 
     @property
     def feature_names(self) -> list[str]:

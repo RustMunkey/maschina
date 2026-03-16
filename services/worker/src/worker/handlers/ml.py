@@ -20,6 +20,7 @@ async def handle_ml_inference(job: MlInferenceJob) -> None:
 
     try:
         import anthropic
+
         client = anthropic.AsyncAnthropic()
 
         response = await client.messages.create(
@@ -28,9 +29,7 @@ async def handle_ml_inference(job: MlInferenceJob) -> None:
             messages=[{"role": "user", "content": job.prompt}],
         )
 
-        output = "".join(
-            block.text for block in response.content if hasattr(block, "text")
-        )
+        output = "".join(block.text for block in response.content if hasattr(block, "text"))
 
         log.info(
             "ml_inference.complete",
