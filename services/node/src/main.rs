@@ -4,11 +4,13 @@
 //   1. Load/generate Ed25519 keypair from disk (~/.config/maschina-node/identity.toml)
 //   2. Register with the API (idempotent — skipped if node_id already persisted)
 //   3. Submit public key to the API
-//   4. Start heartbeat loop
-//   5. Run until SIGTERM/SIGINT
+//   4. Start heartbeat loop (reports load, cpu/ram to API every N seconds)
+//   5. Start task executor (NATS subscriber — receives jobs, runs via local runtime, replies)
+//   6. Run until SIGTERM/SIGINT
 
 mod api;
 mod config;
+mod executor;
 mod heartbeat;
 mod identity;
 
@@ -54,7 +56,7 @@ async fn main() -> anyhow::Result<()> {
                 region: cfg.region.clone(),
                 capabilities: NodeCapabilities {
                     max_concurrent_tasks: cfg.max_concurrent_tasks,
-                    supported_models: vec![], // node reports what it can run; empty = cloud models only
+                    supported_models: vec![],
                 },
             };
             let id = api.register_node(&req).await?;
@@ -65,8 +67,6 @@ async fn main() -> anyhow::Result<()> {
     };
 
     // ── Public key submission ─────────────────────────────────────────────────
-    // Always submit on startup to handle key rotation and ensure the API has
-    // the current public key even if a previous submission failed.
 
     api.submit_public_key(node_id, &identity.public_key_hex)
         .await?;
@@ -96,11 +96,12 @@ async fn main() -> anyhow::Result<()> {
         shutdown_tx.cancel();
     });
 
-    // ── Heartbeat loop ────────────────────────────────────────────────────────
+    // ── Shared state ──────────────────────────────────────────────────────────
 
     let active_tasks: heartbeat::ActiveTaskCounter = Arc::new(Mutex::new(0));
 
-    // Send an immediate heartbeat so the node goes active right away
+    // ── Heartbeat ─────────────────────────────────────────────────────────────
+
     heartbeat::send_once(&api, node_id, 0, "online").await;
 
     let heartbeat_handle = tokio::spawn(heartbeat::run(
@@ -111,10 +112,31 @@ async fn main() -> anyhow::Result<()> {
         shutdown.clone(),
     ));
 
-    info!(node_id = %node_id, "maschina-node online");
+    // ── Task executor (NATS) ──────────────────────────────────────────────────
 
-    // Wait for shutdown
-    heartbeat_handle.await?;
+    let executor_handle = tokio::spawn(executor::run(
+        cfg.nats_url.clone(),
+        cfg.nats_creds.clone(),
+        node_id,
+        cfg.runtime_url.clone(),
+        cfg.max_concurrent_tasks,
+        active_tasks.clone(),
+        shutdown.clone(),
+    ));
+
+    info!(
+        node_id = %node_id,
+        nats_url = %cfg.nats_url,
+        runtime_url = %cfg.runtime_url,
+        max_concurrent = cfg.max_concurrent_tasks,
+        "maschina-node online — accepting tasks"
+    );
+
+    // Wait for both to finish (they stop on shutdown signal)
+    let (_hb, ex) = tokio::join!(heartbeat_handle, executor_handle);
+    if let Ok(Err(e)) = ex {
+        tracing::error!(error = %e, "Executor task failed");
+    }
 
     info!("maschina-node stopped cleanly");
     Ok(())

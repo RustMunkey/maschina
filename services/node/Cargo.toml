@@ -40,3 +40,10 @@ toml = "0.8"
 
 # Signal handling
 tokio-util = { version = "0.7", features = ["rt"] }
+
+# NATS — task execution subscriber
+async-nats = "0.38"
+futures-util = "0.3"
+
+# System metrics for heartbeat (cpu/ram)
+sysinfo = { version = "0.32", default-features = false, features = ["system"] }
