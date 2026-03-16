@@ -86,22 +86,26 @@ services:
       retries: 5
 
   temporal:
-    image: temporalio/auto-setup:latest
+    image: temporalio/auto-setup:1.27.0
     container_name: maschina-temporal
     restart: unless-stopped
     ports:
       - "${TEMPORAL_PORT:-7233}:7233"
     environment:
-      - DB=sqlite
-      - TEMPORAL_ADDRESS=temporal:7233
-    volumes:
-      - temporal_data:/etc/temporal
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-maschina}
+      - POSTGRES_PWD=${POSTGRES_PASSWORD:-maschina}
+      - POSTGRES_SEEDS=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 7233 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 15
-      start_period: 90s
+      test: ["CMD-SHELL", "temporal workflow list --address localhost:7233 >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
 
   temporal-ui:
     image: temporalio/ui:latest
@@ -120,4 +124,3 @@ volumes:
   nats_data:
   meilisearch_data:
   qdrant_data:
-  temporal_data:

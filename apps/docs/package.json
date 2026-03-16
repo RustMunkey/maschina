@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "npx mintlify dev",
-    "build": "npx mintlify build"
+    "build": "npx mintlify validate"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.7"

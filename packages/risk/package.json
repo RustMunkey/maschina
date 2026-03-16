@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "hatch build",
-    "test": "pytest",
+    "build": "uv build",
+    "test": "python -m pytest",
     "clean": "rm -rf dist .pytest_cache __pycache__ .coverage"
   }
 }

@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "hatch build",
-    "test": "pytest",
+    "build": "uv build",
+    "test": "python -m pytest",
     "clean": "rm -rf dist .pytest_cache __pycache__ .coverage"
   }
 }

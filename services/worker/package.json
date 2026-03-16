@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "celery -A maschina_worker worker --loglevel=info",
-    "build": "hatch build",
-    "test": "pytest",
+    "dev": "python -m worker.main",
+    "build": "uv build",
+    "test": "python -m pytest",
     "clean": "rm -rf dist .pytest_cache __pycache__ .coverage"
   }
 }
