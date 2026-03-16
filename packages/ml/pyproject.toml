@@ -37,6 +37,7 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-p no:langsmith"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/maschina_ml"]

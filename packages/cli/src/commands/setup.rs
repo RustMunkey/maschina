@@ -246,7 +246,7 @@ pub async fn run(profile: &str) -> Result<()> {
                         .unwrap_or("~/.local/share/maschina/data.db"),
                 )
                 .prompt()?;
-            Some(format!("sqlite:{}", path))
+            Some(format!("sqlite:{path}"))
         }
         "PostgreSQL  (self-hosted or Docker)" => {
             let url = Text::new("PostgreSQL connection URL:")
@@ -363,7 +363,7 @@ async fn login_flow(api_url: &str) -> Result<(String, Option<String>)> {
     if !resp.status().is_success() {
         let msg = extract_error(resp.text().await?);
         sp.finish_with_message(format!("{} {}", style("✗").red(), msg));
-        anyhow::bail!("{}", msg);
+        anyhow::bail!("{msg}");
     }
 
     let session: AuthResponse = resp.json().await?;
@@ -394,7 +394,7 @@ async fn register_flow(api_url: &str) -> Result<(String, Option<String>)> {
     if !resp.status().is_success() {
         let msg = extract_error(resp.text().await?);
         sp.finish_with_message(format!("{} {}", style("✗").red(), msg));
-        anyhow::bail!("{}", msg);
+        anyhow::bail!("{msg}");
     }
 
     let session: AuthResponse = resp.json().await?;
@@ -496,24 +496,17 @@ fn print_done(email: &str, tier: &str) {
     println!();
     println!("  next steps:");
     println!(
-        "  {:<40} {}",
-        style("maschina service start").cyan(),
-        "start all services"
+        "  {:<40} start all services",
+        style("maschina service start").cyan()
     );
     println!(
-        "  {:<40} {}",
-        style("maschina agent list").cyan(),
-        "list your agents"
+        "  {:<40} list your agents",
+        style("maschina agent list").cyan()
     );
     println!(
-        "  {:<40} {}",
-        style("maschina agent deploy <name>").cyan(),
-        "deploy a new agent"
+        "  {:<40} deploy a new agent",
+        style("maschina agent deploy <name>").cyan()
     );
-    println!(
-        "  {:<40} {}",
-        style("maschina --help").cyan(),
-        "see all commands"
-    );
+    println!("  {:<40} see all commands", style("maschina --help").cyan());
     println!();
 }

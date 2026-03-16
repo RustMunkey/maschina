@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@maschina/tsconfig": "workspace:*",
+    "@maschina/vitest-config": "workspace:*",
     "typescript": "^5",
     "vitest": "^4.0.18"
   }

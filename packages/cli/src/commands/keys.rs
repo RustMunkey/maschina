@@ -88,7 +88,7 @@ pub async fn create(client: &ApiClient, name: String, out: &Output) -> Result<()
 }
 
 pub async fn revoke(client: &ApiClient, id: String, out: &Output) -> Result<()> {
-    let _: serde_json::Value = client.delete(&format!("/keys/{}", id)).await?;
+    let _: serde_json::Value = client.delete(&format!("/keys/{id}")).await?;
     out.success(&format!("Key {} revoked", style(&id).dim()), None::<()>);
     Ok(())
 }

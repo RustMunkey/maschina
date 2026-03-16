@@ -449,7 +449,7 @@ async fn run() -> Result<()> {
                 let mut cfg = config::load(&cli.profile)?;
                 config_set_value(&mut cfg, &key, &value)?;
                 config::save(&cfg, &cli.profile)?;
-                out.success(&format!("{} = {}", key, value), None::<()>);
+                out.success(&format!("{key} = {value}"), None::<()>);
             }
         },
     }
@@ -549,7 +549,7 @@ async fn models_add(profile: &str, name: Option<&str>, add_all: bool) -> Result<
                 .prompt_skippable()?;
             (key, Some(url))
         } else {
-            let key = Password::new(&format!("{} API key:", provider))
+            let key = Password::new(&format!("{provider} API key:"))
                 .without_confirmation()
                 .prompt()?;
             (Some(key), None)
@@ -578,10 +578,10 @@ fn models_remove(profile: &str, name: &str, out: &output::Output) -> Result<()> 
     let before = cfg.model_providers.len();
     cfg.model_providers.retain(|p| p.name != name);
     if cfg.model_providers.len() == before {
-        out.warn(&format!("provider '{}' not found", name));
+        out.warn(&format!("provider '{name}' not found"));
     } else {
         config::save(&cfg, profile)?;
-        out.success(&format!("{} removed", name), None::<()>);
+        out.success(&format!("{name} removed"), None::<()>);
     }
     Ok(())
 }
@@ -604,7 +604,7 @@ fn config_set_value(cfg: &mut config::Config, key: &str, value: &str) -> Result<
         "api_url" => cfg.api_url = value.to_string(),
         "db_url" => cfg.db_url = Some(value.to_string()),
         "email" => cfg.email = Some(value.to_string()),
-        _ => anyhow::bail!("unknown config key: {}", key),
+        _ => anyhow::bail!("unknown config key: {key}"),
     }
     Ok(())
 }
@@ -617,7 +617,7 @@ fn self_update(out: &output::Output) -> Result<()> {
     // For now, delegate to the install script which handles platform detection.
     let script_url = "https://raw.githubusercontent.com/RustMunkey/maschina/main/install.sh";
     let status = Command::new("sh")
-        .args(["-c", &format!("curl -fsSL {} | sh", script_url)])
+        .args(["-c", &format!("curl -fsSL {script_url} | sh")])
         .status();
 
     match status {

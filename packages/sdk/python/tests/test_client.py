@@ -3,6 +3,7 @@
 import httpx
 import pytest
 import respx
+
 from maschina_sdk import MaschinaClient, MaschinaError
 from maschina_sdk.types import Agent, AgentRun, AgentStatus, AgentType, RunStatus
 

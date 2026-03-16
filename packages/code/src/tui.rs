@@ -8,10 +8,7 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use ratatui::{
-    prelude::*,
-    widgets::*,
-};
+use ratatui::{prelude::*, widgets::*};
 
 use crate::scaffold::{scaffold, ScaffoldKind};
 
@@ -139,8 +136,15 @@ fn render(frame: &mut Frame, app: &App) {
 
     match &app.screen {
         Screen::Menu => render_menu(frame, inner, app),
-        Screen::NameInput { kind } => render_input(frame, inner, &format!("Name for {}", kind.display()), &app.input_buffer),
-        Screen::OutputDir { .. } => render_input(frame, inner, "Output directory:", &app.input_buffer),
+        Screen::NameInput { kind } => render_input(
+            frame,
+            inner,
+            &format!("Name for {}", kind.display()),
+            &app.input_buffer,
+        ),
+        Screen::OutputDir { .. } => {
+            render_input(frame, inner, "Output directory:", &app.input_buffer)
+        }
         Screen::Done { files } => render_done(frame, inner, files),
         Screen::Error(msg) => render_error(frame, inner, msg),
     }
@@ -202,8 +206,7 @@ fn render_input(frame: &mut Frame, area: Rect, label: &str, value: &str) {
         layout[1],
     );
     frame.render_widget(
-        Paragraph::new("[Enter] Confirm  [Esc] Back")
-            .style(Style::default().fg(Color::DarkGray)),
+        Paragraph::new("[Enter] Confirm  [Esc] Back").style(Style::default().fg(Color::DarkGray)),
         layout[3],
     );
 }

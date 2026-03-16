@@ -228,8 +228,8 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - run: pip install ruff
-      - run: ruff check packages/runtime packages/agents packages/risk services/runtime
-      - run: ruff format --check packages/runtime packages/agents packages/risk services/runtime
+      - run: ruff check packages/runtime packages/agents packages/risk packages/ml services/runtime services/worker
+      - run: ruff format --check packages/runtime packages/agents packages/risk packages/ml services/runtime services/worker
 
   python-test:
     name: Python / test (Pytest)
@@ -244,13 +244,15 @@ jobs:
       - name: Install packages
         run: |
           uv pip install -e packages/runtime --system
-          uv pip install -e packages/ml --system
+          uv pip install -e packages/ml --no-deps --system
+          uv pip install numpy scikit-learn scipy pandas tqdm --system
           uv pip install -e packages/agents --system
           uv pip install -e packages/risk --system
           uv pip install -e "packages/sdk/python[dev]" --system
           uv pip install -e "services/runtime[dev]" --system
-          uv pip install pytest pytest-asyncio pytest-mock --system
-      - run: pytest packages/runtime/tests packages/agents/tests packages/risk/tests packages/sdk/python/tests services/runtime/tests -v
+          uv pip install -e services/worker --system
+          uv pip install pytest pytest-asyncio pytest-mock numpy scikit-learn --system
+      - run: pytest packages/runtime/tests packages/agents/tests packages/risk/tests packages/ml/tests packages/sdk/python/tests services/runtime/tests services/worker/tests -v
 
   # ── Gate ──────────────────────────────────────────────────────────────────
 

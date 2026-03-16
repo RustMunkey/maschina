@@ -89,7 +89,11 @@ impl ScaffoldKind {
     }
 
     pub fn all() -> Vec<ScaffoldKind> {
-        vec![ScaffoldKind::Agent, ScaffoldKind::Route, ScaffoldKind::Connector]
+        vec![
+            ScaffoldKind::Agent,
+            ScaffoldKind::Route,
+            ScaffoldKind::Connector,
+        ]
     }
 }
 
@@ -103,7 +107,7 @@ fn to_snake_case(s: &str) -> String {
         }
         out.push(c.to_lowercase().next().unwrap());
     }
-    out.replace(' ', "_").replace('-', "_")
+    out.replace([' ', '-'], "_")
 }
 
 fn to_pascal_case(s: &str) -> String {
@@ -166,7 +170,7 @@ pub fn scaffold(kind: &ScaffoldKind, name: &str, output_dir: &Path) -> Result<Ve
             let ctx = AgentCtx {
                 name: name.to_string(),
                 class_name: to_pascal_case(name),
-                description: format!("{} agent", name),
+                description: format!("{name} agent"),
                 agent_type: "analysis".to_string(),
             };
             let rendered = tera

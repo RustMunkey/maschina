@@ -22,9 +22,9 @@ struct AgentRun {
 pub async fn show(client: &ApiClient, run_id: String, out: &Output) -> Result<()> {
     // Try GET /agents/runs/:id — fallback path for run lookup
     let run: AgentRun = client
-        .get(&format!("/agents/runs/{}", run_id))
+        .get(&format!("/agents/runs/{run_id}"))
         .await
-        .map_err(|_| anyhow::anyhow!("run not found: {}", run_id))?;
+        .map_err(|_| anyhow::anyhow!("run not found: {run_id}"))?;
 
     if out.is_json() {
         out.data(&run);

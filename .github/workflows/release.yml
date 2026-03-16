@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   # ── Build CLI binaries for all platforms ──────────────────────────────────
@@ -194,3 +195,63 @@ jobs:
           body: ${{ steps.changelog.outputs.body }}
           files: artifacts/**/*
           generate_release_notes: false
+
+  # ── Publish Docker images to GHCR ────────────────────────────────────────
+  # Only runs on version tags (v*) — never on commits or PRs.
+  # Render can pull these pre-built images for faster deploys.
+
+  publish-docker:
+    name: Docker — ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: api
+            dockerfile: services/api/Dockerfile
+            context: .
+          - service: gateway
+            dockerfile: services/gateway/Dockerfile
+            context: services/gateway
+          - service: realtime
+            dockerfile: services/realtime/Dockerfile
+            context: services/realtime
+          - service: daemon
+            dockerfile: services/daemon/Dockerfile
+            context: services/daemon
+          - service: runtime
+            dockerfile: services/runtime/Dockerfile
+            context: .
+          - service: worker
+            dockerfile: services/worker/Dockerfile
+            context: .
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/maschina-${{ matrix.service }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

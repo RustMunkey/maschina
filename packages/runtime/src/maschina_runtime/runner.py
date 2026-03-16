@@ -1,10 +1,13 @@
 """Core agent execution engine with tool-calling and multi-turn support."""
 
+from __future__ import annotations
+
 import asyncio
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import anthropic
+if TYPE_CHECKING:
+    import anthropic
 
 from .models import RunInput, RunResult, ToolResult
 from .tools import Tool

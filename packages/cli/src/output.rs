@@ -22,7 +22,7 @@ impl Output {
             if let Some(d) = data {
                 println!("{}", serde_json::to_string_pretty(&d).unwrap_or_default());
             } else {
-                println!("{{\"ok\":true,\"message\":{:?}}}", msg);
+                println!("{{\"ok\":true,\"message\":{msg:?}}}");
             }
         } else {
             println!("{} {}", style("✓").green().bold(), msg);
@@ -89,7 +89,7 @@ impl Output {
             let detail_str = detail
                 .map(|d| format!("  {}", style(d).dim()))
                 .unwrap_or_default();
-            println!("  {} {}{}", icon, label, detail_str);
+            println!("  {icon} {label}{detail_str}");
         }
     }
 }

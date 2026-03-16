@@ -187,7 +187,7 @@ impl App {
         let path = services::log_path(svc_name, &services::find_workspace());
         let lines = if let Ok(f) = std::fs::File::open(&path) {
             let reader = io::BufReader::new(f);
-            let all: Vec<String> = reader.lines().filter_map(|l| l.ok()).collect();
+            let all: Vec<String> = reader.lines().map_while(Result::ok).collect();
             let start = all.len().saturating_sub(200);
             all[start..].to_vec()
         } else {
@@ -327,14 +327,14 @@ fn draw_launcher(f: &mut ratatui::Frame, app: &App) {
             };
 
             let mut spans = vec![
-                Span::styled(format!(" {} ", prefix), dim),
+                Span::styled(format!(" {prefix} "), dim),
                 Span::styled(dot, dot_style),
                 Span::raw(" "),
                 Span::styled(format!("{:<10}", svc.name), name_style),
             ];
             if w >= 38 {
-                let p = svc.port.map(|p| format!(":{}", p)).unwrap_or_default();
-                spans.push(Span::styled(format!("{:<7}", p), dim));
+                let p = svc.port.map(|p| format!(":{p}")).unwrap_or_default();
+                spans.push(Span::styled(format!("{p:<7}"), dim));
             }
             if w >= 50 {
                 spans.push(Span::styled(
@@ -344,7 +344,7 @@ fn draw_launcher(f: &mut ratatui::Frame, app: &App) {
             }
             if w >= 62 {
                 if let Status::Running { pid: Some(p) } = &svc.status {
-                    spans.push(Span::styled(format!("  pid {}", p), dim));
+                    spans.push(Span::styled(format!("  pid {p}"), dim));
                 }
             }
             ListItem::new(Line::from(spans))
@@ -380,7 +380,7 @@ fn draw_launcher(f: &mut ratatui::Frame, app: &App) {
                 let desc = item.desc;
                 let gap = (w as usize).saturating_sub(label.len() + desc.len() + 2);
                 ListItem::new(Line::from(vec![
-                    Span::styled(format!(" {}", label), label_style),
+                    Span::styled(format!(" {label}"), label_style),
                     Span::raw(" ".repeat(gap.max(1))),
                     Span::styled(desc, dim),
                 ]))
@@ -417,7 +417,7 @@ fn draw_launcher(f: &mut ratatui::Frame, app: &App) {
     if has_msg {
         if let Some((msg, _)) = &app.msg {
             f.render_widget(
-                Paragraph::new(Line::from(Span::styled(format!(" {}", msg), dim))),
+                Paragraph::new(Line::from(Span::styled(format!(" {msg}"), dim))),
                 chunks[8],
             );
         }
@@ -456,7 +456,7 @@ fn draw_logs(f: &mut ratatui::Frame, svc: &str, lines: &[String], offset: usize)
     f.render_widget(Clear, area);
     f.render_widget(
         Paragraph::new(Line::from(vec![Span::styled(
-            format!(" logs: {}", svc),
+            format!(" logs: {svc}"),
             bold,
         )])),
         header_rect,
@@ -469,7 +469,7 @@ fn draw_logs(f: &mut ratatui::Frame, svc: &str, lines: &[String], offset: usize)
         .take(visible)
         .map(|l| {
             ListItem::new(Line::from(Span::styled(
-                format!(" {}", l),
+                format!(" {l}"),
                 Style::default().fg(Color::Gray),
             )))
         })

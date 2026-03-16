@@ -62,7 +62,7 @@ pub async fn run(profile: &str) -> Result<()> {
             .and_then(|v| v["message"].as_str().map(String::from))
             .unwrap_or(body);
         spin.finish_with_message(format!("{} {}", style("✗").red(), msg));
-        anyhow::bail!("{}", msg);
+        anyhow::bail!("{msg}");
     }
 
     let session: LoginResponse = resp.json().await?;

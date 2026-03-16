@@ -9,7 +9,7 @@ from typing import Any
 @dataclass
 class RewardSignal:
     run_id: str
-    reward: float        # total scalar reward
+    reward: float  # total scalar reward
     # Components (for logging / debugging)
     outcome_reward: float
     efficiency_reward: float
@@ -27,7 +27,7 @@ LATENCY_WEIGHT = 0.1
 BASELINE_TOKENS = 2_000
 BASELINE_DURATION_SECS = 30.0
 COST_PER_TOKEN = 0.000_003  # $3 per 1M tokens (rough blended rate)
-COST_BUDGET = 0.01           # $0.01 per run budget
+COST_BUDGET = 0.01  # $0.01 per run budget
 
 
 def compute_reward(run: dict[str, Any]) -> RewardSignal:
@@ -64,7 +64,9 @@ def compute_reward(run: dict[str, Any]) -> RewardSignal:
     cost_penalty = min(max(estimated_cost - COST_BUDGET, 0.0) / COST_BUDGET, 1.0)
 
     # 4. Latency penalty: 0 if within baseline, linear above
-    latency_penalty = min(max(duration_secs - BASELINE_DURATION_SECS, 0.0) / BASELINE_DURATION_SECS, 1.0)
+    latency_penalty = min(
+        max(duration_secs - BASELINE_DURATION_SECS, 0.0) / BASELINE_DURATION_SECS, 1.0
+    )
 
     reward = (
         OUTCOME_WEIGHT * outcome_reward

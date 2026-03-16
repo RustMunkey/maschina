@@ -100,8 +100,8 @@ services:
       test: ["CMD-SHELL", "nc -z localhost 7233 || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 15
+      start_period: 90s
 
   temporal-ui:
     image: temporalio/ui:latest

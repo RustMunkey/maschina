@@ -70,7 +70,7 @@ pub fn config_path(profile: &str) -> Result<PathBuf> {
     let filename = if profile == "default" {
         "config.toml".to_string()
     } else {
-        format!("{}.toml", profile)
+        format!("{profile}.toml")
     };
     Ok(base.join("maschina").join(filename))
 }
