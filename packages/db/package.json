@@ -23,7 +23,8 @@
   },
   "dependencies": {
     "@maschina/types": "workspace:*",
-    "drizzle-orm": "^0.39.3"
+    "drizzle-orm": "^0.39.3",
+    "@maschina/plans": "workspace:*"
   },
   "devDependencies": {
     "@maschina/tsconfig": "workspace:*",

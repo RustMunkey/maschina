@@ -76,6 +76,7 @@ pub async fn run(profile: &str) -> Result<()> {
         db_url: None,
         model_providers: vec![],
         node: None,
+        tier: None,
         profile: profile.into(),
     };
     let client = ApiClient::new(&temp)?;
@@ -100,6 +101,7 @@ pub async fn run(profile: &str) -> Result<()> {
         db_url: current.db_url,
         model_providers: current.model_providers,
         node: current.node,
+        tier: current.tier,
         profile: profile.into(),
     };
     config::save(&cfg, profile)?;

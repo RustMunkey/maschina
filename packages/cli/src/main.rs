@@ -266,48 +266,23 @@ async fn run() -> Result<()> {
     let out = output::Output::new(cli.json);
 
     match cli.command {
-        // ── no args → TUI launcher ────────────────────────────────────────────
-        None => match tui::run(&cli.profile)? {
-            None => {}
-
-            Some(tui::LaunchTarget::Setup) => {
-                commands::setup::run(&cli.profile).await?;
-            }
-
-            Some(tui::LaunchTarget::Agents) => match commands::require_auth(&cli.profile) {
-                Ok((_, client)) => commands::agent::list(&client, &out).await?,
-                Err(_) => {
-                    println!();
-                    println!("  {} not logged in", console::style("→").dim());
-                    println!(
-                        "  run {} to get started",
-                        console::style("maschina setup").cyan()
-                    );
-                    println!();
+        // ── no args → TUI launcher (loop back after setup) ───────────────────
+        None => {
+            let mut launch_target = tui::run(&cli.profile)?;
+            loop {
+                match launch_target {
+                    None => break,
+                    Some(tui::LaunchTarget::Setup) => {
+                        commands::setup::run(&cli.profile).await?;
+                        launch_target = tui::run(&cli.profile)?;
+                    }
+                    Some(tui::LaunchTarget::Code) => {
+                        launch_code_tool()?;
+                        break;
+                    }
                 }
-            },
-
-            Some(tui::LaunchTarget::Usage) => match commands::require_auth(&cli.profile) {
-                Ok((_, client)) => commands::usage::run(&client, &out).await?,
-                Err(_) => {
-                    println!();
-                    println!("  {} not logged in", console::style("→").dim());
-                    println!(
-                        "  run {} to get started",
-                        console::style("maschina setup").cyan()
-                    );
-                    println!();
-                }
-            },
-
-            Some(tui::LaunchTarget::Models) => {
-                models_add(&cli.profile, None, false).await?;
             }
-
-            Some(tui::LaunchTarget::Code) => {
-                launch_code_tool()?;
-            }
-        },
+        }
 
         // ── setup ─────────────────────────────────────────────────────────────
         Some(Commands::Setup) => {

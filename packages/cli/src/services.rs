@@ -78,6 +78,12 @@ pub fn all() -> Vec<Service> {
             desc: "NATS job consumer",
             status: Status::Stopped,
         },
+        Service {
+            name: "node",
+            port: None,
+            desc: "compute node",
+            status: Status::Stopped,
+        },
     ]
 }
 
@@ -180,7 +186,13 @@ pub fn start_svc(svc: &Service, workspace: &Option<PathBuf>) -> Result<String, S
     let _ = fs::create_dir_all(&logs);
 
     // 1. Installed release binary
-    let installed = bin_dir().join(svc.name);
+    // "node" ships as "maschina-node" to avoid clashing with Node.js
+    let bin_name = if svc.name == "node" {
+        "maschina-node"
+    } else {
+        svc.name
+    };
+    let installed = bin_dir().join(bin_name);
     if installed.exists() {
         let log = open_log(&logs, svc.name)?;
         let child = Command::new(&installed)
@@ -207,6 +219,7 @@ pub fn start_svc(svc: &Service, workspace: &Option<PathBuf>) -> Result<String, S
         "gateway" => ("cargo", &["run", "-p", "maschina-gateway"], root.clone()),
         "realtime" => ("cargo", &["run", "-p", "maschina-realtime"], root.clone()),
         "daemon" => ("cargo", &["run", "-p", "maschina-daemon"], root.clone()),
+        "node" => ("cargo", &["run", "-p", "maschina-node"], root.clone()),
         "runtime" => (
             "python3",
             &[
