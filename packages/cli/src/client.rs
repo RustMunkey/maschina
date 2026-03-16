@@ -87,14 +87,14 @@ async fn parse<T: DeserializeOwned>(resp: Response) -> Result<T> {
                     .map(|s| s.to_string())
             })
             .unwrap_or_else(|| format!("HTTP {}: {}", status.as_u16(), body));
-        bail!("{}", msg);
+        bail!("{msg}");
     }
 
     // Handle empty 200/204 responses
     if body.is_empty() || body == "null" {
         return serde_json::from_str("null")
             .or_else(|_| serde_json::from_str("{}"))
-            .map_err(|e| anyhow::anyhow!("empty response: {}", e));
+            .map_err(|e| anyhow::anyhow!("empty response: {e}"));
     }
 
     serde_json::from_str(&body).map_err(|e| {

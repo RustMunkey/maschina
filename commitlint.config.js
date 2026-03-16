@@ -8,18 +8,18 @@ export default {
       2,
       "always",
       [
-        "feat",     // new feature
-        "fix",      // bug fix
-        "docs",     // documentation only
-        "style",    // formatting, no logic change
+        "feat", // new feature
+        "fix", // bug fix
+        "docs", // documentation only
+        "style", // formatting, no logic change
         "refactor", // code restructuring, no feature/fix
-        "perf",     // performance improvement
-        "test",     // adding or updating tests
-        "build",    // build system or deps
-        "ci",       // CI/CD changes
-        "chore",    // maintenance
-        "revert",   // revert a commit
-        "wip",      // work in progress (squash before merge)
+        "perf", // performance improvement
+        "test", // adding or updating tests
+        "build", // build system or deps
+        "ci", // CI/CD changes
+        "chore", // maintenance
+        "revert", // revert a commit
+        "wip", // work in progress (squash before merge)
       ],
     ],
   },

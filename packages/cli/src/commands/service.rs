@@ -21,7 +21,7 @@ pub fn start(name: Option<&str>, out: &Output) -> Result<()> {
 
     if targets.is_empty() {
         if let Some(n) = name {
-            out.warn(&format!("{} is already running", n));
+            out.warn(&format!("{n} is already running"));
         } else {
             out.success("all services already running", None::<()>);
         }
@@ -54,7 +54,7 @@ pub fn stop(name: Option<&str>, out: &Output) -> Result<()> {
 
     if targets.is_empty() {
         if let Some(n) = name {
-            out.warn(&format!("{} is not running", n));
+            out.warn(&format!("{n} is not running"));
         } else {
             out.warn("no services running");
         }
@@ -110,9 +110,9 @@ pub fn status(out: &Output) -> Result<()> {
             style("○").dim().to_string()
         };
 
-        let port_s = svc.port.map(|p| format!(":{}", p)).unwrap_or_default();
+        let port_s = svc.port.map(|p| format!(":{p}")).unwrap_or_default();
         let pid_s = match &svc.status {
-            services::Status::Running { pid: Some(p) } => format!("  pid {}", p),
+            services::Status::Running { pid: Some(p) } => format!("  pid {p}"),
             _ => String::new(),
         };
 

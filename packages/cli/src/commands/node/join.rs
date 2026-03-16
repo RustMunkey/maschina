@@ -75,7 +75,7 @@ pub async fn run(profile: &str, out: &Output) -> Result<()> {
             hw.gpu_count,
             hw.gpu_model.as_deref().unwrap_or("Unknown"),
             hw.gpu_vram_gb
-                .map(|g| format!("{:.1}", g))
+                .map(|g| format!("{g:.1}"))
                 .unwrap_or_else(|| "?".into())
         );
     } else {
@@ -166,7 +166,7 @@ pub async fn run(profile: &str, out: &Output) -> Result<()> {
     // 6. Upload public key
     let _: serde_json::Value = client
         .post(
-            &format!("/nodes/{}/public-key", node_id),
+            &format!("/nodes/{node_id}/public-key"),
             &serde_json::json!({ "publicKey": pubkey_hex }),
         )
         .await
@@ -183,7 +183,7 @@ pub async fn run(profile: &str, out: &Output) -> Result<()> {
     config::save(&cfg, profile)?;
 
     println!();
-    out.success(&format!("Node registered: {}", node_id), None::<()>);
+    out.success(&format!("Node registered: {node_id}"), None::<()>);
     println!();
     println!(
         "  Make sure maschina-runtime is running on {}.",
@@ -254,7 +254,7 @@ async fn run_node_loop(cfg: config::Config, node: NodeConfig, out: &Output) -> R
                 tokio::spawn(async move {
                     let _: Result<serde_json::Value, _> = client
                         .post(
-                            &format!("/nodes/{}/heartbeat", nid),
+                            &format!("/nodes/{nid}/heartbeat"),
                             &serde_json::json!({
                                 "cpuUsagePct": cpu_pct,
                                 "ramUsagePct": ram_pct,
@@ -300,7 +300,7 @@ async fn run_node_loop(cfg: config::Config, node: NodeConfig, out: &Output) -> R
                 // Drain: mark as draining so scheduler stops sending new tasks
                 let _: Result<serde_json::Value, _> = api_client
                     .patch(
-                        &format!("/nodes/{}", node_id),
+                        &format!("/nodes/{node_id}"),
                         &serde_json::json!({ "status": "draining" }),
                     )
                     .await;
@@ -333,19 +333,19 @@ async fn dispatch_to_local_runtime(
     let url = format!("{}/run", runtime_url.trim_end_matches('/'));
 
     let body: serde_json::Value = serde_json::from_slice(payload)
-        .map_err(|e| anyhow::anyhow!("invalid task payload: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("invalid task payload: {e}"))?;
 
     let resp = http
         .post(&url)
         .json(&body)
         .send()
         .await
-        .map_err(|e| anyhow::anyhow!("runtime unreachable ({}): {}", url, e))?;
+        .map_err(|e| anyhow::anyhow!("runtime unreachable ({url}): {e}"))?;
 
     if !resp.status().is_success() {
         let status = resp.status();
         let text = resp.text().await.unwrap_or_default();
-        anyhow::bail!("runtime error {}: {}", status, text);
+        anyhow::bail!("runtime error {status}: {text}");
     }
 
     let bytes = resp.bytes().await?;

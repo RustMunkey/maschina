@@ -59,12 +59,8 @@ pub async fn run(profile: &str, out: &Output) -> Result<()> {
         _ => style(&info.status).dim(),
     };
 
-    println!(
-        "  {} {}",
-        style(&info.name).bold(),
-        format!("({})", info.id)
-    );
-    println!("  Status:     {}", status_color);
+    println!("  {} ({})", style(&info.name).bold(), info.id);
+    println!("  Status:     {status_color}");
     println!(
         "  Reputation: {:.1}/100",
         info.reputation_score.unwrap_or(50.0)
@@ -90,7 +86,7 @@ pub async fn run(profile: &str, out: &Output) -> Result<()> {
     println!("  Earning runs:    {}", earnings.total_runs.unwrap_or(0));
 
     if let Some(hb) = &info.last_heartbeat_at {
-        println!("  Last heartbeat:  {}", hb);
+        println!("  Last heartbeat:  {hb}");
     }
 
     println!();

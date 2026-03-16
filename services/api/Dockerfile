@@ -10,6 +10,7 @@ COPY packages/types/package.json        ./packages/types/package.json
 COPY packages/auth/package.json         ./packages/auth/package.json
 COPY packages/billing/package.json      ./packages/billing/package.json
 COPY packages/cache/package.json        ./packages/cache/package.json
+COPY packages/chain/package.json        ./packages/chain/package.json
 COPY packages/db/package.json           ./packages/db/package.json
 COPY packages/email/package.json         ./packages/email/package.json
 COPY packages/events/package.json       ./packages/events/package.json
@@ -28,12 +29,14 @@ COPY packages/storage/package.json      ./packages/storage/package.json
 COPY packages/webhooks/package.json     ./packages/webhooks/package.json
 COPY packages/marketplace/package.json  ./packages/marketplace/package.json
 COPY packages/connectors/package.json   ./packages/connectors/package.json
+COPY services/analytics/package.json   ./services/analytics/package.json
 COPY services/api/package.json          ./services/api/package.json
 
 RUN pnpm install --frozen-lockfile
 
 # Copy source
 COPY packages ./packages
+COPY services/analytics ./services/analytics
 COPY services/api ./services/api
 
 # Build packages in dependency order
@@ -58,6 +61,8 @@ RUN pnpm --filter @maschina/storage build
 RUN pnpm --filter @maschina/webhooks build
 RUN pnpm --filter @maschina/marketplace build
 RUN pnpm --filter @maschina/connectors build
+RUN pnpm --filter @maschina/chain build
+RUN pnpm --filter @maschina/analytics build
 RUN pnpm --filter @maschina/api build
 
 # Use pnpm deploy to produce a self-contained directory with all deps resolved

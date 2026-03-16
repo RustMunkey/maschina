@@ -11,6 +11,7 @@ import numpy as np
 @dataclass
 class RunsetMetrics:
     """Aggregate metrics over a set of agent runs."""
+
     n: int
     success_rate: float
     avg_duration_secs: float
@@ -23,18 +24,24 @@ class RunsetMetrics:
     p50_tokens: float
     p95_tokens: float
     # Per-tier breakdown
-    by_tier: dict[str, "RunsetMetrics"] = field(default_factory=dict)
+    by_tier: dict[str, RunsetMetrics] = field(default_factory=dict)
 
 
 def compute_metrics(runs: list[dict[str, Any]]) -> RunsetMetrics:
     """Compute aggregate metrics from a list of run records."""
     if not runs:
         return RunsetMetrics(
-            n=0, success_rate=0.0, avg_duration_secs=0.0,
-            avg_input_tokens=0.0, avg_output_tokens=0.0,
-            avg_turns=0.0, avg_tool_calls=0.0,
-            p50_duration=0.0, p95_duration=0.0,
-            p50_tokens=0.0, p95_tokens=0.0,
+            n=0,
+            success_rate=0.0,
+            avg_duration_secs=0.0,
+            avg_input_tokens=0.0,
+            avg_output_tokens=0.0,
+            avg_turns=0.0,
+            avg_tool_calls=0.0,
+            p50_duration=0.0,
+            p95_duration=0.0,
+            p50_tokens=0.0,
+            p95_tokens=0.0,
         )
 
     successes = sum(1 for r in runs if r.get("status") == "completed")

@@ -9,7 +9,7 @@ use std::path::PathBuf;
 #[command(
     name = "maschina-code",
     about = "Interactive scaffold tool for Maschina projects",
-    version,
+    version
 )]
 struct Cli {
     #[command(subcommand)]

@@ -35,3 +35,4 @@ packages = ["src/maschina_model"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+addopts = "-p no:langsmith"

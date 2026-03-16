@@ -3,7 +3,7 @@
 use std::{
     fs,
     net::TcpStream,
-    path::PathBuf,
+    path::{Path, PathBuf},
     process::{Command, Stdio},
     time::Duration,
 };
@@ -98,7 +98,7 @@ pub fn bin_dir() -> PathBuf {
 }
 
 pub fn pid_path(name: &str) -> PathBuf {
-    pid_dir().join(format!("{}.pid", name))
+    pid_dir().join(format!("{name}.pid"))
 }
 
 pub fn log_dir(workspace: &Option<PathBuf>) -> PathBuf {
@@ -153,7 +153,7 @@ pub fn probe(svc: &Service) -> Status {
     Status::Stopped
 }
 
-pub fn probe_all(services: &mut Vec<Service>) {
+pub fn probe_all(services: &mut [Service]) {
     for svc in services.iter_mut() {
         svc.status = probe(svc);
     }
@@ -253,7 +253,7 @@ pub fn stop_svc(svc: &Service) -> String {
             Command::new("sh")
                 .args([
                     "-c",
-                    &format!("lsof -ti :{} | xargs kill -TERM 2>/dev/null || true", port),
+                    &format!("lsof -ti :{port} | xargs kill -TERM 2>/dev/null || true"),
                 ])
                 .status()
                 .ok();
@@ -265,14 +265,14 @@ pub fn stop_svc(svc: &Service) -> String {
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-pub fn open_log(dir: &PathBuf, name: &str) -> Result<fs::File, String> {
+pub fn open_log(dir: &Path, name: &str) -> Result<fs::File, String> {
     fs::OpenOptions::new()
         .create(true)
         .append(true)
-        .open(dir.join(format!("{}.log", name)))
+        .open(dir.join(format!("{name}.log")))
         .map_err(|e| e.to_string())
 }
 
 pub fn log_path(name: &str, workspace: &Option<PathBuf>) -> PathBuf {
-    log_dir(workspace).join(format!("{}.log", name))
+    log_dir(workspace).join(format!("{name}.log"))
 }

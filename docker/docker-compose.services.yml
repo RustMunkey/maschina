@@ -1,0 +1,161 @@
+name: maschina
+
+# Full backend stack — builds all 6 services from their Dockerfiles.
+# Run alongside the base compose file for a complete local environment.
+#
+# Usage: make services-up
+# Which runs: docker compose -f docker/docker-compose.yml -f docker/docker-compose.services.yml up -d --build
+#
+# Services talk to each other via Docker service names (not localhost).
+# Env vars load from .env in the repo root — copy .env.example and fill in secrets.
+
+services:
+
+  # ─── API (TypeScript / Hono) ──────────────────────────────────────────────
+  api:
+    build:
+      context: ..
+      dockerfile: services/api/Dockerfile
+    container_name: maschina-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-3000}:3000"
+    env_file: ../.env
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-maschina}:${POSTGRES_PASSWORD:-maschina}@postgres:5432/${POSTGRES_DB:-maschina}
+      REDIS_URL: redis://redis:6379
+      NATS_URL: nats://nats:4222
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ─── Gateway (Rust / Axum) ────────────────────────────────────────────────
+  gateway:
+    build:
+      context: ../services/gateway
+      dockerfile: Dockerfile
+    container_name: maschina-gateway
+    restart: unless-stopped
+    ports:
+      - "${GATEWAY_PORT:-8080}:8080"
+    env_file: ../.env
+    environment:
+      PORT: "8080"
+      API_BASE_URL: http://api:3000
+      REALTIME_BASE_URL: http://realtime:4000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ─── Realtime (Rust / Axum) ───────────────────────────────────────────────
+  realtime:
+    build:
+      context: ../services/realtime
+      dockerfile: Dockerfile
+    container_name: maschina-realtime
+    restart: unless-stopped
+    ports:
+      - "${REALTIME_PORT:-4000}:4000"
+    env_file: ../.env
+    environment:
+      PORT: "4000"
+      NATS_URL: nats://nats:4222
+    depends_on:
+      nats:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:4000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ─── Daemon (Rust) ────────────────────────────────────────────────────────
+  daemon:
+    build:
+      context: ../services/daemon
+      dockerfile: Dockerfile
+    container_name: maschina-daemon
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-maschina}:${POSTGRES_PASSWORD:-maschina}@postgres:5432/${POSTGRES_DB:-maschina}
+      NATS_URL: nats://nats:4222
+      RUNTIME_URL: http://runtime:8001
+      CHAIN_ENABLED: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      runtime:
+        condition: service_healthy
+
+  # ─── Runtime (Python / FastAPI) ───────────────────────────────────────────
+  runtime:
+    build:
+      context: ..
+      dockerfile: services/runtime/Dockerfile
+    container_name: maschina-runtime
+    restart: unless-stopped
+    ports:
+      - "${RUNTIME_PORT:-8001}:8001"
+    env_file: ../.env
+    environment:
+      PORT: "8001"
+      QDRANT_URL: http://qdrant:6333
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8001/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ─── Worker (Python — NATS consumer + Temporal worker) ────────────────────
+  worker:
+    build:
+      context: ..
+      dockerfile: services/worker/Dockerfile
+    container_name: maschina-worker
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-maschina}:${POSTGRES_PASSWORD:-maschina}@postgres:5432/${POSTGRES_DB:-maschina}
+      NATS_URL: nats://nats:4222
+      TEMPORAL_ADDRESS: temporal:7233
+      RUNTIME_URL: http://runtime:8001
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      temporal:
+        condition: service_healthy
+      runtime:
+        condition: service_healthy

@@ -57,7 +57,7 @@ pub fn default_max_tasks(hw: &HardwareInfo) -> u32 {
     if hw.has_gpu {
         (hw.gpu_count * 4).max(2)
     } else {
-        (hw.cpu_cores / 2).max(1).min(8)
+        (hw.cpu_cores / 2).clamp(1, 8)
     }
 }
 

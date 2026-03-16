@@ -122,7 +122,7 @@ pub async fn deploy(client: &ApiClient, name: String, out: &Output) -> Result<()
 }
 
 pub async fn stop(client: &ApiClient, id: String, out: &Output) -> Result<()> {
-    let _: serde_json::Value = client.delete(&format!("/agents/{}", id)).await?;
+    let _: serde_json::Value = client.delete(&format!("/agents/{id}")).await?;
     out.success(&format!("Agent {} deleted", style(&id).dim()), None::<()>);
     Ok(())
 }
@@ -134,7 +134,7 @@ pub async fn run_agent(
     out: &Output,
 ) -> Result<()> {
     let run: AgentRun = client
-        .post(&format!("/agents/{}/run", id), &RunBody { input: payload })
+        .post(&format!("/agents/{id}/run"), &RunBody { input: payload })
         .await?;
 
     if out.is_json() {
@@ -163,7 +163,7 @@ pub async fn run_agent(
 }
 
 pub async fn runs(client: &ApiClient, id: String, out: &Output) -> Result<()> {
-    let runs: Vec<AgentRun> = client.get(&format!("/agents/{}/runs", id)).await?;
+    let runs: Vec<AgentRun> = client.get(&format!("/agents/{id}/runs")).await?;
 
     if out.is_json() {
         out.list(&runs);
@@ -194,7 +194,7 @@ pub async fn runs(client: &ApiClient, id: String, out: &Output) -> Result<()> {
 }
 
 pub async fn inspect(client: &ApiClient, id: String, out: &Output) -> Result<()> {
-    let agent: Agent = client.get(&format!("/agents/{}", id)).await?;
+    let agent: Agent = client.get(&format!("/agents/{id}")).await?;
 
     if out.is_json() {
         out.data(&agent);

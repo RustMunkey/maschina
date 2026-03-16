@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 /// Tracked in git (no secrets). Global auth is at ~/.config/maschina/config.toml.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
+#[derive(Default)]
 pub struct ProjectConfig {
     pub project: ProjectMeta,
     pub agent: AgentDefaults,
@@ -29,16 +30,6 @@ pub struct AgentDefaults {
 pub struct RuntimeConfig {
     pub url: String,
     pub timeout_ms: u32,
-}
-
-impl Default for ProjectConfig {
-    fn default() -> Self {
-        Self {
-            project: ProjectMeta::default(),
-            agent: AgentDefaults::default(),
-            runtime: RuntimeConfig::default(),
-        }
-    }
 }
 
 impl Default for ProjectMeta {
