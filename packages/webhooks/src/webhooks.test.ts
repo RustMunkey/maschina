@@ -107,7 +107,7 @@ describe("nextRetryDelay", () => {
     for (let i = 0; i < delays.length - 1; i++) {
       const curr = delays[i];
       const next = delays[i + 1];
-      if (curr !== undefined && next !== undefined) {
+      if (curr != null && next != null) {
         expect(next).toBeGreaterThan(curr);
       }
     }
