@@ -1,0 +1,28 @@
+[Unit]
+Description=Maschina node worker (%i)
+Documentation=https://maschina.ai/docs/node
+After=network-online.target docker.service maschina-update@%i.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=%i
+
+# Wire in Rust + local bins (same as update service)
+Environment="PATH=/home/%i/.cargo/bin:/home/%i/.local/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStartPre=/bin/bash -c 'source /home/%i/.cargo/env 2>/dev/null || true'
+ExecStart=/home/%i/.local/bin/maschina node join
+
+Restart=on-failure
+RestartSec=30s
+
+# Give the node loop time to drain active tasks on stop (matches the 30s drain in join.rs)
+TimeoutStopSec=45s
+KillSignal=SIGINT
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=maschina-node
+
+[Install]
+WantedBy=multi-user.target
