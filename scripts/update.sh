@@ -61,6 +61,7 @@ needs_migrate()          { echo "$CHANGED" | grep -qE '^packages/db/migrations/'
 # ── Pull ──────────────────────────────────────────────────────────────────────
 
 log "pulling latest..."
+git checkout -- .
 git pull --ff-only origin main
 
 # ── Migrate ───────────────────────────────────────────────────────────────────
