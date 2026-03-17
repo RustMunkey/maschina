@@ -1,5 +1,5 @@
 import { db } from "@maschina/db";
-import { agents } from "@maschina/db";
+import { agentRuns, agents } from "@maschina/db";
 import { and, eq, isNull } from "@maschina/db";
 import { Subjects } from "@maschina/events";
 import { dispatchAgentRun } from "@maschina/jobs";
@@ -281,5 +281,38 @@ app.post(
     );
   },
 );
+
+// ── GET /agents/:id/runs/:runId ───────────────────────────────────────────────
+
+app.get("/:id/runs/:runId", requireAuth, async (c) => {
+  const user = c.get("user");
+  const agentId = c.req.param("id");
+  const runId = c.req.param("runId");
+
+  const [run] = await db
+    .select()
+    .from(agentRuns)
+    .where(
+      and(eq(agentRuns.id, runId), eq(agentRuns.agentId, agentId), eq(agentRuns.userId, user.id)),
+    )
+    .limit(1);
+
+  if (!run) throw new HTTPException(404, { message: "Run not found" });
+
+  return c.json({
+    id: run.id,
+    agentId: run.agentId,
+    status: run.status,
+    inputPayload: run.inputPayload,
+    outputPayload: run.outputPayload ?? null,
+    inputTokens: run.inputTokens ?? null,
+    outputTokens: run.outputTokens ?? null,
+    errorCode: run.errorCode ?? null,
+    errorMessage: run.errorMessage ?? null,
+    createdAt: run.createdAt.toISOString(),
+    startedAt: run.startedAt?.toISOString() ?? null,
+    finishedAt: run.finishedAt?.toISOString() ?? null,
+  });
+});
 
 export default app;
