@@ -88,6 +88,12 @@ export const walletNetworkEnum = pgEnum("wallet_network", [
   "solana_testnet",
 ]);
 
+// ─── Push notifications ───────────────────────────────────────────────────────
+export const pushPlatformEnum = pgEnum("push_platform", ["apns", "fcm", "webpush"]);
+
+// ─── Alerts ───────────────────────────────────────────────────────────────────
+export const alertSeverityEnum = pgEnum("alert_severity", ["info", "warning", "error", "critical"]);
+
 // ─── Notifications ────────────────────────────────────────────────────────────
 export const notificationTypeEnum = pgEnum("notification_type", [
   "agent_run_completed",

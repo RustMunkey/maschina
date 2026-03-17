@@ -1,4 +1,4 @@
-export type NotificationChannel = "email" | "in_app" | "push";
+export type NotificationChannel = "email" | "in_app" | "push" | "alert";
 
 export type NotificationType =
   | "agent_run_completed"

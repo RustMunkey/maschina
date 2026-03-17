@@ -24,6 +24,7 @@
     "@maschina/model": "workspace:*",
     "@maschina/nats": "workspace:*",
     "@maschina/notifications": "workspace:*",
+    "@maschina/push": "workspace:*",
     "@maschina/plans": "workspace:*",
     "@maschina/telemetry": "workspace:*",
     "@maschina/usage": "workspace:*",

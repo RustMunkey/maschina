@@ -15,6 +15,8 @@ export * from "./billing_events.js";
 export * from "./compliance.js";
 export * from "./webhooks.js";
 export * from "./notifications.js";
+export * from "./push_tokens.js";
+export * from "./alerts.js";
 export * from "./connectors.js";
 export * from "./marketplace.js";
 export * from "./misc.js";

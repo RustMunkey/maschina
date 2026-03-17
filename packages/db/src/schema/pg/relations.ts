@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import { agentPermissions, agentRuns, agents } from "./agents.js";
+import { alerts } from "./alerts.js";
 import { apiKeys } from "./api_keys.js";
 import { oauthAccounts, sessions, verificationTokens } from "./auth.js";
 import { billingEvents } from "./billing_events.js";
@@ -17,6 +18,7 @@ import { nodeCapabilities, nodeHeartbeats, nodes } from "./nodes.js";
 import { notifications } from "./notifications.js";
 import { organizationInvites, organizationMembers, organizations } from "./organizations.js";
 import { plans } from "./plans.js";
+import { pushTokens } from "./push_tokens.js";
 import { executionReceipts } from "./receipts.js";
 import { subscriptions as subs } from "./subscriptions.js";
 import { usageEvents, usageRollups } from "./usage.js";
@@ -39,6 +41,8 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   jobs: many(jobs),
   webhooks: many(webhooks),
   notifications: many(notifications),
+  alerts: many(alerts),
+  pushTokens: many(pushTokens),
   connectors: many(connectors),
   wallets: many(walletAddresses),
   files: many(files),

@@ -27,6 +27,15 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-maschina}:${POSTGRES_PASSWORD:-maschina}@postgres:5432/${POSTGRES_DB:-maschina}
       REDIS_URL: redis://redis:6379
       NATS_URL: nats://nats:4222
+      APNS_KEY_ID: ${APNS_KEY_ID:-}
+      APNS_TEAM_ID: ${APNS_TEAM_ID:-}
+      APNS_BUNDLE_ID: ${APNS_BUNDLE_ID:-}
+      APNS_PRIVATE_KEY: ${APNS_PRIVATE_KEY:-}
+      FCM_PROJECT_ID: ${FCM_PROJECT_ID:-}
+      FCM_SERVICE_ACCOUNT: ${FCM_SERVICE_ACCOUNT:-}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:team@maschina.ai}
     depends_on:
       postgres:
         condition: service_healthy
