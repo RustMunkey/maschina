@@ -48,6 +48,7 @@ jobs:
           pnpm --filter @maschina/telemetry build
           pnpm --filter @maschina/usage build
           pnpm --filter @maschina/billing build
+          pnpm --filter @maschina/push build
           pnpm --filter @maschina/notifications build
           pnpm --filter @maschina/validation build
           pnpm --filter @maschina/email build
@@ -141,6 +142,7 @@ jobs:
           pnpm --filter @maschina/telemetry build
           pnpm --filter @maschina/usage build
           pnpm --filter @maschina/billing build
+          pnpm --filter @maschina/push build
           pnpm --filter @maschina/notifications build
           pnpm --filter @maschina/validation build
           pnpm --filter @maschina/email build
