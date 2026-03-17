@@ -103,6 +103,7 @@ services:
     env_file: ../.env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-maschina}:${POSTGRES_PASSWORD:-maschina}@postgres:5432/${POSTGRES_DB:-maschina}
+      REDIS_URL: redis://redis:6379
       NATS_URL: nats://nats:4222
       RUNTIME_URL: http://runtime:8001
       CHAIN_ENABLED: "false"
