@@ -209,19 +209,21 @@ app.post(
 
     if (!agent) throw new HTTPException(404, { message: "Agent not found" });
 
-    // Validate model access and resolve to the appropriate model for this tier
-    if (input.model) {
-      const access = validateModelAccess(user.tier, input.model);
+    const agentConfig = (agent.config ?? {}) as Record<string, unknown>;
+
+    // Model priority: request body → agent config → tier default
+    const requestedModel =
+      input.model ?? (typeof agentConfig.model === "string" ? agentConfig.model : undefined);
+
+    if (requestedModel) {
+      const access = validateModelAccess(user.tier, requestedModel);
       if (!access.allowed) {
         throw new HTTPException(403, {
           message: access.reason ?? "Model not available on your plan.",
         });
       }
     }
-    const resolvedModel = resolveModel(user.tier, input.model);
-
-    // Resolve system prompt from agent config, fall back to a sensible default
-    const agentConfig = (agent.config ?? {}) as Record<string, unknown>;
+    const resolvedModel = resolveModel(user.tier, requestedModel);
     const systemPrompt =
       typeof agentConfig.systemPrompt === "string"
         ? agentConfig.systemPrompt
