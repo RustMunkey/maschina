@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     sandbox_memory_limit_mb: int = 128
     sandbox_cpu_limit_secs: int = 10
 
+    # Per-run resource limits (applied to the entire agent run process)
+    # These cap a single run's RAM and CPU regardless of how many tool calls it makes.
+    # Set to 0 to disable (not recommended on multi-tenant nodes).
+    run_memory_limit_mb: int = 1024  # 1 GB per run
+    run_cpu_limit_secs: int = 300  # matches default timeout
+
     # Agent collaboration — inter-agent delegation
     # MASCHINA_API_URL: internal base URL of the API service
     # INTERNAL_SECRET: shared secret for /internal/* routes (must match API service)
