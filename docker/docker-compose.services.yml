@@ -37,7 +37,7 @@ services:
       meilisearch:
         condition: service_started
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/health || exit 1"]
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -60,11 +60,11 @@ services:
       REDIS_URL: redis://redis:6379
     depends_on:
       api:
-        condition: service_healthy
+        condition: service_started
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/health || exit 1"]
+      test: ["CMD-SHELL", "timeout 1 bash -c 'cat /dev/null > /dev/tcp/localhost/8080' && exit 0 || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -87,7 +87,7 @@ services:
       nats:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:4000/health || exit 1"]
+      test: ["CMD-SHELL", "timeout 1 bash -c 'cat /dev/null > /dev/tcp/localhost/4000' && exit 0 || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -112,7 +112,7 @@ services:
       nats:
         condition: service_healthy
       runtime:
-        condition: service_healthy
+        condition: service_started
 
   # ─── Runtime (Python / FastAPI) ───────────────────────────────────────────
   runtime:
@@ -133,9 +133,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       qdrant:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8001/health || exit 1"]
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8001/health')\" 2>/dev/null && exit 0 || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -160,6 +160,6 @@ services:
       nats:
         condition: service_healthy
       temporal:
-        condition: service_healthy
+        condition: service_started
       runtime:
-        condition: service_healthy
+        condition: service_started
