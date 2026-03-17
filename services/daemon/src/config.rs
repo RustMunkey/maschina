@@ -34,6 +34,11 @@ pub struct Config {
     /// Enable on-chain receipt anchoring via NATS event dispatch.
     /// Off by default — set CHAIN_ENABLED=true once the chain worker is deployed.
     pub chain_enabled: bool,
+
+    /// URL of the API service (for internal notification dispatch).
+    pub api_url: String,
+    /// Shared secret for daemon→API internal calls (X-Internal-Secret header).
+    pub internal_secret: String,
 }
 
 impl Config {
@@ -75,6 +80,8 @@ impl Config {
             chain_enabled: env::var("CHAIN_ENABLED")
                 .map(|v| v == "true" || v == "1")
                 .unwrap_or(false),
+            api_url: env::var("API_URL").unwrap_or_else(|_| "http://localhost:3000".into()),
+            internal_secret: env::var("INTERNAL_SECRET").unwrap_or_default(),
         })
     }
 

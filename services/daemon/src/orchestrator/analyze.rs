@@ -12,6 +12,7 @@ pub async fn finalize_run(
     run: &QueuedRun,
     result: Result<RunOutput, DaemonError>,
     node_id: Option<Uuid>,
+    elapsed_ms: u64,
 ) {
     match result {
         Ok(output) => {
@@ -26,6 +27,7 @@ pub async fn finalize_run(
             update_node_reputation(state, node_id, "success");
             update_agent_reputation(state, run.agent_id, "success");
             notify_realtime(state, run, "completed", None).await;
+            notify_push(state, run, "completed", None, elapsed_ms).await;
 
             // Submit receipt hash to the on-chain settlement program (fire-and-forget).
             // No-op when CHAIN_ENABLED is false (default in dev).
@@ -64,6 +66,7 @@ pub async fn finalize_run(
             update_node_reputation(state, node_id, "timed_out");
             update_agent_reputation(state, run.agent_id, "failed");
             notify_realtime(state, run, "timed_out", Some("timeout")).await;
+            notify_push(state, run, "failed", Some("timeout"), 0).await;
         }
 
         Err(e) => {
@@ -74,6 +77,7 @@ pub async fn finalize_run(
             update_node_reputation(state, node_id, "failed");
             update_agent_reputation(state, run.agent_id, "failed");
             notify_realtime(state, run, "failed", Some(code)).await;
+            notify_push(state, run, "failed", Some(code), 0).await;
         }
     }
 }
@@ -184,6 +188,40 @@ async fn record_usage(
     });
 
     Ok(())
+}
+
+async fn notify_push(
+    state: &AppState,
+    run: &QueuedRun,
+    notif_type: &str,
+    error_code: Option<&str>,
+    elapsed_ms: u64,
+) {
+    if state.config.internal_secret.is_empty() {
+        return; // not configured — skip silently
+    }
+
+    let payload = serde_json::json!({
+        "userId": run.user_id,
+        "runId": run.id,
+        "agentId": run.agent_id,
+        "type": notif_type,
+        "durationMs": elapsed_ms,
+        "errorCode": error_code,
+    });
+
+    let url = format!("{}/internal/notify", state.config.api_url);
+    let result = state
+        .http
+        .post(&url)
+        .header("X-Internal-Secret", &*state.config.internal_secret)
+        .json(&payload)
+        .send()
+        .await;
+
+    if let Err(e) = result {
+        warn!(run_id = %run.id, error = %e, "Failed to dispatch push notification");
+    }
 }
 
 async fn notify_realtime(

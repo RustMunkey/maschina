@@ -94,6 +94,12 @@ pub enum Commands {
         cmd: NodeCommands,
     },
 
+    /// Manage push notifications
+    Push {
+        #[command(subcommand)]
+        cmd: PushCommands,
+    },
+
     /// Self-update the CLI
     Update,
 
@@ -234,6 +240,18 @@ pub enum NodeCommands {
     },
     /// Show this node's status, reputation score, and earnings
     Status,
+}
+
+// ── push ──────────────────────────────────────────────────────────────────────
+
+#[derive(Subcommand)]
+pub enum PushCommands {
+    /// Print the Web Push subscribe URL and open it in the browser
+    Subscribe,
+    /// Send a test push notification to verify your setup
+    Test,
+    /// List registered push tokens for your account
+    Tokens,
 }
 
 // ── config ────────────────────────────────────────────────────────────────────
@@ -399,6 +417,57 @@ async fn run() -> Result<()> {
                 commands::node::status::run(&cli.profile, &out).await?;
             }
         },
+
+        // ── push ──────────────────────────────────────────────────────────────
+        Some(Commands::Push { cmd }) => {
+            let (cfg, client) = commands::require_auth(&cli.profile)?;
+            match cmd {
+                PushCommands::Subscribe => {
+                    let url = format!("{}/notifications/subscribe", cfg.api_url);
+                    println!();
+                    println!("  Open this URL in your browser to enable Web Push notifications:");
+                    println!("  {}", console::style(&url).cyan());
+                    println!();
+                    // Best-effort browser open — ignore error
+                    let _ = Command::new(if cfg!(target_os = "macos") {
+                        "open"
+                    } else {
+                        "xdg-open"
+                    })
+                    .arg(&url)
+                    .spawn();
+                }
+                PushCommands::Test => {
+                    let _: serde_json::Value = client
+                        .post("/notifications/test", &serde_json::json!({}))
+                        .await?;
+                    out.success("Test notification sent", None::<()>);
+                    out.info("Check your devices — you should receive a push and an in-app notification.");
+                }
+                PushCommands::Tokens => {
+                    let tokens: serde_json::Value = client.get("/notifications/tokens").await?;
+                    if out.is_json() {
+                        println!("{}", serde_json::to_string_pretty(&tokens)?);
+                    } else {
+                        let arr = tokens.as_array().cloned().unwrap_or_default();
+                        if arr.is_empty() {
+                            out.warn("No push tokens registered. Run `maschina push subscribe` to add one.");
+                        } else {
+                            println!();
+                            for t in &arr {
+                                println!(
+                                    "  {} {}  {}",
+                                    console::style(t["id"].as_str().unwrap_or("")).dim(),
+                                    console::style(t["platform"].as_str().unwrap_or("")).bold(),
+                                    t["deviceName"].as_str().unwrap_or(""),
+                                );
+                            }
+                            println!();
+                        }
+                    }
+                }
+            }
+        }
 
         // ── update ────────────────────────────────────────────────────────────
         Some(Commands::Update) => {

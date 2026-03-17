@@ -165,6 +165,7 @@ async fn reap(state: &AppState, stuck: StuckRun, timeout_secs: i64) {
             timeout_secs: timeout_secs as u64,
         }),
         None,
+        0, // elapsed unknown — watchdog-reaped run
     )
     .await;
 }

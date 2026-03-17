@@ -2,12 +2,14 @@
  * Internal-only routes — not exposed through the public gateway.
  * Authenticated by a shared INTERNAL_SECRET header, not user JWTs.
  *
- * POST /internal/delegate — synchronous agent-to-agent delegation
- * POST /internal/run-event — realtime run status events from daemon
+ * POST /internal/delegate   — synchronous agent-to-agent delegation
+ * POST /internal/run-event  — realtime run status events from daemon
+ * POST /internal/notify     — push/in-app notification dispatch from daemon
  */
 import { agentSkills, agents, db } from "@maschina/db";
 import { and, eq, isNull } from "@maschina/db";
 import { resolveModel } from "@maschina/model";
+import { notifyAgentCompleted, notifyAgentFailed } from "@maschina/notifications";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 
@@ -113,6 +115,53 @@ app.post("/delegate", async (c) => {
   const output = result.output_payload?.text ?? "";
 
   return c.json({ runId, agentId: agent_id, callerAgentId: caller_agent_id ?? null, output });
+});
+
+// ─── POST /internal/notify ───────────────────────────────────────────────────
+// Push + in-app notification dispatch. Called by daemon after run completion.
+
+app.post("/notify", async (c) => {
+  const body = await c.req.json().catch(() => null);
+  const {
+    userId,
+    runId,
+    agentId,
+    type: notifType,
+    durationMs,
+    errorCode,
+  } = (body ?? {}) as Record<string, string>;
+
+  if (!userId || !runId || !agentId || !notifType) {
+    throw new HTTPException(400, { message: "userId, runId, agentId, and type are required" });
+  }
+
+  const [agent] = await db
+    .select({ name: agents.name })
+    .from(agents)
+    .where(eq(agents.id, agentId))
+    .limit(1);
+
+  const agentName = agent?.name ?? "Agent";
+
+  if (notifType === "completed") {
+    await notifyAgentCompleted({
+      userId,
+      runId,
+      agentId,
+      agentName,
+      durationMs: Number(durationMs ?? 0),
+    });
+  } else if (notifType === "failed") {
+    await notifyAgentFailed({
+      userId,
+      runId,
+      agentId,
+      agentName,
+      errorCode: errorCode ?? "unknown_error",
+    });
+  }
+
+  return c.json({ ok: true });
 });
 
 export default app;
