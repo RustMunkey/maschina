@@ -162,6 +162,6 @@ services:
       nats:
         condition: service_healthy
       temporal:
-        condition: service_started
+        condition: service_healthy
       runtime:
         condition: service_started

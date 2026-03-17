@@ -33,7 +33,7 @@ STREAM_CONFIG = StreamConfig(
     name=settings.stream_name,
     subjects=["maschina.jobs.>"],
     retention=RetentionPolicy.WORK_QUEUE,
-    max_age=86_400,  # 24h in seconds
+    max_age=86_400 * 1_000_000_000,  # 24h in nanoseconds
 )
 
 CONSUMER_CONFIG = ConsumerConfig(
