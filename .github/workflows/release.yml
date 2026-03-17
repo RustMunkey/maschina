@@ -259,8 +259,8 @@ jobs:
 
   # ── Build + push agent sandbox Docker image to GHCR ──────────────────────
 
-  publish-docker:
-    name: Publish Docker images
+  publish-sandbox:
+    name: Publish agent sandbox image
     runs-on: ubuntu-latest
     needs: [publish-release]
     steps:
