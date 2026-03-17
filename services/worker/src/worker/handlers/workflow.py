@@ -12,9 +12,18 @@ from ..workflows.temporal_worker import TASK_QUEUE
 
 log = structlog.get_logger()
 
+_client: Client | None = None
+
+
+async def _get_client() -> Client:
+    global _client
+    if _client is None:
+        _client = await Client.connect(settings.temporal_url)
+    return _client
+
 
 async def handle_workflow_trigger(job: WorkflowTriggerJob) -> None:
-    client = await Client.connect(settings.temporal_url)
+    client = await _get_client()
 
     wf_id = f"workflow-{job.run_id}"
 
