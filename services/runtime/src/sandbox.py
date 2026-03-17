@@ -1,28 +1,35 @@
 """
-Per-run resource limiting and environment isolation.
+Agent execution sandboxing — three-tier fallback.
 
-Wraps the entire agent execution in a child process with:
-  - rlimit: RLIMIT_AS  (virtual memory cap)
-  - rlimit: RLIMIT_CPU (CPU time cap)
-  - rlimit: RLIMIT_NOFILE (file descriptor cap — limits filesystem access)
-  - clean environment (no inherited secrets from parent process)
-  - isolated working directory (tmpdir, wiped after run)
+Tier 1 (strongest): gVisor container
+  Docker container with --runtime=runsc (gVisor user-space kernel).
+  Intercepts all syscalls, fully isolated rootfs, no network by default.
+  Requires: Docker + gVisor installed on the host, SANDBOX_IMAGE set.
+  Used on: production compute nodes (Linux).
 
-The parent runtime process stays healthy; only the child is killed on
-limit breach or timeout.
+Tier 2: subprocess + rlimit
+  Child process with RLIMIT_AS, RLIMIT_CPU, RLIMIT_NOFILE applied.
+  Clean environment (no secrets inherited), isolated tmpdir.
+  Used on: dev machines, nodes without Docker/gVisor.
 
-This is Unix-only. On non-Unix platforms the limits are skipped and
-execute() runs in-process (same behaviour as before this module existed).
+Tier 3 (fallback): in-process
+  No isolation. Only used when sandbox is disabled or on Windows.
+
+execute_sandboxed() selects the strongest available tier automatically.
 """
 
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import multiprocessing
 import os
 import platform
+import shutil
+import subprocess
 import tempfile
+from functools import lru_cache
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -31,10 +38,8 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 _IS_UNIX = platform.system() != "Windows"
+_IS_LINUX = platform.system() == "Linux"
 
-# Env vars the child process needs to function. Everything else is stripped.
-# API keys are intentionally excluded — the child receives them via req_dict
-# only when the runner reconstructs settings from the serialised request.
 _ALLOWED_ENV_KEYS = {
     "PATH",
     "HOME",
@@ -50,9 +55,101 @@ _ALLOWED_ENV_KEYS = {
 }
 
 
-def _clean_env() -> dict[str, str]:
-    """Return a minimal environment with no secrets inherited from the parent."""
-    return {k: v for k, v in os.environ.items() if k in _ALLOWED_ENV_KEYS}
+# ─── Tier 1: gVisor ──────────────────────────────────────────────────────────
+
+
+@lru_cache(maxsize=1)
+def _gvisor_available() -> bool:
+    """Return True if Docker is running and the runsc (gVisor) runtime is registered."""
+    if not _IS_LINUX:
+        return False
+    try:
+        result = subprocess.run(
+            ["docker", "info", "--format", "{{range $k, $v := .Runtimes}}{{$k}} {{end}}"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        return "runsc" in result.stdout
+    except Exception:
+        return False
+
+
+async def _execute_gvisor(req: RunRequest) -> RunResponse:
+    """Run the agent in a gVisor container. Communicates via stdin/stdout JSON."""
+    from .config import settings
+    from .models import RunResponse
+
+    timeout = float(req.timeout_secs or settings.default_timeout_secs)
+    memory_mb = settings.run_memory_limit_mb
+    image = settings.sandbox_image
+
+    # Agents with http_fetch get outbound network; others get none.
+    network = "bridge" if "http_fetch" in req.skills else "none"
+
+    # Pass only the API keys the runner actually needs — nothing else.
+    env_args: list[str] = []
+    for key in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "OLLAMA_BASE_URL"):
+        val = os.environ.get(key, "")
+        if val:
+            env_args += ["--env", f"{key}={val}"]
+
+    cmd = [
+        "docker",
+        "run",
+        "--rm",
+        "--runtime=runsc",
+        "--read-only",
+        "--tmpfs",
+        "/tmp:size=64m,noexec",
+        f"--network={network}",
+        f"--memory={memory_mb}m",
+        "--memory-swap=0",  # no swap
+        "--cpus=1",
+        "--user=nobody",
+        "--interactive",
+        "--label",
+        f"maschina-run-id={req.run_id}",
+        *env_args,
+        image,
+    ]
+
+    req_json = req.model_dump_json()
+
+    loop = asyncio.get_running_loop()
+
+    def _run_container() -> tuple[dict | None, str | None]:
+        try:
+            proc = subprocess.run(
+                cmd,
+                input=req_json,
+                capture_output=True,
+                text=True,
+                timeout=timeout + 10,
+            )
+            if proc.returncode != 0:
+                return None, f"container exited {proc.returncode}: {proc.stderr[:500]}"
+            return json.loads(proc.stdout), None
+        except subprocess.TimeoutExpired:
+            return None, f"run {req.run_id} exceeded timeout ({timeout}s)"
+        except Exception as exc:
+            return None, str(exc)
+
+    result_dict, error = await loop.run_in_executor(None, _run_container)
+
+    if error:
+        raise RuntimeError(error)
+    if result_dict is None:
+        raise RuntimeError(f"gVisor container returned no output for run {req.run_id}")
+
+    # If the entrypoint itself returned an error dict, propagate it
+    if "error" in result_dict and len(result_dict) == 1:
+        raise RuntimeError(result_dict["error"])
+
+    return RunResponse(**result_dict)
+
+
+# ─── Tier 2: subprocess + rlimit ─────────────────────────────────────────────
 
 
 def _child_worker(
@@ -63,10 +160,8 @@ def _child_worker(
     work_dir: str,
 ) -> None:
     """Entry point for the sandboxed child process."""
-    # Change to isolated working directory immediately.
     os.chdir(work_dir)
 
-    # Apply resource limits before doing anything else.
     if _IS_UNIX and (memory_limit_bytes > 0 or cpu_limit_secs > 0):
         import resource
 
@@ -74,10 +169,8 @@ def _child_worker(
             resource.setrlimit(resource.RLIMIT_AS, (memory_limit_bytes, memory_limit_bytes))
         if cpu_limit_secs > 0:
             resource.setrlimit(resource.RLIMIT_CPU, (cpu_limit_secs, cpu_limit_secs))
-        # Limit open file descriptors — reduces filesystem exposure
         resource.setrlimit(resource.RLIMIT_NOFILE, (64, 64))
 
-    # Reconstruct RunRequest inside the child (avoids pickling complex objects).
     import asyncio as _asyncio
 
     from .models import RunRequest
@@ -95,19 +188,10 @@ def _child_worker(
     _asyncio.run(_run())
 
 
-async def execute_sandboxed(req: RunRequest) -> RunResponse:
-    """
-    Run execute(req) in a resource-limited child process.
-
-    Falls back to in-process execution on Windows or when sandbox is disabled.
-    """
+async def _execute_subprocess(req: RunRequest) -> RunResponse:
+    """Run the agent in a resource-limited subprocess with env isolation."""
     from .config import settings
     from .models import RunResponse
-    from .runner import execute
-
-    # Skip sandboxing if disabled or on Windows
-    if not _IS_UNIX or not settings.sandbox_enabled:
-        return await execute(req)
 
     memory_limit_bytes = settings.run_memory_limit_mb * 1024 * 1024
     cpu_limit_secs = settings.run_cpu_limit_secs
@@ -115,8 +199,6 @@ async def execute_sandboxed(req: RunRequest) -> RunResponse:
 
     ctx = multiprocessing.get_context("spawn")
     result_queue: multiprocessing.Queue = ctx.Queue()
-
-    # Isolated tmpdir — child chdirs here; wiped after run regardless of outcome.
     work_dir = tempfile.mkdtemp(prefix=f"maschina-run-{req.run_id}-")
 
     proc = ctx.Process(
@@ -124,24 +206,14 @@ async def execute_sandboxed(req: RunRequest) -> RunResponse:
         args=(req.model_dump(), result_queue, memory_limit_bytes, cpu_limit_secs, work_dir),
         daemon=True,
     )
-    # Spawn with clean environment — no secrets leak into child
     proc.start()
-    logger.debug(
-        "sandboxed run started pid=%d run_id=%s mem_limit_mb=%d cpu_limit_secs=%d",
-        proc.pid,
-        req.run_id,
-        settings.run_memory_limit_mb,
-        cpu_limit_secs,
-    )
-
-    # Wait for result with timeout — runs in a thread so we don't block the event loop
-    import shutil
+    logger.debug("subprocess sandbox pid=%d run_id=%s", proc.pid, req.run_id)
 
     loop = asyncio.get_running_loop()
     try:
         result_dict, error = await asyncio.wait_for(
             loop.run_in_executor(None, result_queue.get),
-            timeout=timeout + 5,  # small buffer beyond run timeout
+            timeout=timeout + 5,
         )
     except TimeoutError:
         proc.kill()
@@ -155,8 +227,35 @@ async def execute_sandboxed(req: RunRequest) -> RunResponse:
 
     if error is not None:
         raise RuntimeError(error)
-
     if result_dict is None:
         raise RuntimeError(f"run {req.run_id} produced no result")
 
     return RunResponse(**result_dict)
+
+
+# ─── Public entry point ───────────────────────────────────────────────────────
+
+
+async def execute_sandboxed(req: RunRequest) -> RunResponse:
+    """
+    Execute an agent run in the strongest available sandbox tier.
+
+    Tier 1 (gVisor) → Tier 2 (subprocess rlimit) → Tier 3 (in-process)
+    """
+    from .config import settings
+    from .runner import execute
+
+    if not settings.sandbox_enabled:
+        logger.warning("sandbox disabled — running agent in-process (not recommended on nodes)")
+        return await execute(req)
+
+    if settings.sandbox_image and _gvisor_available():
+        logger.info("sandbox=gvisor run_id=%s image=%s", req.run_id, settings.sandbox_image)
+        return await _execute_gvisor(req)
+
+    if _IS_UNIX:
+        logger.info("sandbox=subprocess run_id=%s", req.run_id)
+        return await _execute_subprocess(req)
+
+    logger.warning("sandbox=none (non-Unix host) run_id=%s", req.run_id)
+    return await execute(req)

@@ -38,6 +38,12 @@ class Settings(BaseSettings):
     run_memory_limit_mb: int = 1024  # 1 GB per run
     run_cpu_limit_secs: int = 300  # matches default timeout
 
+    # gVisor container sandbox (Tier 1 — strongest isolation, Linux only)
+    # Set to the pre-built agent sandbox image to enable gVisor mode.
+    # Requires Docker + gVisor (runsc) on the host. Falls back to subprocess if unset.
+    # Example: ghcr.io/rustmunkey/maschina-agent-sandbox:latest
+    sandbox_image: str = ""
+
     # Agent collaboration — inter-agent delegation
     # MASCHINA_API_URL: internal base URL of the API service
     # INTERNAL_SECRET: shared secret for /internal/* routes (must match API service)
