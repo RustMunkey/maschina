@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { db } from "@maschina/db";
 import { alerts, notifications, pushTokens } from "@maschina/db";
 import { and, desc, eq, lt } from "@maschina/db";
@@ -30,8 +31,9 @@ self.addEventListener("push", function(event) {
   event.waitUntil(
     self.registration.showNotification(data.title ?? "Maschina", {
       body: data.body ?? "",
+      icon: "/notifications/icon.png",
+      badge: "/notifications/badge.png",
       data: data.data ?? {},
-      badge: "/badge-72x72.png",
     })
   );
 });
@@ -45,6 +47,32 @@ self.addEventListener("notificationclick", function(event) {
   c.header("Content-Type", "application/javascript");
   c.header("Service-Worker-Allowed", "/");
   return c.body(js);
+});
+
+// GET /notifications/icon.png
+// App icon for Web Push notifications.
+app.get("/icon.png", async (c) => {
+  try {
+    const img = await readFile("./public/icon.png");
+    c.header("Content-Type", "image/png");
+    c.header("Cache-Control", "public, max-age=86400");
+    return c.body(img);
+  } catch {
+    throw new HTTPException(404, { message: "icon not found" });
+  }
+});
+
+// GET /notifications/badge.png
+// Badge icon for Web Push notifications.
+app.get("/badge.png", async (c) => {
+  try {
+    const img = await readFile("./public/badge.png");
+    c.header("Content-Type", "image/png");
+    c.header("Cache-Control", "public, max-age=86400");
+    return c.body(img);
+  } catch {
+    throw new HTTPException(404, { message: "badge not found" });
+  }
 });
 
 // GET /notifications/subscribe
