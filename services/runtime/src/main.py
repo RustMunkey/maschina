@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 
 from .config import settings
 from .models import ErrorResponse, RunRequest, RunResponse
-from .runner import execute
+from .sandbox import execute_sandboxed
 from .streaming import stream_run
 
 logging.basicConfig(
@@ -49,7 +49,7 @@ async def run_agent(req: RunRequest) -> RunResponse:
     """
     logger.info("starting run", extra={"run_id": req.run_id, "model": req.model})
     try:
-        return await execute(req)
+        return await execute_sandboxed(req)
     except RuntimeError as exc:
         raise HTTPException(status_code=504, detail=str(exc))
     except Exception as exc:
