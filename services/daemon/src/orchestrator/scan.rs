@@ -11,7 +11,9 @@ const CONSUMER_NAME: &str = "daemon-agent-execute";
 const FILTER_SUBJECT: &str = "maschina.jobs.agent.agent.execute";
 
 /// A deserialized agent execution job from NATS.
+/// TypeScript dispatcher publishes camelCase field names.
 #[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AgentExecuteJob {
     pub run_id: Uuid,
     pub agent_id: Uuid,
