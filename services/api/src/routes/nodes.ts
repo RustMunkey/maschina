@@ -19,16 +19,16 @@ const app = new Hono<{ Variables: Variables }>();
 
 const CapabilitiesSchema = z.object({
   cpuCores: z.number().int().positive().optional(),
-  cpuModel: z.string().optional(),
-  architecture: z.enum(["amd64", "arm64", "x86_64", "aarch64"]).optional(),
+  cpuModel: z.string().nullish(),
+  architecture: z.enum(["amd64", "arm64", "x86_64", "aarch64"]).nullish(),
   ramGb: z.number().positive().optional(),
   storageGb: z.number().positive().optional(),
   hasGpu: z.boolean().optional(),
   gpuModel: z.string().nullish(),
   gpuVramGb: z.number().positive().nullish(),
   gpuCount: z.number().int().positive().nullish(),
-  osType: z.enum(["linux", "macos", "windows"]).optional(),
-  osVersion: z.string().optional(),
+  osType: z.enum(["linux", "macos", "windows"]).nullish(),
+  osVersion: z.string().nullish(),
   maxConcurrentTasks: z.number().int().min(1).default(1),
   networkBandwidthMbps: z.number().int().positive().optional(),
   supportedModels: z.array(z.string()).default([]),
@@ -36,11 +36,11 @@ const CapabilitiesSchema = z.object({
 
 const RegisterNodeSchema = z.object({
   name: z.string().min(1).max(100),
-  description: z.string().optional(),
-  region: z.string().optional(),
+  description: z.string().nullish(),
+  region: z.string().nullish(),
   // null = NATS-only node (no public endpoint required — home users behind NAT)
-  internalUrl: z.string().url().optional(),
-  version: z.string().optional(),
+  internalUrl: z.string().url().nullish(),
+  version: z.string().nullish(),
   capabilities: CapabilitiesSchema.optional(),
 });
 
