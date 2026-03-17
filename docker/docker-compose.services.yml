@@ -133,7 +133,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       qdrant:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8001/health || exit 1"]
       interval: 15s
