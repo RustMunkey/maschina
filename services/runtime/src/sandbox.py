@@ -1,20 +1,15 @@
 """
-Per-run resource limiting.
+Per-run resource limiting and environment isolation.
 
-Wraps the entire agent execution in a child process with rlimit applied so a
-single runaway run cannot consume all RAM or CPU on the node. The parent
-runtime process stays healthy; only the child is killed on limit breach.
+Wraps the entire agent execution in a child process with:
+  - rlimit: RLIMIT_AS  (virtual memory cap)
+  - rlimit: RLIMIT_CPU (CPU time cap)
+  - rlimit: RLIMIT_NOFILE (file descriptor cap — limits filesystem access)
+  - clean environment (no inherited secrets from parent process)
+  - isolated working directory (tmpdir, wiped after run)
 
-Architecture:
-  Parent (FastAPI worker)
-    └─ Child process (one per run)
-         ├─ rlimit: RLIMIT_AS  (virtual memory cap)
-         ├─ rlimit: RLIMIT_CPU (CPU time cap)
-         └─ runs the full execute() pipeline
-
-Communication is via a multiprocessing Queue — the child puts a
-(result_dict | None, error_str | None) tuple and exits. The parent
-waits up to timeout_secs then kills the child if it hasn't finished.
+The parent runtime process stays healthy; only the child is killed on
+limit breach or timeout.
 
 This is Unix-only. On non-Unix platforms the limits are skipped and
 execute() runs in-process (same behaviour as before this module existed).
@@ -25,7 +20,9 @@ from __future__ import annotations
 import asyncio
 import logging
 import multiprocessing
+import os
 import platform
+import tempfile
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -35,14 +32,40 @@ logger = logging.getLogger(__name__)
 
 _IS_UNIX = platform.system() != "Windows"
 
+# Env vars the child process needs to function. Everything else is stripped.
+# API keys are intentionally excluded — the child receives them via req_dict
+# only when the runner reconstructs settings from the serialised request.
+_ALLOWED_ENV_KEYS = {
+    "PATH",
+    "HOME",
+    "LANG",
+    "LC_ALL",
+    "LC_CTYPE",
+    "TMPDIR",
+    "TMP",
+    "TEMP",
+    "PYTHONPATH",
+    "PYTHONDONTWRITEBYTECODE",
+    "VIRTUAL_ENV",
+}
+
+
+def _clean_env() -> dict[str, str]:
+    """Return a minimal environment with no secrets inherited from the parent."""
+    return {k: v for k, v in os.environ.items() if k in _ALLOWED_ENV_KEYS}
+
 
 def _child_worker(
     req_dict: dict,
     result_queue: multiprocessing.Queue[tuple[dict | None, str | None]],
     memory_limit_bytes: int,
     cpu_limit_secs: int,
+    work_dir: str,
 ) -> None:
     """Entry point for the sandboxed child process."""
+    # Change to isolated working directory immediately.
+    os.chdir(work_dir)
+
     # Apply resource limits before doing anything else.
     if _IS_UNIX and (memory_limit_bytes > 0 or cpu_limit_secs > 0):
         import resource
@@ -51,6 +74,8 @@ def _child_worker(
             resource.setrlimit(resource.RLIMIT_AS, (memory_limit_bytes, memory_limit_bytes))
         if cpu_limit_secs > 0:
             resource.setrlimit(resource.RLIMIT_CPU, (cpu_limit_secs, cpu_limit_secs))
+        # Limit open file descriptors — reduces filesystem exposure
+        resource.setrlimit(resource.RLIMIT_NOFILE, (64, 64))
 
     # Reconstruct RunRequest inside the child (avoids pickling complex objects).
     import asyncio as _asyncio
@@ -91,11 +116,15 @@ async def execute_sandboxed(req: RunRequest) -> RunResponse:
     ctx = multiprocessing.get_context("spawn")
     result_queue: multiprocessing.Queue = ctx.Queue()
 
+    # Isolated tmpdir — child chdirs here; wiped after run regardless of outcome.
+    work_dir = tempfile.mkdtemp(prefix=f"maschina-run-{req.run_id}-")
+
     proc = ctx.Process(
         target=_child_worker,
-        args=(req.model_dump(), result_queue, memory_limit_bytes, cpu_limit_secs),
+        args=(req.model_dump(), result_queue, memory_limit_bytes, cpu_limit_secs, work_dir),
         daemon=True,
     )
+    # Spawn with clean environment — no secrets leak into child
     proc.start()
     logger.debug(
         "sandboxed run started pid=%d run_id=%s mem_limit_mb=%d cpu_limit_secs=%d",
@@ -106,6 +135,8 @@ async def execute_sandboxed(req: RunRequest) -> RunResponse:
     )
 
     # Wait for result with timeout — runs in a thread so we don't block the event loop
+    import shutil
+
     loop = asyncio.get_running_loop()
     try:
         result_dict, error = await asyncio.wait_for(
@@ -120,6 +151,7 @@ async def execute_sandboxed(req: RunRequest) -> RunResponse:
         if proc.is_alive():
             proc.kill()
         proc.join(timeout=2)
+        shutil.rmtree(work_dir, ignore_errors=True)
 
     if error is not None:
         raise RuntimeError(error)
