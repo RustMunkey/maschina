@@ -1,11 +1,13 @@
 ## Maschina — Local development, testing, and operations
 ##
+## First time:                 make install && cp .env.local.example .env.local (edit it)
+## Start everything:           make dev  (or ./dev.sh)
 ## Infrastructure (Docker):    make up / make down / make reset
 ## Backend services (Docker):  make services-up / make services-down
 ## Dev mode (hot reload):      make dev-api / make dev-daemon / etc.
 ## Testing:                    make test / make test-ts / make test-rust / make test-python
 ## Database:                   make db-migrate / make db-seed / make db-studio
-## Health checks:              make health
+## Health checks:              make health / make dev-status
 ## Build:                      make build / make clean
 ## CI simulation:              make ci
 
@@ -17,6 +19,22 @@ BOLD  := \033[1m
 GREEN := \033[32m
 CYAN  := \033[36m
 RESET := \033[0m
+
+.PHONY: dev
+dev: ## Start full local stack (infra + all services) — first run: make install && cp .env.local.example .env.local
+	./dev.sh
+
+.PHONY: dev-stop
+dev-stop: ## Stop all background services started by ./dev.sh
+	./dev.sh stop
+
+.PHONY: dev-status
+dev-status: ## Show health of all running services
+	./dev.sh status
+
+.PHONY: dev-logs
+dev-logs: ## Tail all service logs
+	./dev.sh logs
 
 .PHONY: help
 help: ## Show this help
