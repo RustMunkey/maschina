@@ -318,8 +318,12 @@ export function validateModelAccess(tier: PlanTier, modelId: string): ModelAcces
 
   // Not in catalog — try passthrough by prefix
   const provider = inferProvider(modelId);
-  if (provider && provider !== "ollama") {
-    // Passthrough requires at least M1
+  if (provider === "ollama") {
+    // Any ollama/* model is allowed at all tiers — local, always free
+    return { allowed: true, model: undefined, passthrough: true };
+  }
+  if (provider) {
+    // Non-ollama passthrough requires at least M1
     if (TIER_RANK[tier] < TIER_RANK.m1) {
       return {
         allowed: false,
