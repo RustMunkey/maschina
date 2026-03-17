@@ -106,6 +106,7 @@ services:
       REDIS_URL: redis://redis:6379
       NATS_URL: nats://nats:4222
       RUNTIME_URL: http://runtime:8001
+      REALTIME_URL: http://realtime:4000
       CHAIN_ENABLED: "false"
     depends_on:
       postgres:
