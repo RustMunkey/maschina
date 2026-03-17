@@ -33,7 +33,11 @@ pub fn detect() -> HardwareInfo {
     let ram_gb = (ram_bytes as f64 / 1_073_741_824.0 * 10.0).round() / 10.0;
 
     let os_type = std::env::consts::OS.to_string();
-    let architecture = std::env::consts::ARCH.to_string();
+    let architecture = match std::env::consts::ARCH {
+        "x86_64" => "amd64".to_string(),
+        "aarch64" => "arm64".to_string(),
+        other => other.to_string(),
+    };
     let os_version = System::os_version().unwrap_or_else(|| "unknown".to_string());
 
     let (has_gpu, gpu_model, gpu_vram_gb, gpu_count) = detect_gpu();
