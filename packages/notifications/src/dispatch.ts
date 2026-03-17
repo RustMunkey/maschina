@@ -4,7 +4,7 @@ import { eq } from "@maschina/db";
 import { Subjects } from "@maschina/events";
 import { publishSafe } from "@maschina/nats";
 import { sendPushToTargets } from "@maschina/push";
-import type { PushTarget } from "@maschina/push";
+import type { PushSubscription, PushTarget } from "@maschina/push";
 import type { NotificationChannel, NotificationPayload, NotificationType } from "./types.js";
 
 // ─── Core dispatch ────────────────────────────────────────────────────────────
@@ -63,10 +63,10 @@ async function _deliverPush(
 
   if (tokens.length === 0) return;
 
-  const targets: PushTarget[] = tokens.map((t) => ({
+  const targets: PushTarget[] = tokens.map((t: (typeof tokens)[number]) => ({
     id: t.id,
     platform: t.platform,
-    subscription: t.subscription as any,
+    subscription: t.subscription as PushSubscription,
   }));
 
   const msg = {
