@@ -78,6 +78,9 @@ async fn parse<T: DeserializeOwned>(resp: Response) -> Result<T> {
     let body = resp.text().await?;
 
     if !status.is_success() {
+        if status.as_u16() == 401 {
+            bail!("authentication failed — run `maschina login` to re-authenticate");
+        }
         let msg = serde_json::from_str::<serde_json::Value>(&body)
             .ok()
             .and_then(|v| {
