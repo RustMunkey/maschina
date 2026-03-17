@@ -26,6 +26,10 @@ class RunRequest(BaseModel):
     skills: list[str] = Field(default_factory=list)
     skill_configs: dict[str, dict[str, Any]] = Field(default_factory=dict)
 
+    # Delegation chain depth — incremented each time delegate_agent is called.
+    # Passed in by the internal dispatch API; enforced in DelegateAgentTool.
+    delegation_depth: int = 0
+
 
 class RunResponse(BaseModel):
     """Returned to the daemon after the run completes."""
