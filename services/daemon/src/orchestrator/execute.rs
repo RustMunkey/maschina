@@ -49,18 +49,20 @@ pub async fn execute_run(state: AppState, run: QueuedRun) {
         }
     };
 
+    let start = std::time::Instant::now();
     let result = timeout(timeout_dur, dispatch_run(&state, &run, dispatch)).await;
+    let elapsed_ms = start.elapsed().as_millis() as u64;
 
     match result {
         Ok(Ok(output)) => {
             info!(run_id = %run.id, "Agent run completed successfully");
-            super::analyze::finalize_run(&state, &run, Ok(output), node_id).await;
+            super::analyze::finalize_run(&state, &run, Ok(output), node_id, elapsed_ms).await;
             state.metrics.runs_executing.dec();
             state.metrics.runs_completed.inc();
         }
         Ok(Err(e)) => {
             warn!(run_id = %run.id, error = %e, "Agent run returned error");
-            super::analyze::finalize_run(&state, &run, Err(e), node_id).await;
+            super::analyze::finalize_run(&state, &run, Err(e), node_id, elapsed_ms).await;
             state.metrics.runs_executing.dec();
             state.metrics.runs_failed.inc();
         }
@@ -70,7 +72,7 @@ pub async fn execute_run(state: AppState, run: QueuedRun) {
                 run_id: run.id,
                 timeout_secs: run.timeout_secs as u64,
             };
-            super::analyze::finalize_run(&state, &run, Err(err), node_id).await;
+            super::analyze::finalize_run(&state, &run, Err(err), node_id, elapsed_ms).await;
             state.metrics.runs_executing.dec();
             state.metrics.runs_timed_out.inc();
         }
