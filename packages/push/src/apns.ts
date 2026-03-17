@@ -23,11 +23,11 @@ export async function sendApns(sub: ApnsSubscription, msg: PushMessage): Promise
 
   const note = new apn.Notification();
   note.expiry = Math.floor(Date.now() / 1000) + 3600; // 1h
-  note.badge = msg.badge;
+  if (msg.badge !== undefined) note.badge = msg.badge;
   note.sound = msg.sound ?? "default";
   note.alert = { title: msg.title, body: msg.body };
   note.topic = pushConfig.apns.bundleId;
-  note.collapseId = msg.collapseKey;
+  if (msg.collapseKey !== undefined) note.collapseId = msg.collapseKey;
   if (msg.data) {
     note.payload = { data: msg.data };
   }
