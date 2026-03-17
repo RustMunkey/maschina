@@ -209,6 +209,10 @@ build-console: ## Build console for production
 build-desktop: ## Build desktop app (Tauri 2)
 	pnpm run build:desktop
 
+.PHONY: build-sandbox
+build-sandbox: ## Build agent sandbox Docker image (for local testing of gVisor tier)
+	docker build -f docker/agent-sandbox/Dockerfile -t maschina-agent-sandbox:local .
+
 .PHONY: clean
 clean: ## Remove all build artifacts
 	pnpm clean

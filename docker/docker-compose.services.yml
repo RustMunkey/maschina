@@ -127,6 +127,10 @@ services:
     environment:
       PORT: "8001"
       QDRANT_URL: http://qdrant:6333
+    volumes:
+      # Required for Tier 1 (gVisor) sandboxing: runtime spawns agent containers via Docker-in-Docker.
+      # Only mounted when SANDBOX_IMAGE is set — safe to omit on hosts without gVisor.
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       qdrant:
         condition: service_healthy
