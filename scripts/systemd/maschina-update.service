@@ -5,11 +5,10 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-User=%i
 ExecStart=/bin/bash %h/Desktop/maschina/scripts/update.sh
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=maschina-update
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
