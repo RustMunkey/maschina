@@ -1,0 +1,11 @@
+[Unit]
+Description=Maschina auto-update
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=%i
+ExecStart=/bin/bash %h/Desktop/maschina/scripts/update.sh
+StandardOutput=journal
+StandardError=journal

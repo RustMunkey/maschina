@@ -213,6 +213,10 @@ build-desktop: ## Build desktop app (Tauri 2)
 build-sandbox: ## Build agent sandbox Docker image (for local testing of gVisor tier)
 	docker build -f docker/agent-sandbox/Dockerfile -t maschina-agent-sandbox:local .
 
+.PHONY: update
+update: ## Run auto-update check (pull latest, rebuild changed services)
+	bash scripts/update.sh
+
 .PHONY: clean
 clean: ## Remove all build artifacts
 	pnpm clean

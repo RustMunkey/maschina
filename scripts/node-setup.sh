@@ -54,8 +54,30 @@ header "1/6  System dependencies"
 sudo apt-get update -qq
 sudo apt-get install -y --no-install-recommends \
   build-essential curl git pkg-config libssl-dev \
-  python3 python3-pip python3-venv \
-  ca-certificates
+  python3 python3-pip python3-venv python3-dev \
+  ca-certificates docker.io docker-compose-v2
+
+# Node.js 22 (LTS)
+if ! command -v node &>/dev/null || [[ "$(node --version | cut -d. -f1 | tr -d v)" -lt 20 ]]; then
+  info "Installing Node.js 22..."
+  curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+  sudo apt-get install -y nodejs
+fi
+
+# pnpm (via standalone installer — avoids npm permission issues)
+if ! command -v pnpm &>/dev/null; then
+  info "Installing pnpm..."
+  curl -fsSL https://get.pnpm.io/install.sh | sh -
+  export PNPM_HOME="$HOME/.local/share/pnpm"
+  export PATH="$PNPM_HOME:$PATH"
+fi
+
+# Docker group
+if ! groups | grep -q docker; then
+  sudo groupadd docker 2>/dev/null || true
+  sudo usermod -aG docker "$USER"
+  info "Added $USER to docker group — will take effect after re-login"
+fi
 
 success "System packages installed"
 
@@ -194,9 +216,14 @@ StandardError=journal
 WantedBy=multi-user.target
 EOF
 
+# Auto-update timer (checks for new commits every 5 minutes)
+sudo cp "$REPO_ROOT/scripts/systemd/maschina-update.service" /etc/systemd/system/maschina-update@.service
+sudo cp "$REPO_ROOT/scripts/systemd/maschina-update.timer"   /etc/systemd/system/maschina-update@.timer
+
 sudo systemctl daemon-reload
 sudo systemctl enable maschina-runtime.service
 sudo systemctl enable maschina-node.service
+sudo systemctl enable --now "maschina-update@$USER.timer"
 
 success "Systemd services installed and enabled"
 
