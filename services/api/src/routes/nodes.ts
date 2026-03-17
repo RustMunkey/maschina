@@ -20,7 +20,7 @@ const app = new Hono<{ Variables: Variables }>();
 const CapabilitiesSchema = z.object({
   cpuCores: z.number().int().positive().optional(),
   cpuModel: z.string().optional(),
-  architecture: z.enum(["amd64", "arm64"]).optional(),
+  architecture: z.enum(["amd64", "arm64", "x86_64", "aarch64"]).optional(),
   ramGb: z.number().positive().optional(),
   storageGb: z.number().positive().optional(),
   hasGpu: z.boolean().optional(),
