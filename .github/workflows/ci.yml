@@ -58,6 +58,8 @@ jobs:
           pnpm --filter @maschina/flags build
           pnpm --filter @maschina/analytics build
           pnpm --filter @maschina/chain build
+          pnpm --filter @maschina/connectors build
+          pnpm --filter @maschina/marketplace build
 
       - run: pnpm typecheck
 
@@ -148,6 +150,8 @@ jobs:
           pnpm --filter @maschina/storage build
           pnpm --filter @maschina/flags build
           pnpm --filter @maschina/analytics build
+          pnpm --filter @maschina/connectors build
+          pnpm --filter @maschina/marketplace build
 
       - name: Run migrations
         run: pnpm db:migrate
