@@ -587,16 +587,39 @@ fn config_set_value(cfg: &mut config::Config, key: &str, value: &str) -> Result<
 // ── update ────────────────────────────────────────────────────────────────────
 
 fn self_update(out: &output::Output) -> Result<()> {
-    out.info("checking for updates...");
-    // Download and replace binary from GitHub releases.
-    // For now, delegate to the install script which handles platform detection.
+    // 1. Node update — if running on a Maschina node, run the update script first.
+    //    This pulls latest code, rebuilds changed services, and applies migrations.
+    let home = std::env::var("HOME").unwrap_or_default();
+    let update_script = std::path::PathBuf::from(&home)
+        .join("Desktop")
+        .join("maschina")
+        .join("scripts")
+        .join("update.sh");
+
+    if update_script.exists() {
+        out.info("node detected — running update script...");
+        let status = Command::new("bash").arg(&update_script).status();
+
+        match status {
+            Ok(s) if s.success() => {
+                out.success("Node updated successfully", None::<()>);
+            }
+            _ => {
+                out.warn("node update script failed — check `journalctl -u maschina-update@$USER.service`");
+            }
+        }
+        return Ok(());
+    }
+
+    // 2. CLI self-update — not on a node, just update the binary.
+    out.info("checking for CLI updates...");
     let script_url = "https://raw.githubusercontent.com/RustMunkey/maschina/main/install.sh";
     let status = Command::new("sh")
         .args(["-c", &format!("curl -fsSL {script_url} | sh")])
         .status();
 
     match status {
-        Ok(s) if s.success() => out.success("Updated to latest version", None::<()>),
+        Ok(s) if s.success() => out.success("CLI updated to latest version", None::<()>),
         _ => {
             out.warn("auto-update failed — download manually from:");
             println!("  https://github.com/RustMunkey/maschina/releases");
