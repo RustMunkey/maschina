@@ -1,5 +1,5 @@
 {
-  "name": "@maschina/notifications",
+  "name": "@maschina/push",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -18,14 +18,14 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@maschina/db": "workspace:*",
-    "@maschina/events": "workspace:*",
-    "@maschina/nats": "workspace:*",
-    "@maschina/push": "workspace:*"
+    "@parse/node-apn": "^3.0.0",
+    "google-auth-library": "^9.0.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@maschina/tsconfig": "workspace:*",
     "@maschina/vitest-config": "workspace:*",
+    "@types/web-push": "^3.6.4",
     "typescript": "^5",
     "vitest": "^4.0.18"
   }

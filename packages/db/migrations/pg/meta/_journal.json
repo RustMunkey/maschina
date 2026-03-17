@@ -29,6 +29,13 @@
       "when": 1773736800000,
       "tag": "0003_schema_fixes",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1774000000000,
+      "tag": "0004_push_tokens",
+      "breakpoints": true
     }
   ]
 }
