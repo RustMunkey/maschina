@@ -17,9 +17,8 @@ RUN uv pip install --system --no-cache \
 
 # Install worker service deps
 COPY services/worker/pyproject.toml ./services/worker/pyproject.toml
-RUN uv pip install --system --no-cache -e ./services/worker
-
 COPY services/worker/src ./services/worker/src
+RUN uv pip install --system --no-cache ./services/worker
 
 # ─── Runtime ──────────────────────────────────────────────────────────────────
 FROM python:3.12-slim
@@ -27,6 +26,5 @@ WORKDIR /app
 
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin/maschina-worker /usr/local/bin/maschina-worker
-COPY --from=builder /app/services/worker/src ./src
 
 CMD ["maschina-worker"]
