@@ -1,4 +1,3 @@
-import type { PointStruct } from "@qdrant/js-client-rest";
 import { getQdrant } from "./client.js";
 import type { CollectionName } from "./collections.js";
 
@@ -44,7 +43,7 @@ export async function upsertVectors(
 ): Promise<void> {
   if (points.length === 0) return;
 
-  const qdrantPoints: PointStruct[] = points.map((p) => ({
+  const qdrantPoints = points.map((p) => ({
     id: p.id,
     vector: p.vector,
     payload: p.payload,
