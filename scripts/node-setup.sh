@@ -121,13 +121,16 @@ cargo build --release -p maschina-cli --manifest-path "$REPO_ROOT/Cargo.toml"
 cp "$REPO_ROOT/target/release/maschina" "$BIN_DIR/maschina"
 success "maschina CLI → $BIN_DIR/maschina"
 
-info "Installing Python runtime packages..."
-uv pip install --system \
+info "Installing Python runtime packages (venv)..."
+VENV_DIR="$HOME/.maschina-venv"
+python3 -m venv "$VENV_DIR"
+"$VENV_DIR/bin/pip" install --quiet \
+  -e "$REPO_ROOT/packages/ml" \
   -e "$REPO_ROOT/packages/runtime" \
   -e "$REPO_ROOT/packages/agents" \
   -e "$REPO_ROOT/packages/risk" \
   -e "$REPO_ROOT/services/runtime"
-success "Python runtime packages installed"
+success "Python runtime packages installed → $VENV_DIR"
 
 # ── Systemd services ──────────────────────────────────────────────────────────
 
@@ -160,7 +163,7 @@ Type=simple
 User=$USER
 WorkingDirectory=$REPO_ROOT/services/runtime
 EnvironmentFile=$RUNTIME_ENV_FILE
-ExecStart=$(command -v python3) -m uvicorn src.main:app --host 0.0.0.0 --port $RUNTIME_PORT
+ExecStart=$HOME/.maschina-venv/bin/python -m uvicorn src.main:app --host 0.0.0.0 --port $RUNTIME_PORT
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal
