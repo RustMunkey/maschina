@@ -29,6 +29,7 @@ def build_tools(
     configs: dict[str, dict[str, Any]] | None = None,
     caller_agent_id: str = "",
     user_id: str = "",
+    delegation_depth: int = 0,
 ) -> list[Tool]:
     """
     Build Tool instances for the given skill slugs.
@@ -48,7 +49,13 @@ def build_tools(
     for slug in skill_names:
         cfg = configs.get(slug, {})
         try:
-            tool = _build_one(slug, cfg, caller_agent_id=caller_agent_id, user_id=user_id)
+            tool = _build_one(
+                slug,
+                cfg,
+                caller_agent_id=caller_agent_id,
+                user_id=user_id,
+                delegation_depth=delegation_depth,
+            )
             if tool is not None:
                 tools.append(tool)
         except Exception as exc:
@@ -62,6 +69,7 @@ def _build_one(
     cfg: dict[str, Any],
     caller_agent_id: str = "",
     user_id: str = "",
+    delegation_depth: int = 0,
 ) -> Tool | None:
     match slug:
         case "http_fetch":
@@ -147,6 +155,7 @@ def _build_one(
                 internal_secret=settings.internal_secret,
                 caller_agent_id=caller_agent_id,
                 user_id=user_id,
+                delegation_depth=delegation_depth,
             )
 
         case _:

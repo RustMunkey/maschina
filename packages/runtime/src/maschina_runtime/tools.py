@@ -30,6 +30,40 @@ class Tool(ABC):
         }
 
 
+def _is_private_host(hostname: str) -> bool:
+    """Return True if hostname resolves to a private/internal address.
+
+    Blocks SSRF attacks targeting localhost, RFC-1918 ranges, link-local
+    (169.254.x.x — cloud metadata endpoints), and loopback IPv6.
+    Resolution is synchronous and intentionally done at call time so
+    late-binding DNS rebinding attacks are also caught.
+    """
+    import ipaddress
+    import socket
+
+    try:
+        # getaddrinfo returns all A/AAAA records; check every one
+        results = socket.getaddrinfo(hostname, None)
+    except socket.gaierror:
+        return False  # unresolvable host — let httpx handle the error
+
+    for *_, sockaddr in results:
+        ip_str = sockaddr[0]
+        try:
+            addr = ipaddress.ip_address(ip_str)
+        except ValueError:
+            continue
+        if (
+            addr.is_loopback
+            or addr.is_private
+            or addr.is_link_local
+            or addr.is_reserved
+            or addr.is_unspecified
+        ):
+            return True
+    return False
+
+
 class HttpFetchTool(Tool):
     """Fetch a URL and return the response body (text)."""
 
@@ -57,8 +91,20 @@ class HttpFetchTool(Tool):
         import httpx
 
         url = inputs["url"]
+        parsed = urlparse(url)
+        host = parsed.hostname or ""
+
+        # Always block private/internal addresses regardless of allowed_domains.
+        # This prevents SSRF against localhost, cloud metadata endpoints (169.254.x.x),
+        # and internal services even when no domain allowlist is configured.
+        if _is_private_host(host):
+            return f"Blocked: {host} resolves to a private/internal address."
+
+        # Schema must be http or https — block file://, ftp://, etc.
+        if parsed.scheme not in ("http", "https"):
+            return f"Blocked: scheme '{parsed.scheme}' is not allowed."
+
         if self._allowed_domains:
-            host = urlparse(url).hostname or ""
             if not any(host == d or host.endswith(f".{d}") for d in self._allowed_domains):
                 return f"Blocked: {host} is not in the allowed domains list."
 
@@ -493,17 +539,24 @@ class DelegateAgentTool(Tool):
         "required": ["agent_id", "message"],
     }
 
+    # Maximum delegation chain depth. Depth is tracked via X-Delegation-Depth
+    # header passed through the internal dispatch API. Prevents runaway
+    # multi-agent recursion from consuming unbounded resources on the node.
+    MAX_DEPTH = 3
+
     def __init__(
         self,
         api_url: str,
         internal_secret: str,
         caller_agent_id: str,
         user_id: str,
+        delegation_depth: int = 0,
     ) -> None:
         self._api_url = api_url.rstrip("/")
         self._secret = internal_secret
         self._caller_agent_id = caller_agent_id
         self._user_id = user_id
+        self._depth = delegation_depth
 
     async def execute(self, inputs: dict[str, Any]) -> str:
         import httpx
@@ -515,18 +568,24 @@ class DelegateAgentTool(Tool):
         if agent_id == self._caller_agent_id:
             return "Error: an agent cannot delegate to itself."
 
+        # Guard against runaway delegation chains
+        if self._depth >= self.MAX_DEPTH:
+            return f"Error: maximum delegation depth ({self.MAX_DEPTH}) reached."
+
         async with httpx.AsyncClient(timeout=135) as client:
             resp = await client.post(
                 f"{self._api_url}/internal/delegate",
                 headers={
                     "Content-Type": "application/json",
                     "X-Internal-Secret": self._secret,
+                    "X-Delegation-Depth": str(self._depth + 1),
                 },
                 json={
                     "agent_id": agent_id,
                     "message": message,
                     "caller_agent_id": self._caller_agent_id,
                     "user_id": self._user_id,
+                    "delegation_depth": self._depth + 1,
                 },
             )
 

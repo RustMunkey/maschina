@@ -93,6 +93,7 @@ def _build_runner(model: str, req: RunRequest) -> AgentRunner | OllamaRunner | O
         req.skill_configs,
         caller_agent_id=req.agent_id,
         user_id=req.user_id,
+        delegation_depth=req.delegation_depth,
     )
 
     if _is_ollama(model):
