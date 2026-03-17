@@ -154,7 +154,7 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-maschina}:${POSTGRES_PASSWORD:-maschina}@postgres:5432/${POSTGRES_DB:-maschina}
       NATS_URL: nats://nats:4222
-      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_URL: temporal:7233
       RUNTIME_URL: http://runtime:8001
     depends_on:
       postgres:
