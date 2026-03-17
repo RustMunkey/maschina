@@ -73,8 +73,8 @@ RUN cp -r /app/services/api/dist /app/deployed/dist
 
 # Copy notification icon into deployed output
 RUN mkdir -p /app/deployed/public && \
-    cp /app/packages/icons/linux-icons/256x256/icon.png /app/deployed/public/icon.png && \
-    cp /app/packages/icons/linux-icons/16x16/icon.png /app/deployed/public/badge.png
+    cp /app/packages/icons/linux-icons/256x256.png /app/deployed/public/icon.png && \
+    cp /app/packages/icons/linux-icons/16x16.png /app/deployed/public/badge.png
 
 # ─── Runtime ──────────────────────────────────────────────────────────────────
 FROM node:22-slim
