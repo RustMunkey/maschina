@@ -60,7 +60,7 @@ async def run_temporal_worker() -> None:
         activities=[run_agent_step, update_run_status],
         workflow_runner=SandboxedWorkflowRunner(
             restrictions=SandboxRestrictions.default.with_passthrough_modules(
-                "httpx", "asyncpg", "structlog"
+                "httpx", "asyncpg", "structlog", "pathlib", "pydantic", "pydantic_settings"
             )
         ),
     )
