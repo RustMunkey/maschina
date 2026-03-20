@@ -8,7 +8,7 @@
 #   - Runs DB migrations if schema changed
 #   - Restarts services with zero manual intervention
 #
-# Designed to be run by a systemd timer every 5 minutes.
+# Triggered by scripts/webhook.py on push to main.
 # Safe to run manually at any time.
 
 set -euo pipefail
@@ -111,4 +111,3 @@ if [[ -n "$SERVICES_TO_REBUILD" ]]; then
 fi
 
 log "update complete — running $REMOTE"
-# auto-update test 2026-03-17T06:29:35Z
