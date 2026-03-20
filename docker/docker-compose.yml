@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-maschina}
       POSTGRES_DB: ${POSTGRES_DB:-maschina}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -19,6 +19,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - maschina-internal
 
   redis:
     image: redis:7-alpine
@@ -26,7 +28,7 @@ services:
     restart: unless-stopped
     command: redis-server /usr/local/etc/redis/redis.conf
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
@@ -35,16 +37,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - maschina-internal
 
   nats:
     image: nats:2.10-alpine
     container_name: maschina-nats
     restart: unless-stopped
-    # JetStream enabled, file storage persisted to volume
     command: ["-js", "-sd", "/data", "-m", "8222"]
     ports:
-      - "${NATS_PORT:-4222}:4222"      # client connections
-      - "${NATS_MONITOR_PORT:-8222}:8222"  # HTTP monitoring
+      - "127.0.0.1:${NATS_PORT:-4222}:4222"
+      - "127.0.0.1:${NATS_MONITOR_PORT:-8222}:8222"
     volumes:
       - nats_data:/data
     healthcheck:
@@ -52,6 +55,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - maschina-internal
 
   meilisearch:
     image: getmeili/meilisearch:v1.11
@@ -61,7 +66,7 @@ services:
       MEILI_ENV: development
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-masterkey-change-in-production}
     ports:
-      - "${MEILI_PORT:-7700}:7700"
+      - "127.0.0.1:${MEILI_PORT:-7700}:7700"
     volumes:
       - meilisearch_data:/meili_data
     healthcheck:
@@ -69,14 +74,16 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - maschina-internal
 
   qdrant:
     image: qdrant/qdrant:latest
     container_name: maschina-qdrant
     restart: unless-stopped
     ports:
-      - "${QDRANT_HTTP_PORT:-6333}:6333"   # REST API
-      - "${QDRANT_GRPC_PORT:-6334}:6334"   # gRPC
+      - "127.0.0.1:${QDRANT_HTTP_PORT:-6333}:6333"
+      - "127.0.0.1:${QDRANT_GRPC_PORT:-6334}:6334"
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
@@ -85,13 +92,15 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+    networks:
+      - maschina-internal
 
   temporal:
     image: temporalio/auto-setup:1.27.0
     container_name: maschina-temporal
     restart: unless-stopped
     ports:
-      - "${TEMPORAL_PORT:-7233}:7233"
+      - "127.0.0.1:${TEMPORAL_PORT:-7233}:7233"
     environment:
       - DB=postgres12
       - DB_PORT=5432
@@ -107,17 +116,21 @@ services:
       timeout: 5s
       retries: 40
       start_period: 60s
+    networks:
+      - maschina-internal
 
   temporal-ui:
     image: temporalio/ui:latest
     container_name: maschina-temporal-ui
     restart: unless-stopped
     ports:
-      - "${TEMPORAL_UI_PORT:-8088}:8080"
+      - "127.0.0.1:${TEMPORAL_UI_PORT:-8088}:8080"
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
     depends_on:
       - temporal
+    networks:
+      - maschina-internal
 
 volumes:
   postgres_data:
@@ -125,3 +138,7 @@ volumes:
   nats_data:
   meilisearch_data:
   qdrant_data:
+
+networks:
+  maschina-internal:
+    driver: bridge

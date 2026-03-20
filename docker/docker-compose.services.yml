@@ -42,6 +42,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    networks:
+      - maschina-internal
 
   # ─── Gateway (Rust / Axum) ────────────────────────────────────────────────
   gateway:
@@ -69,6 +71,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    networks:
+      - maschina-internal
 
   # ─── Realtime (Rust / Axum) ───────────────────────────────────────────────
   realtime:
@@ -92,6 +96,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    networks:
+      - maschina-internal
 
   # ─── Daemon (Rust) ────────────────────────────────────────────────────────
   daemon:
@@ -116,6 +122,8 @@ services:
         condition: service_healthy
       runtime:
         condition: service_started
+    networks:
+      - maschina-internal
 
   # ─── Runtime (Python / FastAPI) ───────────────────────────────────────────
   runtime:
@@ -125,14 +133,12 @@ services:
     container_name: maschina-runtime
     restart: unless-stopped
     ports:
-      - "${RUNTIME_PORT:-8001}:8001"
+      - "127.0.0.1:${RUNTIME_PORT:-8001}:8001"
     env_file: ../.env
     environment:
       PORT: "8001"
       QDRANT_URL: http://qdrant:6333
     volumes:
-      # Required for Tier 1 (gVisor) sandboxing: runtime spawns agent containers via Docker-in-Docker.
-      # Only mounted when SANDBOX_IMAGE is set — safe to omit on hosts without gVisor.
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       qdrant:
@@ -143,6 +149,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    networks:
+      - maschina-internal
 
   # ─── Worker (Python — NATS consumer + Temporal worker) ────────────────────
   worker:
@@ -166,3 +174,9 @@ services:
         condition: service_started
       runtime:
         condition: service_started
+    networks:
+      - maschina-internal
+
+networks:
+  maschina-internal:
+    external: true
