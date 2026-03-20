@@ -15,7 +15,9 @@ from mcp.server.fastmcp import FastMCP
 # ── Paths ────────────────────────────────────────────────────────────────────
 REPO = Path(os.environ.get("MASCHINA_REPO", "/home/ash/Desktop/maschina"))
 MEMORY_DIR = Path(
-    os.environ.get("MASCHINA_MEMORY_DIR", "/home/ash/.claude/projects/-home-ash/memory")
+    os.environ.get(
+        "MASCHINA_MEMORY_DIR", "/home/ash/.claude/projects/-home-ash-Desktop-maschina/memory"
+    )
 )
 SESSION_FILE = REPO / ".claude" / "session.md"
 DECISIONS_FILE = REPO / ".claude" / "decisions.md"
