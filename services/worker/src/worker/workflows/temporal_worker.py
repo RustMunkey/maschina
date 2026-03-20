@@ -7,6 +7,7 @@ import asyncio
 import structlog
 from temporalio.client import Client
 from temporalio.worker import Worker
+from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxRestrictions
 
 from ..config import settings
 from .activities import run_agent_step, update_run_status
@@ -57,6 +58,11 @@ async def run_temporal_worker() -> None:
         task_queue=TASK_QUEUE,
         workflows=[AgentWorkflow],
         activities=[run_agent_step, update_run_status],
+        workflow_runner=SandboxedWorkflowRunner(
+            restrictions=SandboxRestrictions.default.with_passthrough_modules(
+                "httpx", "asyncpg", "structlog"
+            )
+        ),
     )
 
     log.info("workflow.temporal_worker.ready", task_queue=TASK_QUEUE)
