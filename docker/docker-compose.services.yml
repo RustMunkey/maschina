@@ -179,4 +179,3 @@ services:
 
 networks:
   maschina-internal:
-    external: true
