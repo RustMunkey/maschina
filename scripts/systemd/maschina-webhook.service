@@ -1,0 +1,16 @@
+[Unit]
+Description=Maschina GitHub webhook deploy listener
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Desktop/maschina
+EnvironmentFile=%h/Desktop/maschina/.env
+ExecStart=/usr/bin/python3 %h/Desktop/maschina/scripts/webhook.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
