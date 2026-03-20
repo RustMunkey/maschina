@@ -1,0 +1,19 @@
+[Unit]
+Description=Maschina MCP Server (private memory bridge)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Desktop/maschina/services/mcp
+ExecStart=%h/.venv/mcp/bin/python server.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=maschina-mcp
+Environment=MASCHINA_REPO=%h/Desktop/maschina
+Environment=MASCHINA_MEMORY_DIR=%h/.claude/projects/-home-ash/memory
+
+[Install]
+WantedBy=default.target
