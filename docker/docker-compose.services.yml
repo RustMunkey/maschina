@@ -138,6 +138,7 @@ services:
     environment:
       PORT: "8001"
       QDRANT_URL: http://qdrant:6333
+      OLLAMA_BASE_URL: http://172.19.0.1:11434/v1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
