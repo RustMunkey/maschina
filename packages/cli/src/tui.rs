@@ -26,6 +26,7 @@ use crate::{client::ApiClient, config, theme};
 
 // ── public API ────────────────────────────────────────────────────────────────
 
+#[allow(dead_code)]
 pub enum LaunchTarget {
     Setup,
     Code,
@@ -107,7 +108,7 @@ impl ThemeKind {
 // ── constants ─────────────────────────────────────────────────────────────────
 
 static SPIN: [&str; 10] = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
-static LOGO_TEXT: &str = include_str!("../../../ascii-logo.txt");
+static LOGO_TEXT: &str = include_str!("../../../../ascii-logo.txt");
 
 static NAV_ITEMS: &[(&str, &str)] = &[
     ("run", "send a prompt to the network"),
@@ -1013,7 +1014,7 @@ fn draw_login(f: &mut ratatui::Frame, app: &App) {
                 f.render_widget(
                     Paragraph::new(Line::from(vec![
                         Span::styled(prefix, name_s),
-                        Span::styled(format!("{:<18}", opt), name_s),
+                        Span::styled(format!("{opt:<18}"), name_s),
                         Span::styled(*hint, hint_s),
                     ])),
                     Rect {
@@ -1074,7 +1075,7 @@ fn draw_login(f: &mut ratatui::Frame, app: &App) {
                 };
                 f.render_widget(
                     Paragraph::new(Line::from(vec![
-                        Span::styled(format!("  ✓  {:<18}", label), th.lv2()),
+                        Span::styled(format!("  ✓  {label:<18}"), th.lv2()),
                         Span::styled(display, th.lv3()),
                     ])),
                     Rect {
@@ -1405,7 +1406,7 @@ fn draw_agents(f: &mut ratatui::Frame, app: &App) {
                     f.render_widget(
                         Paragraph::new(Line::from(vec![
                             Span::styled(prefix, ns),
-                            Span::styled(format!("{:<14}", type_name), ns),
+                            Span::styled(format!("{type_name:<14}"), ns),
                             Span::styled(*type_desc, ds),
                         ])),
                         Rect {
@@ -1510,7 +1511,7 @@ fn draw_home(f: &mut ratatui::Frame, app: &App) {
         f.render_widget(
             Paragraph::new(Line::from(vec![
                 Span::styled(prefix, name_s),
-                Span::styled(format!("{:<12}", name), name_s),
+                Span::styled(format!("{name:<12}"), name_s),
                 Span::styled("  ", th.lv1()),
                 Span::styled(*desc, desc_s),
             ])),
@@ -1533,7 +1534,7 @@ fn draw_home(f: &mut ratatui::Frame, app: &App) {
     } else {
         let user_part = if let Some(email) = &app.email {
             let tier = app.tier.as_deref().unwrap_or("access");
-            format!("  {}  ·  {}", email, tier)
+            format!("  {email}  ·  {tier}")
         } else {
             String::new()
         };
@@ -1614,12 +1615,12 @@ fn draw_models(f: &mut ratatui::Frame, app: &App) {
                         if let Some(k) = &p.api_key {
                             // mask: show first 8 chars then ***
                             let visible: String = k.chars().take(10).collect();
-                            format!("●  {}…", visible)
+                            format!("●  {visible}…")
                         } else {
                             "○  not configured".to_string()
                         }
                     } else if let Some(u) = &p.base_url {
-                        format!("●  {}", u)
+                        format!("●  {u}")
                     } else {
                         "○  not configured".to_string()
                     }
@@ -1675,9 +1676,7 @@ fn draw_models(f: &mut ratatui::Frame, app: &App) {
             cur,
         } => {
             let spec = &PROVIDERS[*provider_idx];
-            let label = if spec.needs_url && !spec.needs_key {
-                "base url"
-            } else if *step == 0 && spec.needs_url {
+            let label = if spec.needs_url && (!spec.needs_key || *step == 0) {
                 "base url"
             } else {
                 "api key"
@@ -1980,7 +1979,7 @@ fn draw_settings(f: &mut ratatui::Frame, app: &App) {
                 } else {
                     val.clone()
                 };
-                let line = format!("  {}  {:<12}  {}", selector, label, display_val);
+                let line = format!("  {selector}  {label:<12}  {display_val}");
                 let style = if active { th.lv4() } else { th.lv2() };
                 f.render_widget(
                     Paragraph::new(Line::from(Span::styled(line, style))),
@@ -2437,16 +2436,14 @@ pub fn run(profile: &str) -> Result<Option<LaunchTarget>> {
                                     *step += 1;
                                     *cur = 0;
                                     *error = None;
+                                } else if *mode == AuthMode::Signup && pw_snap != cf_snap {
+                                    *error = Some("passwords do not match".into());
                                 } else {
-                                    if *mode == AuthMode::Signup && pw_snap != cf_snap {
-                                        *error = Some("passwords do not match".into());
+                                    let _ = current_val;
+                                    if *mode == AuthMode::Login {
+                                        app.do_login();
                                     } else {
-                                        let _ = current_val;
-                                        if *mode == AuthMode::Login {
-                                            app.do_login();
-                                        } else {
-                                            app.do_signup();
-                                        }
+                                        app.do_signup();
                                     }
                                 }
                             }
@@ -2870,7 +2867,7 @@ pub fn run(profile: &str) -> Result<Option<LaunchTarget>> {
 
             match &app.screen {
                 Screen::Settings {
-                    mode: SettingsMode::List { sel },
+                    mode: SettingsMode::List { sel: _ },
                     ..
                 } => match key.code {
                     KeyCode::Esc => go_back = true,
@@ -2898,7 +2895,7 @@ pub fn run(profile: &str) -> Result<Option<LaunchTarget>> {
                     _ => {}
                 },
                 Screen::Settings {
-                    mode: SettingsMode::Edit { input, cur, .. },
+                    mode: SettingsMode::Edit { .. },
                     ..
                 } => match key.code {
                     KeyCode::Esc => {
