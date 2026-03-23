@@ -1,0 +1,521 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 63;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		008B67D16E7AF106DFBE9700 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0781ABDBA39F89E3A113B898 /* AppState.swift */; };
+		1BC83064309FD27EA88A5952 /* MaschinaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4F5DC380B75EE46135ACA2 /* MaschinaApp.swift */; };
+		2043F02B120560F9588FC48D /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10688B2E13549B645DB0E2B2 /* MainTabView.swift */; };
+		279A9F0282ADF2A3D3956F1A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18CDE7E925E569A75396B598 /* ContentView.swift */; };
+		28D4996364ACEF2ADFDE8DEB /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D447D039460C420E71D873C /* DashboardView.swift */; };
+		337F69C34BC1BEB6CFDFEAD7 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DF80CF7055CC46A370E670A /* LoginView.swift */; };
+		35DC0E4F1889B2A43F7E741B /* AgentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF84FBC2AB63654AC9D92379 /* AgentsView.swift */; };
+		4E5F409D86193BA89A09014B /* ComplicationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A9C759B82960B9DE5D42417 /* ComplicationController.swift */; };
+		507B39CE85C8393E6FE0419F /* StatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D7B8364B77383385D37D6EF /* StatusView.swift */; };
+		6613BD5EF4935247E06E9A4A /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6249457F67270AB44780DC /* APIClient.swift */; };
+		7FA23A15718C5D23A20776A9 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D213305766C8C64E5A8EEF0 /* SettingsView.swift */; };
+		905F8B90E07B014EFC17E93F /* MaschinaWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = E705B89DF21CDE41A1C00D44 /* MaschinaWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		90DF56139E587ADBAC1F660D /* AgentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17ADE7672C962D5E0BA3DAD /* AgentsView.swift */; };
+		942159F375DD43EE581656D5 /* UsageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA57D5ABBBBBC6BD6B4C920 /* UsageView.swift */; };
+		99BD6BB0A41423006F1845A8 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7A2484654C3728E0A50C03F /* ContentView.swift */; };
+		9DFADE5B7CA603BDD03E8EE9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6DC7FDB5CFC24A52F16EE260 /* Assets.xcassets */; };
+		AE74B8B70C34652DAACBFB56 /* MaschinaWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19E1CB66F2B90389F8CE4799 /* MaschinaWatchApp.swift */; };
+		FD94A5BEC84CD14FA34C9AE2 /* WatchStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7A8F532F31E6A1AAEA6788D /* WatchStore.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		584913F202C6E68F3C15E983 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3EA6AFE04F5A97DB016636CA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4A8F827ED08BCAAF8A3B36E2;
+			remoteInfo = MaschinaWatch;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		E0615BC0C164509842DB6068 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				905F8B90E07B014EFC17E93F /* MaschinaWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0781ABDBA39F89E3A113B898 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		10688B2E13549B645DB0E2B2 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		18CDE7E925E569A75396B598 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		19E1CB66F2B90389F8CE4799 /* MaschinaWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaschinaWatchApp.swift; sourceTree = "<group>"; };
+		1F4F5DC380B75EE46135ACA2 /* MaschinaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaschinaApp.swift; sourceTree = "<group>"; };
+		3A9C759B82960B9DE5D42417 /* ComplicationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplicationController.swift; sourceTree = "<group>"; };
+		3B6249457F67270AB44780DC /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		53906F5848003F4B20597667 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		6D7B8364B77383385D37D6EF /* StatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusView.swift; sourceTree = "<group>"; };
+		6DC7FDB5CFC24A52F16EE260 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7DF80CF7055CC46A370E670A /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		8AA57D5ABBBBBC6BD6B4C920 /* UsageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageView.swift; sourceTree = "<group>"; };
+		9D213305766C8C64E5A8EEF0 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		9D447D039460C420E71D873C /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		B798FB514A392645F9CAF8EE /* Maschina.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Maschina.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BF7BD40AB727D76A96D6C08A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		CF84FBC2AB63654AC9D92379 /* AgentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentsView.swift; sourceTree = "<group>"; };
+		D17ADE7672C962D5E0BA3DAD /* AgentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentsView.swift; sourceTree = "<group>"; };
+		D7A2484654C3728E0A50C03F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		E705B89DF21CDE41A1C00D44 /* MaschinaWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MaschinaWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E7A8F532F31E6A1AAEA6788D /* WatchStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchStore.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		039A2FF1990B35446BDBE5BC /* API */ = {
+			isa = PBXGroup;
+			children = (
+				3B6249457F67270AB44780DC /* APIClient.swift */,
+			);
+			path = API;
+			sourceTree = "<group>";
+		};
+		0D5E981D6AEABC36A5B23B58 /* Screens */ = {
+			isa = PBXGroup;
+			children = (
+				CF84FBC2AB63654AC9D92379 /* AgentsView.swift */,
+				9D447D039460C420E71D873C /* DashboardView.swift */,
+				7DF80CF7055CC46A370E670A /* LoginView.swift */,
+				10688B2E13549B645DB0E2B2 /* MainTabView.swift */,
+				9D213305766C8C64E5A8EEF0 /* SettingsView.swift */,
+				8AA57D5ABBBBBC6BD6B4C920 /* UsageView.swift */,
+			);
+			path = Screens;
+			sourceTree = "<group>";
+		};
+		163D06D3EC483DCD704C8274 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				19E1CB66F2B90389F8CE4799 /* MaschinaWatchApp.swift */,
+				E7A8F532F31E6A1AAEA6788D /* WatchStore.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		22CD1468AD5FC969B36E8319 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				039A2FF1990B35446BDBE5BC /* API */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		27B28459771A3E5453AF4EC1 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				0781ABDBA39F89E3A113B898 /* AppState.swift */,
+				D7A2484654C3728E0A50C03F /* ContentView.swift */,
+				1F4F5DC380B75EE46135ACA2 /* MaschinaApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		41F40D085EEF4C7F891F4F40 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B798FB514A392645F9CAF8EE /* Maschina.app */,
+				E705B89DF21CDE41A1C00D44 /* MaschinaWatch.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		48EB026A4D660A85383F7B91 = {
+			isa = PBXGroup;
+			children = (
+				CD5DDDABCC89904BD35FEFA6 /* Maschina */,
+				872F32505CA207CDD91219A1 /* MaschinaWatch */,
+				41F40D085EEF4C7F891F4F40 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		872F32505CA207CDD91219A1 /* MaschinaWatch */ = {
+			isa = PBXGroup;
+			children = (
+				53906F5848003F4B20597667 /* Info.plist */,
+				163D06D3EC483DCD704C8274 /* App */,
+				F312B1836167CBE393C7E531 /* Complications */,
+				F32A568EF77C73265135DE09 /* Views */,
+			);
+			path = MaschinaWatch;
+			sourceTree = "<group>";
+		};
+		CD5DDDABCC89904BD35FEFA6 /* Maschina */ = {
+			isa = PBXGroup;
+			children = (
+				6DC7FDB5CFC24A52F16EE260 /* Assets.xcassets */,
+				BF7BD40AB727D76A96D6C08A /* Info.plist */,
+				27B28459771A3E5453AF4EC1 /* App */,
+				22CD1468AD5FC969B36E8319 /* Data */,
+				0D5E981D6AEABC36A5B23B58 /* Screens */,
+			);
+			path = Maschina;
+			sourceTree = "<group>";
+		};
+		F312B1836167CBE393C7E531 /* Complications */ = {
+			isa = PBXGroup;
+			children = (
+				3A9C759B82960B9DE5D42417 /* ComplicationController.swift */,
+			);
+			path = Complications;
+			sourceTree = "<group>";
+		};
+		F32A568EF77C73265135DE09 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				D17ADE7672C962D5E0BA3DAD /* AgentsView.swift */,
+				18CDE7E925E569A75396B598 /* ContentView.swift */,
+				6D7B8364B77383385D37D6EF /* StatusView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2B5152A1498AB4CF8EC278D9 /* Maschina */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2B113D60213832281E0A37CE /* Build configuration list for PBXNativeTarget "Maschina" */;
+			buildPhases = (
+				C61346FAA16C6125374461F9 /* Sources */,
+				85AD560472E83B72AE5C76E0 /* Resources */,
+				E0615BC0C164509842DB6068 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6B73610404F8D581860C0302 /* PBXTargetDependency */,
+			);
+			name = Maschina;
+			packageProductDependencies = (
+			);
+			productName = Maschina;
+			productReference = B798FB514A392645F9CAF8EE /* Maschina.app */;
+			productType = "com.apple.product-type.application";
+		};
+		4A8F827ED08BCAAF8A3B36E2 /* MaschinaWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CD21EAB06939D5F3F3ADC56C /* Build configuration list for PBXNativeTarget "MaschinaWatch" */;
+			buildPhases = (
+				AC30DFBE610E75FDF182535E /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MaschinaWatch;
+			packageProductDependencies = (
+			);
+			productName = MaschinaWatch;
+			productReference = E705B89DF21CDE41A1C00D44 /* MaschinaWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3EA6AFE04F5A97DB016636CA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+			};
+			buildConfigurationList = FA92DE4718504C23D68D0384 /* Build configuration list for PBXProject "Maschina" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 48EB026A4D660A85383F7B91;
+			minimizedProjectReferenceProxies = 1;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2B5152A1498AB4CF8EC278D9 /* Maschina */,
+				4A8F827ED08BCAAF8A3B36E2 /* MaschinaWatch */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		85AD560472E83B72AE5C76E0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9DFADE5B7CA603BDD03E8EE9 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AC30DFBE610E75FDF182535E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				90DF56139E587ADBAC1F660D /* AgentsView.swift in Sources */,
+				4E5F409D86193BA89A09014B /* ComplicationController.swift in Sources */,
+				279A9F0282ADF2A3D3956F1A /* ContentView.swift in Sources */,
+				AE74B8B70C34652DAACBFB56 /* MaschinaWatchApp.swift in Sources */,
+				507B39CE85C8393E6FE0419F /* StatusView.swift in Sources */,
+				FD94A5BEC84CD14FA34C9AE2 /* WatchStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C61346FAA16C6125374461F9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6613BD5EF4935247E06E9A4A /* APIClient.swift in Sources */,
+				35DC0E4F1889B2A43F7E741B /* AgentsView.swift in Sources */,
+				008B67D16E7AF106DFBE9700 /* AppState.swift in Sources */,
+				99BD6BB0A41423006F1845A8 /* ContentView.swift in Sources */,
+				28D4996364ACEF2ADFDE8DEB /* DashboardView.swift in Sources */,
+				337F69C34BC1BEB6CFDFEAD7 /* LoginView.swift in Sources */,
+				2043F02B120560F9588FC48D /* MainTabView.swift in Sources */,
+				1BC83064309FD27EA88A5952 /* MaschinaApp.swift in Sources */,
+				7FA23A15718C5D23A20776A9 /* SettingsView.swift in Sources */,
+				942159F375DD43EE581656D5 /* UsageView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		6B73610404F8D581860C0302 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4A8F827ED08BCAAF8A3B36E2 /* MaschinaWatch */;
+			targetProxy = 584913F202C6E68F3C15E983 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		095C42CCD6721F29C54F72EF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 458XCQC85Q;
+				INFOPLIST_FILE = MaschinaWatch/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = io.maschina.ios.watchkitapp;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+		3E82C27BF790F152874A3076 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 458XCQC85Q;
+				INFOPLIST_FILE = Maschina/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.maschina.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		62FA40DCCEAAAD47D2CB39DB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 458XCQC85Q;
+				INFOPLIST_FILE = Maschina/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.maschina.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		891C18941029BD8BD5D187AA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 458XCQC85Q;
+				INFOPLIST_FILE = MaschinaWatch/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = io.maschina.ios.watchkitapp;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		A6C0810068E3198508763656 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		B06C955C0743C83BF3534C58 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2B113D60213832281E0A37CE /* Build configuration list for PBXNativeTarget "Maschina" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3E82C27BF790F152874A3076 /* Debug */,
+				62FA40DCCEAAAD47D2CB39DB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CD21EAB06939D5F3F3ADC56C /* Build configuration list for PBXNativeTarget "MaschinaWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				891C18941029BD8BD5D187AA /* Debug */,
+				095C42CCD6721F29C54F72EF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FA92DE4718504C23D68D0384 /* Build configuration list for PBXProject "Maschina" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B06C955C0743C83BF3534C58 /* Debug */,
+				A6C0810068E3198508763656 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 3EA6AFE04F5A97DB016636CA /* Project object */;
+}
