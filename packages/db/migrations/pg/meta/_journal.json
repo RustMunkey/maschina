@@ -36,6 +36,13 @@
       "when": 1774000000000,
       "tag": "0004_push_tokens",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1742601600000,
+      "tag": "0005_otp_device_codes",
+      "breakpoints": true
     }
   ]
 }

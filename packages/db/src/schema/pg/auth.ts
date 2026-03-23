@@ -1,4 +1,4 @@
-import { index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { index, integer, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { users } from "./users.js";
 
 export const sessions = pgTable(
@@ -67,6 +67,46 @@ export const verificationTokens = pgTable(
   }),
 );
 
+// Keyed on emailIndex (HMAC of email) so it works pre-signup when userId doesn't exist yet.
+export const otpCodes = pgTable(
+  "otp_codes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    emailIndex: text("email_index").notNull(), // HMAC-SHA256(email.toLowerCase(), JWT_SECRET)
+    codeHash: text("code_hash").notNull(), // SHA-256 of 6-digit code
+    attempts: integer("attempts").notNull().default(0), // max 5
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    emailIndexIdx: index("otp_email_index_idx").on(t.emailIndex),
+    expiresAtIdx: index("otp_expires_at_idx").on(t.expiresAt),
+  }),
+);
+
+// OAuth Device Flow — CLI polls with deviceCodeHash, user confirms with userCode at /device.
+export const deviceCodes = pgTable(
+  "device_codes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    deviceCodeHash: text("device_code_hash").notNull().unique(), // SHA-256 of opaque code sent to CLI
+    userCode: text("user_code").notNull().unique(), // short code user types at /device (e.g. "WXYZ-1234")
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }), // set on confirm
+    scopes: text("scopes").notNull().default("cli"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    deviceCodeHashIdx: uniqueIndex("device_code_hash_idx").on(t.deviceCodeHash),
+    userCodeIdx: uniqueIndex("device_user_code_idx").on(t.userCode),
+    expiresAtIdx: index("device_expires_at_idx").on(t.expiresAt),
+  }),
+);
+
 export type Session = typeof sessions.$inferSelect;
 export type OAuthAccount = typeof oauthAccounts.$inferSelect;
 export type VerificationToken = typeof verificationTokens.$inferSelect;
+export type OtpCode = typeof otpCodes.$inferSelect;
+export type DeviceCode = typeof deviceCodes.$inferSelect;

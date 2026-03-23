@@ -56,7 +56,8 @@ fn decrypt_job_data(enc: &str, iv: &str) -> std::result::Result<Vec<u8>, String>
         .map_err(|_| "DATA_ENCRYPTION_KEY not set".to_string())?;
     // Derive 32-byte key via SHA-256 (matches TS implementation)
     let key_bytes = Sha256::digest(raw_key.as_bytes());
-    let cipher = Aes256Gcm::new(&key_bytes.into());
+    let cipher =
+        Aes256Gcm::new_from_slice(&key_bytes).map_err(|_| "invalid key length".to_string())?;
     let iv_bytes = hex::decode(iv).map_err(|e| format!("invalid IV hex: {e}"))?;
     if iv_bytes.len() != 12 {
         return Err(format!("invalid IV length: {}", iv_bytes.len()));

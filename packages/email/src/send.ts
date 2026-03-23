@@ -12,6 +12,7 @@ import { FROM_ADDRESS, getResend } from "./client.js";
 import { AgentCompleted } from "./templates/AgentCompleted.js";
 import { BillingReceipt } from "./templates/BillingReceipt.js";
 import { EmailVerification } from "./templates/EmailVerification.js";
+import { MagicCode } from "./templates/MagicCode.js";
 import { PasswordReset } from "./templates/PasswordReset.js";
 import { PaymentFailed } from "./templates/PaymentFailed.js";
 
@@ -30,6 +31,21 @@ async function send(opts: {
     to: opts.to,
     subject: opts.subject,
     html,
+  });
+}
+
+export async function sendMagicCode(opts: {
+  to: string;
+  code: string;
+  expiresInMinutes?: number;
+}): Promise<void> {
+  await send({
+    to: opts.to,
+    subject: `${opts.code} is your Maschina sign-in code`,
+    react: React.createElement(MagicCode, {
+      code: opts.code,
+      expiresInMinutes: opts.expiresInMinutes ?? 10,
+    }),
   });
 }
 

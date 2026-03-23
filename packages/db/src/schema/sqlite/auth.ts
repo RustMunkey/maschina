@@ -41,6 +41,29 @@ export const verificationTokens = sqliteTable("verification_tokens", {
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 
+export const otpCodes = sqliteTable("otp_codes", {
+  id: text("id").primaryKey(),
+  emailIndex: text("email_index").notNull(),
+  codeHash: text("code_hash").notNull(),
+  attempts: integer("attempts").notNull().default(0),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  usedAt: integer("used_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
+
+export const deviceCodes = sqliteTable("device_codes", {
+  id: text("id").primaryKey(),
+  deviceCodeHash: text("device_code_hash").notNull().unique(),
+  userCode: text("user_code").notNull().unique(),
+  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
+  scopes: text("scopes").notNull().default("cli"),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  confirmedAt: integer("confirmed_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
+
 export type Session = typeof sessions.$inferSelect;
 export type OAuthAccount = typeof oauthAccounts.$inferSelect;
 export type VerificationToken = typeof verificationTokens.$inferSelect;
+export type OtpCode = typeof otpCodes.$inferSelect;
+export type DeviceCode = typeof deviceCodes.$inferSelect;

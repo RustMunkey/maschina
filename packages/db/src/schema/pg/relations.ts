@@ -2,7 +2,7 @@ import { relations } from "drizzle-orm";
 import { agentPermissions, agentRuns, agents } from "./agents.js";
 import { alerts } from "./alerts.js";
 import { apiKeys } from "./api_keys.js";
-import { oauthAccounts, sessions, verificationTokens } from "./auth.js";
+import { deviceCodes, oauthAccounts, sessions, verificationTokens } from "./auth.js";
 import { billingEvents } from "./billing_events.js";
 import { connectors } from "./connectors.js";
 import { creditBalances, creditTransactions } from "./credits.js";
@@ -66,6 +66,10 @@ export const oauthAccountsRelations = relations(oauthAccounts, ({ one }) => ({
 
 export const verificationTokensRelations = relations(verificationTokens, ({ one }) => ({
   user: one(users, { fields: [verificationTokens.userId], references: [users.id] }),
+}));
+
+export const deviceCodesRelations = relations(deviceCodes, ({ one }) => ({
+  user: one(users, { fields: [deviceCodes.userId], references: [users.id] }),
 }));
 
 // ─── Plans / Subscriptions ────────────────────────────────────────────────────
