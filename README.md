@@ -42,7 +42,7 @@ Infrastructure for autonomous digital labor. A modular platform for deploying ne
 ## Install CLI
 
 ```sh
-curl -fsSL https://maschina.ai/install.sh | sh
+curl -fsSL https://maschina.dev/install.sh | sh
 ```
 
 Installs the `maschina` binary to `~/.local/bin`. See `maschina --help` to get started.
