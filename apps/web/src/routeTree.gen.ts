@@ -9,12 +9,120 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WhitepaperRouteImport } from './routes/whitepaper'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as StatusRouteImport } from './routes/status'
+import { Route as SecurityRouteImport } from './routes/security'
+import { Route as SafetyRouteImport } from './routes/safety'
+import { Route as ResearchRouteImport } from './routes/research'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as PressKitRouteImport } from './routes/press-kit'
+import { Route as PitchDeckRouteImport } from './routes/pitch-deck'
+import { Route as OnePagerRouteImport } from './routes/one-pager'
+import { Route as NetworkRouteImport } from './routes/network'
+import { Route as MarketplaceRouteImport } from './routes/marketplace'
+import { Route as DevelopersRouteImport } from './routes/developers'
+import { Route as CookiesRouteImport } from './routes/cookies'
+import { Route as CareersRouteImport } from './routes/careers'
+import { Route as BrandKitRouteImport } from './routes/brand-kit'
+import { Route as BlogRouteImport } from './routes/blog'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WhitepaperRoute = WhitepaperRouteImport.update({
+  id: '/whitepaper',
+  path: '/whitepaper',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatusRoute = StatusRouteImport.update({
+  id: '/status',
+  path: '/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecurityRoute = SecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafetyRoute = SafetyRouteImport.update({
+  id: '/safety',
+  path: '/safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResearchRoute = ResearchRouteImport.update({
+  id: '/research',
+  path: '/research',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PressKitRoute = PressKitRouteImport.update({
+  id: '/press-kit',
+  path: '/press-kit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PitchDeckRoute = PitchDeckRouteImport.update({
+  id: '/pitch-deck',
+  path: '/pitch-deck',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnePagerRoute = OnePagerRouteImport.update({
+  id: '/one-pager',
+  path: '/one-pager',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NetworkRoute = NetworkRouteImport.update({
+  id: '/network',
+  path: '/network',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketplaceRoute = MarketplaceRouteImport.update({
+  id: '/marketplace',
+  path: '/marketplace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevelopersRoute = DevelopersRouteImport.update({
+  id: '/developers',
+  path: '/developers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiesRoute = CookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareersRoute = CareersRouteImport.update({
+  id: '/careers',
+  path: '/careers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrandKitRoute = BrandKitRouteImport.update({
+  id: '/brand-kit',
+  path: '/brand-kit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -25,37 +133,296 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/blog': typeof BlogRoute
+  '/brand-kit': typeof BrandKitRoute
+  '/careers': typeof CareersRoute
+  '/cookies': typeof CookiesRoute
+  '/developers': typeof DevelopersRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/network': typeof NetworkRoute
+  '/one-pager': typeof OnePagerRoute
+  '/pitch-deck': typeof PitchDeckRoute
+  '/press-kit': typeof PressKitRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
+  '/research': typeof ResearchRoute
+  '/safety': typeof SafetyRoute
+  '/security': typeof SecurityRoute
+  '/status': typeof StatusRoute
+  '/terms': typeof TermsRoute
+  '/whitepaper': typeof WhitepaperRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/blog': typeof BlogRoute
+  '/brand-kit': typeof BrandKitRoute
+  '/careers': typeof CareersRoute
+  '/cookies': typeof CookiesRoute
+  '/developers': typeof DevelopersRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/network': typeof NetworkRoute
+  '/one-pager': typeof OnePagerRoute
+  '/pitch-deck': typeof PitchDeckRoute
+  '/press-kit': typeof PressKitRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
+  '/research': typeof ResearchRoute
+  '/safety': typeof SafetyRoute
+  '/security': typeof SecurityRoute
+  '/status': typeof StatusRoute
+  '/terms': typeof TermsRoute
+  '/whitepaper': typeof WhitepaperRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/blog': typeof BlogRoute
+  '/brand-kit': typeof BrandKitRoute
+  '/careers': typeof CareersRoute
+  '/cookies': typeof CookiesRoute
+  '/developers': typeof DevelopersRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/network': typeof NetworkRoute
+  '/one-pager': typeof OnePagerRoute
+  '/pitch-deck': typeof PitchDeckRoute
+  '/press-kit': typeof PressKitRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
+  '/research': typeof ResearchRoute
+  '/safety': typeof SafetyRoute
+  '/security': typeof SecurityRoute
+  '/status': typeof StatusRoute
+  '/terms': typeof TermsRoute
+  '/whitepaper': typeof WhitepaperRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/pricing'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/blog'
+    | '/brand-kit'
+    | '/careers'
+    | '/cookies'
+    | '/developers'
+    | '/marketplace'
+    | '/network'
+    | '/one-pager'
+    | '/pitch-deck'
+    | '/press-kit'
+    | '/pricing'
+    | '/privacy'
+    | '/research'
+    | '/safety'
+    | '/security'
+    | '/status'
+    | '/terms'
+    | '/whitepaper'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/pricing'
-  id: '__root__' | '/' | '/pricing'
+  to:
+    | '/'
+    | '/about'
+    | '/blog'
+    | '/brand-kit'
+    | '/careers'
+    | '/cookies'
+    | '/developers'
+    | '/marketplace'
+    | '/network'
+    | '/one-pager'
+    | '/pitch-deck'
+    | '/press-kit'
+    | '/pricing'
+    | '/privacy'
+    | '/research'
+    | '/safety'
+    | '/security'
+    | '/status'
+    | '/terms'
+    | '/whitepaper'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/blog'
+    | '/brand-kit'
+    | '/careers'
+    | '/cookies'
+    | '/developers'
+    | '/marketplace'
+    | '/network'
+    | '/one-pager'
+    | '/pitch-deck'
+    | '/press-kit'
+    | '/pricing'
+    | '/privacy'
+    | '/research'
+    | '/safety'
+    | '/security'
+    | '/status'
+    | '/terms'
+    | '/whitepaper'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  BlogRoute: typeof BlogRoute
+  BrandKitRoute: typeof BrandKitRoute
+  CareersRoute: typeof CareersRoute
+  CookiesRoute: typeof CookiesRoute
+  DevelopersRoute: typeof DevelopersRoute
+  MarketplaceRoute: typeof MarketplaceRoute
+  NetworkRoute: typeof NetworkRoute
+  OnePagerRoute: typeof OnePagerRoute
+  PitchDeckRoute: typeof PitchDeckRoute
+  PressKitRoute: typeof PressKitRoute
   PricingRoute: typeof PricingRoute
+  PrivacyRoute: typeof PrivacyRoute
+  ResearchRoute: typeof ResearchRoute
+  SafetyRoute: typeof SafetyRoute
+  SecurityRoute: typeof SecurityRoute
+  StatusRoute: typeof StatusRoute
+  TermsRoute: typeof TermsRoute
+  WhitepaperRoute: typeof WhitepaperRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/whitepaper': {
+      id: '/whitepaper'
+      path: '/whitepaper'
+      fullPath: '/whitepaper'
+      preLoaderRoute: typeof WhitepaperRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/status': {
+      id: '/status'
+      path: '/status'
+      fullPath: '/status'
+      preLoaderRoute: typeof StatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/security': {
+      id: '/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof SecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/safety': {
+      id: '/safety'
+      path: '/safety'
+      fullPath: '/safety'
+      preLoaderRoute: typeof SafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research': {
+      id: '/research'
+      path: '/research'
+      fullPath: '/research'
+      preLoaderRoute: typeof ResearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pricing': {
       id: '/pricing'
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/press-kit': {
+      id: '/press-kit'
+      path: '/press-kit'
+      fullPath: '/press-kit'
+      preLoaderRoute: typeof PressKitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pitch-deck': {
+      id: '/pitch-deck'
+      path: '/pitch-deck'
+      fullPath: '/pitch-deck'
+      preLoaderRoute: typeof PitchDeckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/one-pager': {
+      id: '/one-pager'
+      path: '/one-pager'
+      fullPath: '/one-pager'
+      preLoaderRoute: typeof OnePagerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/network': {
+      id: '/network'
+      path: '/network'
+      fullPath: '/network'
+      preLoaderRoute: typeof NetworkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketplace': {
+      id: '/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof MarketplaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/developers': {
+      id: '/developers'
+      path: '/developers'
+      fullPath: '/developers'
+      preLoaderRoute: typeof DevelopersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookies': {
+      id: '/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof CookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers': {
+      id: '/careers'
+      path: '/careers'
+      fullPath: '/careers'
+      preLoaderRoute: typeof CareersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brand-kit': {
+      id: '/brand-kit'
+      path: '/brand-kit'
+      fullPath: '/brand-kit'
+      preLoaderRoute: typeof BrandKitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -70,7 +437,25 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  BlogRoute: BlogRoute,
+  BrandKitRoute: BrandKitRoute,
+  CareersRoute: CareersRoute,
+  CookiesRoute: CookiesRoute,
+  DevelopersRoute: DevelopersRoute,
+  MarketplaceRoute: MarketplaceRoute,
+  NetworkRoute: NetworkRoute,
+  OnePagerRoute: OnePagerRoute,
+  PitchDeckRoute: PitchDeckRoute,
+  PressKitRoute: PressKitRoute,
   PricingRoute: PricingRoute,
+  PrivacyRoute: PrivacyRoute,
+  ResearchRoute: ResearchRoute,
+  SafetyRoute: SafetyRoute,
+  SecurityRoute: SecurityRoute,
+  StatusRoute: StatusRoute,
+  TermsRoute: TermsRoute,
+  WhitepaperRoute: WhitepaperRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

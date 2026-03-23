@@ -15,4 +15,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    port: 5174,
+  },
+  optimizeDeps: {
+    include: ["react-globe.gl"],
+    esbuildOptions: {
+      target: "esnext",
+    },
+  },
 });
