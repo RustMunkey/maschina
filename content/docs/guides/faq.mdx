@@ -1,0 +1,165 @@
+---
+title: FAQ
+description: Common questions about agents, runs, billing, models, and self-hosting.
+---
+
+import { Question, Robot, CreditCard, Cpu, HardDrive, ShieldCheck, ArrowsClockwise } from "@phosphor-icons/react";
+
+## Agents
+
+**What's the difference between agent types?**
+
+Agent types (`execution`, `analysis`, `signal`, `optimization`, `reporting`) are semantic labels that help categorize what an agent does. They affect how the agent appears in search and the marketplace, but all types use the same execution pipeline. The behavior difference comes entirely from the system prompt.
+
+**Can I change an agent's type after creation?**
+
+Yes. Use `PATCH /agents/:id` with `{ "type": "analysis" }`. The change takes effect immediately.
+
+**Are agents stateful between runs?**
+
+No. Each run is independent. If your agent needs memory or context from previous runs, pass it in the `input.message` field. Multi-turn context within a single run is handled automatically by the runtime.
+
+**How many agents can I create?**
+
+| Plan | Agent limit |
+|---|---|
+| Access | 3 |
+| M1 | 25 |
+| M5 | 100 |
+| M10 | Unlimited |
+| Enterprise | Unlimited |
+
+**Can I run multiple agents in parallel?**
+
+Yes. Each `POST /agents/:id/run` call is independent. All run concurrently up to your plan's concurrency limit.
+
+---
+
+## Runs
+
+**Why is my run stuck in `queued`?**
+
+The Daemon picks up queued jobs from NATS JetStream. If a run stays queued longer than a few seconds, check:
+- Daemon service is running (`docker compose ps` or `maschina service status`)
+- NATS connection is healthy
+- No quota exhaustion (`maschina usage`)
+
+**What happens when a run fails?**
+
+The Daemon retries up to 3 times with exponential backoff. If all retries fail, the run is marked `failed` and a `agent.run.failed` webhook event is dispatched (if configured). The error code and message are available on the run object.
+
+**Can I cancel a run that's already queued?**
+
+Queued runs can be cancelled via `maschina agent stop RUN_ID`. Runs that are already in the `running` state cannot be interrupted — they execute to completion or timeout.
+
+**What's the maximum timeout for a run?**
+
+600,000 ms (10 minutes). The default is 300,000 ms (5 minutes). Set `timeout` in the run request body.
+
+**Where does the output go?**
+
+Run output is stored in `outputPayload` on the run object and is available via `GET /agents/:agentId/runs/:runId`. It's also delivered via webhook and realtime WebSocket if you've configured either.
+
+---
+
+## Models
+
+**Which models are available?**
+
+| Model | Plan required | Billing multiplier |
+|---|---|---|
+| `claude-haiku-4-5` | Access+ | 1× |
+| `claude-sonnet-4-6` | M1+ | 2× |
+| `claude-opus-4-6` | M10 | 8× |
+| `ollama/*` | Self-hosted only | 1× |
+
+**What is the billing multiplier?**
+
+The multiplier adjusts the cost of premium models relative to your plan's token quota. A 1,000-token Sonnet run costs 2,000 tokens from your monthly quota. A 1,000-token Opus run costs 8,000 tokens.
+
+**What happens if my preferred model is unavailable?**
+
+Cascade fallback kicks in automatically. If `claude-opus-4-6` is unreachable, the runtime falls back to `claude-sonnet-4-6`, then `claude-haiku-4-5`. If all fail, the run is marked `failed` with error code `model_unavailable`. No action required on your end.
+
+**Can I use Ollama for local development?**
+
+Yes. When no `ANTHROPIC_API_KEY` is set, the runtime routes all requests to a local Ollama instance. Set `OLLAMA_BASE_URL` in your environment. Use `model: "ollama/llama3"` (or any Ollama-hosted model) in your run request.
+
+---
+
+## Billing
+
+**What does "token quota" mean?**
+
+Your plan includes a monthly token allowance. Each run consumes tokens based on input + output tokens × the model's billing multiplier. Quota resets on your billing cycle date.
+
+**What happens when I hit my quota?**
+
+New run requests return `429 Quota Exceeded`. In-progress runs are not interrupted. You'll receive a `usage.quota_warning` webhook at 80% and `usage.quota_exceeded` at 100%.
+
+**Is there a free tier?**
+
+Yes. The Access plan is free and includes 3 agents and a limited monthly token quota with access to `claude-haiku-4-5`.
+
+**Can I upgrade mid-cycle?**
+
+Yes. Upgrading takes effect immediately. Your token quota resets to the new plan's limit, prorated for the remaining days in the cycle.
+
+**Do unused tokens roll over?**
+
+No. Token quotas reset at the start of each billing cycle. Unused tokens do not carry over.
+
+---
+
+## Authentication and Security
+
+**How should I store my API key?**
+
+Store it in an environment variable — never in source code or version control. Use `MASCHINA_API_KEY` and access it with `process.env.MASCHINA_API_KEY` or your language's equivalent.
+
+**Can I scope API keys?**
+
+Currently all API keys have full access to your account's resources. Scoped keys are planned.
+
+**Are webhook payloads signed?**
+
+Yes. Every delivery includes an `X-Maschina-Signature` header with a SHA256 HMAC of the payload body signed with your webhook secret. Always verify this before processing. See [Verifying Signatures](/guides/webhooks#verifying-signatures).
+
+**What if my API key is compromised?**
+
+Revoke it immediately: `maschina keys revoke KEY_ID` or `DELETE /keys/:id`. Create a new one. Revocation takes effect within seconds.
+
+---
+
+## Self-Hosting
+
+**Do I need the source code to self-host?**
+
+No. The `maschina-labs/self-hosted` repository contains pre-built Docker images from `ghcr.io/maschina-labs/`. You pull images, configure `.env`, and run `docker compose up`. No source code required.
+
+**Can I use managed dependencies instead of running everything locally?**
+
+Yes. For production, use:
+- **PostgreSQL** → Neon, Supabase, or RDS
+- **Redis** → Upstash or ElastiCache
+- **NATS** → NGS (NATS Global Service)
+- **Meilisearch** → Meilisearch Cloud
+
+**What's the minimum hardware for self-hosting?**
+
+- Docker Compose (dev): 4 GB RAM, 2 vCPUs
+- Production (single node): 8 GB RAM, 4 vCPUs
+- Production (split services): Individual services are small; Runtime benefits most from more RAM and CPU
+
+**Is self-hosting free?**
+
+The self-hosted distribution is Apache 2.0 licensed — free to run, modify, and use commercially. You're responsible for your own infrastructure costs and LLM API keys.
+
+**How do I stay up to date with self-hosted?**
+
+```bash
+git pull origin main
+docker compose pull
+docker compose up -d
+docker compose exec api pnpm db:migrate
+```

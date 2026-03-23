@@ -1,0 +1,141 @@
+---
+title: Compliance
+description: Audit log, GDPR deletion, and data retention. M10 and Enterprise only.
+---
+
+<Warning>
+Compliance endpoints require the M10 or Enterprise plan.
+</Warning>
+
+## Audit log
+
+Every action on your account — agent creates, runs, key operations, billing events, settings changes — is recorded in the audit log.
+
+### Query audit log
+
+```bash
+GET /compliance/audit-log
+```
+
+**Query parameters:**
+
+| Parameter | Type | Description |
+|---|---|---|
+| `limit` | number | Max results (default: 50, max: 1000) |
+| `offset` | number | Pagination offset |
+| `from` | ISO date | Start of date range |
+| `to` | ISO date | End of date range |
+| `action` | string | Filter by action type |
+| `resource` | string | Filter by resource type (`agent`, `run`, `key`, `webhook`) |
+| `format` | string | `json` (default) or `csv` |
+
+**Response:**
+
+```json
+{
+  "logs": [
+    {
+      "id": "log_01abc...",
+      "action": "agent.create",
+      "resource": "agent",
+      "resourceId": "agt_01abc...",
+      "actorId": "usr_01...",
+      "actorIp": "1.2.3.4",
+      "metadata": { "name": "Research Agent" },
+      "createdAt": "2026-03-13T12:00:00.000Z"
+    }
+  ],
+  "total": 1,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+### Export as CSV
+
+```bash
+GET /compliance/audit-log?format=csv&from=2026-03-01&to=2026-03-31
+```
+
+Returns a `text/csv` response downloadable for compliance reporting.
+
+### Audit log actions
+
+| Action | Description |
+|---|---|
+| `agent.create` | Agent created |
+| `agent.update` | Agent config updated |
+| `agent.delete` | Agent deleted |
+| `run.start` | Run submitted |
+| `run.complete` | Run completed |
+| `run.fail` | Run failed |
+| `key.create` | API key created |
+| `key.revoke` | API key revoked |
+| `webhook.create` | Webhook created |
+| `webhook.delete` | Webhook deleted |
+| `billing.subscribe` | Plan subscription created or changed |
+| `billing.cancel` | Subscription cancelled |
+| `user.login` | User authenticated |
+| `user.logout` | User session ended |
+| `gdpr.delete` | GDPR erasure request processed |
+
+---
+
+## GDPR deletion
+
+Permanently anonymize your account and all associated data in compliance with GDPR Article 17 (Right to Erasure).
+
+```bash
+POST /compliance/gdpr/delete
+```
+
+**No request body required.** The requesting user's data is erased.
+
+**What gets anonymized:**
+
+- All agents are soft-deleted and disassociated from your identity
+- All run input and output payloads are zeroed
+- Your user record is anonymized: email becomes `deleted+{id}@maschina.internal`, name is cleared
+- A final audit log entry is written recording the erasure
+
+**Response:**
+
+```json
+{
+  "message": "User data anonymized successfully",
+  "userId": "usr_01..."
+}
+```
+
+<Warning>
+This action is irreversible. Your account will be effectively unusable after this operation. All active sessions and API keys are invalidated immediately.
+</Warning>
+
+---
+
+## Data retention
+
+Run payload data is retained for a configurable window based on your plan tier.
+
+| Plan | Retention |
+|---|---|
+| Access | 7 days |
+| M1 | 30 days |
+| M5 | 90 days |
+| M10 | 365 days |
+| Enterprise | Custom (unlimited available) |
+
+After the retention window, run input and output payloads are automatically purged. Run metadata (ID, status, token counts, timestamps) is retained indefinitely for billing purposes.
+
+### Configure retention (self-hosted)
+
+When self-hosting, set the retention window per tier in your environment:
+
+```bash
+RETENTION_ACCESS_DAYS=7
+RETENTION_M1_DAYS=30
+RETENTION_M5_DAYS=90
+RETENTION_M10_DAYS=365
+```
+
+See the [environment variables reference](/self-hosting/environment) for all retention configuration options.

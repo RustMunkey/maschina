@@ -106,6 +106,19 @@ def _build_runner(model: str, req: RunRequest) -> AgentRunner | OllamaRunner | O
         )
     if _is_openai(model):
         if not settings.openai_api_key:
+            if settings.ollama_base_url:
+                logger.warning(
+                    "OPENAI_API_KEY not set, falling back to Ollama model=%s for requested model=%s",
+                    settings.ollama_model,
+                    model,
+                )
+                return OllamaRunner(
+                    base_url=settings.ollama_base_url,
+                    model=settings.ollama_model,
+                    system_prompt=req.system_prompt,
+                    max_tokens=req.max_tokens,
+                    timeout_secs=req.timeout_secs,
+                )
             raise RuntimeError("OPENAI_API_KEY is not configured")
         return OpenAIRunner(
             api_key=settings.openai_api_key,
@@ -116,6 +129,19 @@ def _build_runner(model: str, req: RunRequest) -> AgentRunner | OllamaRunner | O
         )
     # Default: Anthropic (claude-*)
     if not settings.anthropic_api_key:
+        if settings.ollama_base_url:
+            logger.warning(
+                "ANTHROPIC_API_KEY not set, falling back to Ollama model=%s for requested model=%s",
+                settings.ollama_model,
+                model,
+            )
+            return OllamaRunner(
+                base_url=settings.ollama_base_url,
+                model=settings.ollama_model,
+                system_prompt=req.system_prompt,
+                max_tokens=req.max_tokens,
+                timeout_secs=req.timeout_secs,
+            )
         raise RuntimeError("ANTHROPIC_API_KEY is not configured")
     import anthropic
 

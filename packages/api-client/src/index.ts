@@ -1,2 +1,2 @@
 export { api, apiFetch, ApiError } from "./client.js";
-export { token } from "./token.js";
+export { token, refreshToken, sessionId, storeSession, clearSession } from "./token.js";

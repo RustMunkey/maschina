@@ -1,0 +1,117 @@
+---
+title: Realtime
+description: WebSocket and SSE endpoints for live run status streaming.
+---
+
+## WebSocket
+
+```
+GET wss://api.maschina.ai/realtime
+```
+
+**Query parameters:**
+
+| Parameter | Required | Description |
+|---|---|---|
+| `token` | Yes | JWT token or API key (`msk_live_...`) |
+
+### Client → server messages
+
+#### Subscribe to a run
+
+```json
+{ "type": "subscribe", "runId": "run_01xyz..." }
+```
+
+#### Subscribe to all user runs
+
+```json
+{ "type": "subscribe_all" }
+```
+
+#### Unsubscribe
+
+```json
+{ "type": "unsubscribe", "runId": "run_01xyz..." }
+```
+
+#### Ping
+
+```json
+{ "type": "ping" }
+```
+
+### Server → client messages
+
+#### run.status
+
+```json
+{
+  "type": "run.status",
+  "runId": "run_01xyz...",
+  "agentId": "agt_01abc...",
+  "status": "running",
+  "timestamp": "2026-03-13T12:00:01.000Z"
+}
+```
+
+#### run.output
+
+```json
+{
+  "type": "run.output",
+  "runId": "run_01xyz...",
+  "agentId": "agt_01abc...",
+  "output": {},
+  "model": "claude-sonnet-4-6",
+  "inputTokens": 312,
+  "outputTokens": 847,
+  "durationMs": 2341
+}
+```
+
+#### run.error
+
+```json
+{
+  "type": "run.error",
+  "runId": "run_01xyz...",
+  "errorCode": "model_unavailable",
+  "errorMessage": "All fallback models exhausted"
+}
+```
+
+#### pong
+
+```json
+{ "type": "pong" }
+```
+
+### Close codes
+
+| Code | Reason |
+|---|---|
+| `4001` | Unauthorized — invalid or expired token |
+| `4029` | Too many connections for your plan |
+| `1001` | Server going away — reconnect |
+
+---
+
+## SSE
+
+```
+GET https://api.maschina.ai/realtime/sse
+```
+
+**Query parameters:**
+
+| Parameter | Required | Description |
+|---|---|---|
+| `token` | Yes | JWT or API key |
+| `runId` | No | Subscribe to a specific run |
+
+**Events:** `run.status`, `run.output`, `run.error`
+
+Each event data field is a JSON string matching the WebSocket message formats above.
+
+EventSource automatically reconnects on disconnect. The server sends a `Last-Event-ID` header to resume from the last received event.
