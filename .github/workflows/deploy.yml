@@ -4,7 +4,6 @@ on:
   push:
     tags: ["v*"]
 
-# Never cancel an in-flight deploy — let it finish or fail cleanly.
 concurrency:
   group: deploy-production
   cancel-in-progress: false
@@ -14,19 +13,19 @@ jobs:
     name: Deploy → Dell (node 0)
     runs-on: ubuntu-latest
     environment: production
+    env:
+      DELL_WEBHOOK_URL: ${{ secrets.DELL_WEBHOOK_URL }}
+      SLACK_DEPLOY_WEBHOOK: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
     steps:
-      # Ping the Dell webhook if the secret is configured.
-      # Set DELL_WEBHOOK_URL in GitHub secrets once Cloudflare Tunnel + domain is live.
-      # Until then this step is a no-op and deploy happens via Dell's auto-update timer.
-      - name: Trigger deploy
-        if: ${{ secrets.DELL_WEBHOOK_URL != '' }}
+      - name: Trigger Dell deploy
+        if: env.DELL_WEBHOOK_URL != ''
         run: |
-          curl -s -X POST "${{ secrets.DELL_WEBHOOK_URL }}" \
+          curl -s -X POST "$DELL_WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -d '{"ref":"${{ github.ref_name }}","sha":"${{ github.sha }}"}'
 
-      - name: Notify Slack — deployed
-        if: ${{ secrets.SLACK_DEPLOY_WEBHOOK != '' }}
+      - name: Notify Slack
+        if: env.SLACK_DEPLOY_WEBHOOK != ''
         uses: slackapi/slack-github-action@v2
         with:
           webhook: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
