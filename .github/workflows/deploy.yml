@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [main]
+    tags: ["v*"]
 
 # Never cancel an in-flight deploy — let it finish or fail cleanly.
 concurrency:
@@ -10,111 +10,28 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # ── Deploy api ─────────────────────────────────────────────────────────────
-  # api runs migrations on startup — deploy it first and confirm it's live
-  # before rolling out the other services.
-  #
-  # Prerequisites (set as GitHub secrets):
-  #   RENDER_DEPLOY_HOOK_API      — from Render service → Settings → Deploy Hook
-  #   RENDER_DEPLOY_HOOK_GATEWAY
-  #   RENDER_DEPLOY_HOOK_REALTIME
-  #   RENDER_DEPLOY_HOOK_DAEMON
-  #   SLACK_DEPLOY_WEBHOOK        — incoming webhook URL
-
-  deploy-api:
-    name: Deploy → api
+  deploy:
+    name: Deploy → Dell (node 0)
     runs-on: ubuntu-latest
     environment: production
     steps:
+      # Ping the Dell webhook if the secret is configured.
+      # Set DELL_WEBHOOK_URL in GitHub secrets once Cloudflare Tunnel + domain is live.
+      # Until then this step is a no-op and deploy happens via Dell's auto-update timer.
       - name: Trigger deploy
-        run: curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK_API }}"
-
-      - name: Wait for api to be live
+        if: ${{ secrets.DELL_WEBHOOK_URL != '' }}
         run: |
-          echo "Polling https://maschina-api.onrender.com/health ..."
-          for i in $(seq 1 72); do
-            if curl -sf https://maschina-api.onrender.com/health > /dev/null 2>&1; then
-              echo "api is live"
-              exit 0
-            fi
-            echo "  attempt $i/72 — sleeping 10s"
-            sleep 10
-          done
-          echo "api failed to come up within 12 minutes"
-          exit 1
+          curl -s -X POST "${{ secrets.DELL_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"ref":"${{ github.ref_name }}","sha":"${{ github.sha }}"}'
 
-      - name: Smoke test
-        run: |
-          curl -f https://maschina-api.onrender.com/health
-          curl -f https://maschina-api.onrender.com/ready
-
-  # ── Deploy remaining services ──────────────────────────────────────────────
-
-  deploy-services:
-    name: Deploy → ${{ matrix.service.name }}
-    runs-on: ubuntu-latest
-    needs: deploy-api
-    environment: production
-    strategy:
-      max-parallel: 3
-      matrix:
-        service:
-          - name: gateway
-            hook_secret: RENDER_DEPLOY_HOOK_GATEWAY
-            health_url: https://maschina-gateway.onrender.com/health
-
-          - name: realtime
-            hook_secret: RENDER_DEPLOY_HOOK_REALTIME
-            health_url: https://maschina-realtime.onrender.com/health
-
-          - name: daemon
-            hook_secret: RENDER_DEPLOY_HOOK_DAEMON
-            health_url: https://maschina-daemon.onrender.com/health
-
-    steps:
-      - name: Trigger deploy
-        run: curl -s -X POST "${{ secrets[matrix.service.hook_secret] }}"
-
-      - name: Wait for ${{ matrix.service.name }} to be live
-        run: |
-          echo "Polling ${{ matrix.service.health_url }} ..."
-          for i in $(seq 1 72); do
-            if curl -sf "${{ matrix.service.health_url }}" > /dev/null 2>&1; then
-              echo "${{ matrix.service.name }} is live"
-              exit 0
-            fi
-            echo "  attempt $i/72 — sleeping 10s"
-            sleep 10
-          done
-          echo "${{ matrix.service.name }} failed to come up within 12 minutes"
-          exit 1
-
-  # ── Notify ────────────────────────────────────────────────────────────────
-
-  notify:
-    name: Notify
-    runs-on: ubuntu-latest
-    needs: [deploy-api, deploy-services]
-    if: always()
-    steps:
-      - name: Slack — success
-        if: ${{ needs.deploy-api.result == 'success' && needs.deploy-services.result == 'success' }}
+      - name: Notify Slack — deployed
+        if: ${{ secrets.SLACK_DEPLOY_WEBHOOK != '' }}
         uses: slackapi/slack-github-action@v2
         with:
           webhook: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": ":white_check_mark: *Maschina deployed to prod* — <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}> by ${{ github.actor }}"
-            }
-
-      - name: Slack — failure
-        if: ${{ needs.deploy-api.result == 'failure' || needs.deploy-services.result == 'failure' }}
-        uses: slackapi/slack-github-action@v2
-        with:
-          webhook: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
-          webhook-type: incoming-webhook
-          payload: |
-            {
-              "text": ":x: *Maschina prod deploy FAILED* — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run> — commit by ${{ github.actor }}"
+              "text": ":white_check_mark: *Maschina ${{ github.ref_name }} deployed* — <${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref_name }}|Release notes> — by ${{ github.actor }}"
             }
