@@ -243,7 +243,7 @@ jobs:
       - name: Extract changelog entry
         id: changelog
         run: |
-          VERSION=${{ github.ref_name }}
+          VERSION=${GITHUB_REF_NAME#v}
           ENTRY=$(awk "/^## \[${VERSION}\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md)
           echo "body<<EOF" >> $GITHUB_OUTPUT
           echo "$ENTRY" >> $GITHUB_OUTPUT
@@ -290,7 +290,6 @@ jobs:
 
   # ── Publish Docker images to GHCR ────────────────────────────────────────
   # Only runs on version tags (v*) — never on commits or PRs.
-  # Render can pull these pre-built images for faster deploys.
 
   publish-docker:
     name: Docker — ${{ matrix.service }}
