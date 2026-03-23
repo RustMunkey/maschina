@@ -1,7 +1,9 @@
 use anyhow::Result;
 use console::style;
+use indicatif::{ProgressBar, ProgressStyle};
 use inquire::{Select, Text};
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 
 use crate::{client::ApiClient, output::Output};
 
@@ -36,6 +38,29 @@ struct AgentRun {
     status: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     started_at: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[allow(dead_code)]
+struct RunStatus {
+    id: String,
+    agent_id: String,
+    status: String,
+    #[serde(default)]
+    output_payload: Option<serde_json::Value>,
+    #[serde(default)]
+    input_tokens: Option<u64>,
+    #[serde(default)]
+    output_tokens: Option<u64>,
+    #[serde(default)]
+    error_code: Option<String>,
+    #[serde(default)]
+    error_message: Option<String>,
+    #[serde(default)]
+    started_at: Option<String>,
+    #[serde(default)]
+    finished_at: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -131,6 +156,7 @@ pub async fn run_agent(
     client: &ApiClient,
     id: String,
     payload: serde_json::Value,
+    no_wait: bool,
     out: &Output,
 ) -> Result<()> {
     let run: AgentRun = client
@@ -142,23 +168,138 @@ pub async fn run_agent(
         return Ok(());
     }
 
-    println!("{} Agent run queued", style("✓").green().bold());
+    let run_id = &run.run_id;
+
+    if no_wait {
+        println!("{} Run queued", style("✓").green().bold());
+        println!("  {:<12} {}", style("Run ID:").dim(), style(run_id).cyan());
+        println!(
+            "  {:<12} {}",
+            style("Status:").dim(),
+            status_styled(&run.status)
+        );
+        println!();
+        println!(
+            "  {}",
+            style(format!("maschina logs {run_id}  — follow with -f")).dim()
+        );
+        return Ok(());
+    }
+
+    // ── poll until terminal state ──────────────────────────────────────────────
+    let spinner = ProgressBar::new_spinner();
+    spinner.set_style(
+        ProgressStyle::default_spinner()
+            .tick_strings(&["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"])
+            .template("{spinner:.cyan}  {msg}")
+            .unwrap(),
+    );
+    spinner.set_message(format!("queued  {}", style(run_id.as_str()).dim()));
+    spinner.enable_steady_tick(Duration::from_millis(80));
+
+    let mut last_status = run.status.clone();
+    let poll_interval = Duration::from_secs(2);
+    let timeout = Duration::from_secs(300);
+    let started = std::time::Instant::now();
+
+    let final_run = loop {
+        tokio::time::sleep(poll_interval).await;
+
+        if started.elapsed() >= timeout {
+            spinner.finish_and_clear();
+            anyhow::bail!("timed out after 5 minutes — run `maschina logs {run_id}` for details");
+        }
+
+        let status: RunStatus = match client.get(&format!("/agents/{id}/runs/{run_id}")).await {
+            Ok(s) => s,
+            Err(_) => continue,
+        };
+
+        if status.status != last_status {
+            spinner.set_message(format!(
+                "{}  {}",
+                &status.status,
+                style(run_id.as_str()).dim()
+            ));
+            last_status = status.status.clone();
+        }
+
+        match status.status.as_str() {
+            "completed" | "failed" | "error" | "stopped" => {
+                spinner.finish_and_clear();
+                break status;
+            }
+            _ => {}
+        }
+    };
+
+    // ── render result ──────────────────────────────────────────────────────────
+    let ok = final_run.status == "completed";
+
+    if ok {
+        println!("{} Run completed", style("✓").green().bold());
+    } else {
+        println!(
+            "{} Run {}",
+            style("✗").red().bold(),
+            style(&final_run.status).red()
+        );
+    }
+
     println!(
-        "  {:<12} {}",
+        "  {:<14} {}",
         style("Run ID:").dim(),
-        style(&run.run_id).cyan()
-    );
-    println!(
-        "  {:<12} {}",
-        style("Status:").dim(),
-        status_styled(&run.status)
-    );
-    println!();
-    println!(
-        "  View logs:  {}",
-        style(format!("maschina logs {}", &run.run_id)).cyan()
+        style(run_id.as_str()).cyan()
     );
 
+    if let (Some(started), Some(finished)) = (&final_run.started_at, &final_run.finished_at) {
+        // rough duration: parse as RFC3339 and diff, or just display both
+        println!(
+            "  {:<14} {}",
+            style("Started:").dim(),
+            style(started.as_str()).dim()
+        );
+        println!(
+            "  {:<14} {}",
+            style("Finished:").dim(),
+            style(finished.as_str()).dim()
+        );
+    }
+
+    if let (Some(i), Some(o)) = (final_run.input_tokens, final_run.output_tokens) {
+        println!("  {:<14} {} in / {} out", style("Tokens:").dim(), i, o);
+    }
+
+    if ok {
+        if let Some(output) = &final_run.output_payload {
+            println!();
+            // Pretty-print output if it's an object with a "content" or "text" key,
+            // otherwise dump the full JSON.
+            let text = output["content"]
+                .as_str()
+                .or_else(|| output["text"].as_str())
+                .or_else(|| output["result"].as_str())
+                .or_else(|| output["output"].as_str());
+
+            if let Some(t) = text {
+                println!("{}", t);
+            } else {
+                println!("{}", serde_json::to_string_pretty(output)?);
+            }
+        }
+    } else {
+        if let Some(msg) = &final_run.error_message {
+            println!();
+            println!("  {} {}", style("Error:").red(), msg);
+        }
+        println!();
+        println!(
+            "  {}",
+            style(format!("maschina logs {run_id}  — for full trace")).dim()
+        );
+    }
+
+    println!();
     Ok(())
 }
 

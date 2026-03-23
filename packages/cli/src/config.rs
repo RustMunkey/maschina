@@ -24,6 +24,10 @@ pub struct Config {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tier: Option<String>,
 
+    /// TUI color theme: "white" | "phosphor" | "amber"
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tui_theme: Option<String>,
+
     /// Profile name (used for multi-environment setups)
     #[serde(skip)]
     pub profile: String,
@@ -90,6 +94,7 @@ pub fn load(profile: &str) -> Result<Config> {
             model_providers: vec![],
             node: None,
             tier: None,
+            tui_theme: None,
             profile: profile.to_string(),
         });
     }

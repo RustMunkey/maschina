@@ -77,6 +77,7 @@ pub async fn run(profile: &str) -> Result<()> {
         model_providers: vec![],
         node: None,
         tier: None,
+        tui_theme: None,
         profile: profile.into(),
     };
     let client = ApiClient::new(&temp)?;
@@ -102,6 +103,7 @@ pub async fn run(profile: &str) -> Result<()> {
         model_providers: current.model_providers,
         node: current.node,
         tier: current.tier,
+        tui_theme: current.tui_theme,
         profile: profile.into(),
     };
     config::save(&cfg, profile)?;

@@ -9,4 +9,5 @@ members = [
   "packages/cli",
   "packages/code",
   "packages/sdk/rust",
+  "packages/wasm",
 ]

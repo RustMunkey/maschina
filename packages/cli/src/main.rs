@@ -5,9 +5,8 @@ mod hardware;
 mod output;
 mod project;
 mod services;
+mod theme;
 mod tui;
-
-use std::process::Command;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
@@ -17,9 +16,9 @@ use clap::{Parser, Subcommand};
 #[derive(Parser)]
 #[command(
     name = "maschina",
-    about = "The Maschina CLI — infrastructure for autonomous digital labor.\nRun with no arguments to open the launcher.",
+    about = "The Maschina CLI — infrastructure for autonomous digital labor.\nRun with no arguments to open the dashboard.",
     long_about = None,
-    version,
+    version = concat!("v", env!("CARGO_PKG_VERSION"), " (", env!("MASCHINA_GIT_SHA"), ")"),
     propagate_version = true,
 )]
 pub struct Cli {
@@ -40,6 +39,12 @@ pub enum Commands {
     /// Interactive first-time setup wizard
     Setup,
 
+    /// Scaffold a new local agent project (creates maschina.toml, agent stub, .env.example)
+    Init {
+        /// Project / directory name (defaults to current directory)
+        name: Option<String>,
+    },
+
     /// Authenticate with email and password
     Login,
 
@@ -50,7 +55,11 @@ pub enum Commands {
     Status,
 
     /// Check configuration, connectivity, and dependencies
-    Doctor,
+    Doctor {
+        /// Automatically apply fixes where possible
+        #[arg(long)]
+        fix: bool,
+    },
 
     /// Manage background services (api, gateway, realtime, runtime, daemon)
     Service {
@@ -100,11 +109,66 @@ pub enum Commands {
         cmd: PushCommands,
     },
 
+    /// Interactive agent REPL — run agents across the network
+    Code,
+
+    /// Manage outbound webhooks
+    Webhook {
+        #[command(subcommand)]
+        cmd: WebhookCommands,
+    },
+
+    /// Browse and publish agents on the marketplace
+    Market {
+        #[command(subcommand)]
+        cmd: MarketCommands,
+    },
+
+    /// Manage integrations (Slack, GitHub, Notion, Linear)
+    Connector {
+        #[command(subcommand)]
+        cmd: ConnectorCommands,
+    },
+
+    /// Manage multi-step agent workflows
+    Workflow {
+        #[command(subcommand)]
+        cmd: WorkflowCommands,
+    },
+
+    /// Manage organizations and team members
+    Org {
+        #[command(subcommand)]
+        cmd: OrgCommands,
+    },
+
+    /// View and manage notifications
+    Notify {
+        #[command(subcommand)]
+        cmd: NotifyCommands,
+    },
+
+    /// View audit logs and compliance exports
+    Audit {
+        #[command(subcommand)]
+        cmd: AuditCommands,
+    },
+
+    /// View usage analytics
+    Analytics {
+        #[command(subcommand)]
+        cmd: AnalyticsCommands,
+    },
+
+    /// Generate shell completions
+    Completions {
+        /// Shell to generate completions for
+        #[arg(value_enum)]
+        shell: clap_complete::Shell,
+    },
+
     /// Self-update the CLI
     Update,
-
-    /// Open the code tool (REPL)
-    Code,
 
     /// Manage per-project configuration
     Config {
@@ -117,28 +181,18 @@ pub enum Commands {
 
 #[derive(Subcommand)]
 pub enum ServiceCommands {
-    /// Start one or all services
     Start {
-        /// Service name (api, gateway, realtime, runtime, daemon). Omit for all.
         name: Option<String>,
     },
-    /// Stop one or all services
     Stop {
-        /// Service name. Omit for all.
         name: Option<String>,
     },
-    /// Restart one or all services
     Restart {
-        /// Service name. Omit for all.
         name: Option<String>,
     },
-    /// Show running status of all services
     Status,
-    /// Tail a service log
     Logs {
-        /// Service name (api, gateway, realtime, runtime, daemon)
         name: String,
-        /// Follow (live tail)
         #[arg(short, long)]
         follow: bool,
     },
@@ -148,39 +202,28 @@ pub enum ServiceCommands {
 
 #[derive(Subcommand)]
 pub enum AgentCommands {
-    /// List all agents
     List,
-    /// Deploy a new agent
     Deploy {
-        /// Agent name
         name: String,
     },
-    /// Stop a running agent
     Stop {
-        /// Agent ID
         id: String,
     },
-    /// Run an agent
     Run {
-        /// Agent ID
         id: String,
-        /// JSON input payload
         #[arg(short, long, default_value = "{}")]
         input: String,
+        /// Queue the run and return immediately without waiting for completion
+        #[arg(long)]
+        no_wait: bool,
     },
-    /// Show run history for an agent
     Runs {
-        /// Agent ID
         id: String,
     },
-    /// Inspect agent config and stats
     Inspect {
-        /// Agent ID
         id: String,
     },
-    /// Tail logs for an agent's last run
     Logs {
-        /// Agent ID
         id: String,
     },
 }
@@ -189,39 +232,23 @@ pub enum AgentCommands {
 
 #[derive(Subcommand)]
 pub enum KeyCommands {
-    /// List all API keys
     List,
-    /// Create a new API key
-    Create {
-        /// Descriptive name for the key
-        name: String,
-    },
-    /// Revoke an API key
-    Revoke {
-        /// API key ID
-        id: String,
-    },
+    Create { name: String },
+    Revoke { id: String },
 }
 
 // ── models ────────────────────────────────────────────────────────────────────
 
 #[derive(Subcommand)]
 pub enum ModelCommands {
-    /// List configured providers
     List,
-    /// Show provider status
     Status,
-    /// Add or reconfigure a provider (--all to configure all at once)
     Add {
-        /// Provider name (anthropic, openai, ollama, openrouter, gemini, mistral, custom)
         name: Option<String>,
-        /// Interactively configure all supported providers
         #[arg(long)]
         all: bool,
     },
-    /// Remove a provider
     Remove {
-        /// Provider name (anthropic, openai, ollama, …)
         name: String,
     },
 }
@@ -230,15 +257,11 @@ pub enum ModelCommands {
 
 #[derive(Subcommand)]
 pub enum NodeCommands {
-    /// Join the network: detect hardware, register, and start processing tasks
     Join,
-    /// Leave the network gracefully (marks node offline)
     Leave {
-        /// Also clear stored node credentials (allows fresh re-registration)
         #[arg(long)]
         forget: bool,
     },
-    /// Show this node's status, reputation score, and earnings
     Status,
 }
 
@@ -246,30 +269,199 @@ pub enum NodeCommands {
 
 #[derive(Subcommand)]
 pub enum PushCommands {
-    /// Print the Web Push subscribe URL and open it in the browser
     Subscribe,
-    /// Send a test push notification to verify your setup
     Test,
-    /// List registered push tokens for your account
     Tokens,
+}
+
+// ── webhook ───────────────────────────────────────────────────────────────────
+
+#[derive(Subcommand)]
+pub enum WebhookCommands {
+    /// List all configured webhooks
+    List,
+    /// Create a new webhook endpoint
+    Create {
+        /// Endpoint URL
+        #[arg(long)]
+        url: String,
+        /// Events to subscribe to (comma-separated, e.g. run.completed,run.failed)
+        #[arg(
+            long,
+            value_delimiter = ',',
+            default_value = "run.completed,run.failed"
+        )]
+        events: Vec<String>,
+    },
+    /// Delete a webhook
+    Delete {
+        /// Webhook ID
+        id: String,
+    },
+    /// Send a test event to a webhook
+    Test {
+        /// Webhook ID
+        id: String,
+    },
+    /// Show delivery history for a webhook
+    Deliveries {
+        /// Webhook ID
+        id: String,
+    },
+}
+
+// ── market ────────────────────────────────────────────────────────────────────
+
+#[derive(Subcommand)]
+pub enum MarketCommands {
+    /// Browse marketplace listings
+    List {
+        /// Search query
+        #[arg(short, long)]
+        query: Option<String>,
+    },
+    /// Show details for a listing
+    Inspect {
+        /// Listing ID
+        id: String,
+    },
+    /// Publish an agent to the marketplace
+    Publish {
+        /// Agent ID to publish
+        agent_id: String,
+        /// Price in cents (0 = free)
+        #[arg(long, default_value = "0")]
+        price: u64,
+    },
+    /// Remove a listing from the marketplace
+    Unpublish {
+        /// Listing ID
+        id: String,
+    },
+    /// Install a marketplace agent to your account
+    Install {
+        /// Listing ID
+        id: String,
+    },
+}
+
+// ── connector ─────────────────────────────────────────────────────────────────
+
+#[derive(Subcommand)]
+pub enum ConnectorCommands {
+    /// List connected integrations
+    List,
+    /// Connect a new integration via OAuth
+    Add {
+        /// Provider name (slack, github, notion, linear)
+        provider: String,
+    },
+    /// Remove an integration
+    Remove {
+        /// Connector ID
+        id: String,
+    },
+    /// Test connector health
+    Test {
+        /// Connector ID
+        id: String,
+    },
+}
+
+// ── workflow ──────────────────────────────────────────────────────────────────
+
+#[derive(Subcommand)]
+pub enum WorkflowCommands {
+    /// List all workflows
+    List,
+    /// Show workflow details and recent runs
+    Inspect { id: String },
+    /// Trigger a workflow run
+    Trigger { id: String },
+    /// List runs for a workflow
+    Runs { id: String },
+    /// Delete a workflow
+    Delete { id: String },
+}
+
+// ── org ───────────────────────────────────────────────────────────────────────
+
+#[derive(Subcommand)]
+pub enum OrgCommands {
+    /// List organizations you belong to
+    List,
+    /// Create a new organization
+    Create { name: String },
+    /// List members of an organization
+    Members { org_id: String },
+    /// Invite a user to an organization
+    Invite {
+        org_id: String,
+        email: String,
+        #[arg(default_value = "member")]
+        role: String,
+    },
+    /// Remove a member from an organization
+    Remove { org_id: String, user_id: String },
+}
+
+// ── notify ────────────────────────────────────────────────────────────────────
+
+#[derive(Subcommand)]
+pub enum NotifyCommands {
+    /// List recent notifications
+    List {
+        #[arg(short, long, default_value = "20")]
+        limit: u32,
+    },
+    /// Mark all notifications as read
+    ReadAll,
+    /// Clear all notifications
+    Clear,
+}
+
+// ── audit ─────────────────────────────────────────────────────────────────────
+
+#[derive(Subcommand)]
+pub enum AuditCommands {
+    /// List audit log events
+    List {
+        #[arg(short, long, default_value = "50")]
+        limit: u32,
+        /// Filter by action type
+        #[arg(short, long)]
+        action: Option<String>,
+    },
+    /// Export audit log
+    Export {
+        #[arg(short, long, default_value = "json")]
+        format: String,
+    },
+}
+
+// ── analytics ─────────────────────────────────────────────────────────────────
+
+#[derive(Subcommand)]
+pub enum AnalyticsCommands {
+    /// Show usage overview
+    Overview,
+    /// Show per-agent analytics
+    Agents {
+        #[arg(short, long, default_value = "10")]
+        limit: u32,
+    },
 }
 
 // ── config ────────────────────────────────────────────────────────────────────
 
 #[derive(Subcommand)]
 pub enum ConfigCommands {
-    /// Print the active config file path
     Path,
-    /// Get a config value
-    Get {
-        /// Dot-path key (e.g. api_url)
-        key: String,
-    },
-    /// Set a config value
+    Get { key: String },
     Set { key: String, value: String },
 }
 
-// ── entry points ──────────────────────────────────────────────────────────────
+// ── entry point ───────────────────────────────────────────────────────────────
 
 #[tokio::main]
 async fn main() {
@@ -284,27 +476,28 @@ async fn run() -> Result<()> {
     let out = output::Output::new(cli.json);
 
     match cli.command {
-        // ── no args → TUI launcher (loop back after setup) ───────────────────
-        None => {
-            let mut launch_target = tui::run(&cli.profile)?;
-            loop {
-                match launch_target {
-                    None => break,
-                    Some(tui::LaunchTarget::Setup) => {
-                        commands::setup::run(&cli.profile).await?;
-                        launch_target = tui::run(&cli.profile)?;
-                    }
-                    Some(tui::LaunchTarget::Code) => {
-                        launch_code_tool()?;
-                        break;
-                    }
+        // ── no args → TUI dashboard ───────────────────────────────────────────
+        None => loop {
+            match tui::run(&cli.profile)? {
+                None => break,
+                Some(tui::LaunchTarget::Setup) => {
+                    commands::setup::run(&cli.profile).await?;
+                }
+                Some(tui::LaunchTarget::Code) => {
+                    commands::code::run(&cli.profile).await?;
+                    break;
                 }
             }
-        }
+        },
 
         // ── setup ─────────────────────────────────────────────────────────────
         Some(Commands::Setup) => {
             commands::setup::run(&cli.profile).await?;
+        }
+
+        // ── init ───────────────────────────────────────────────────────────────
+        Some(Commands::Init { name }) => {
+            commands::init::run(name, &cli.profile, &out).await?;
         }
 
         // ── login / logout ────────────────────────────────────────────────────
@@ -325,8 +518,8 @@ async fn run() -> Result<()> {
             commands::status::run(&cli.profile, &out).await?;
         }
 
-        Some(Commands::Doctor) => {
-            commands::doctor::run(&cli.profile, &out).await?;
+        Some(Commands::Doctor { fix }) => {
+            commands::doctor::run(&cli.profile, fix, &out).await?;
         }
 
         // ── service ───────────────────────────────────────────────────────────
@@ -342,29 +535,21 @@ async fn run() -> Result<()> {
         Some(Commands::Agent { cmd }) => {
             let (_, client) = commands::require_auth(&cli.profile)?;
             match cmd {
-                AgentCommands::List => {
-                    commands::agent::list(&client, &out).await?;
-                }
+                AgentCommands::List => commands::agent::list(&client, &out).await?,
                 AgentCommands::Deploy { name } => {
-                    commands::agent::deploy(&client, name, &out).await?;
+                    commands::agent::deploy(&client, name, &out).await?
                 }
-                AgentCommands::Stop { id } => {
-                    commands::agent::stop(&client, id, &out).await?;
-                }
-                AgentCommands::Run { id, input } => {
+                AgentCommands::Stop { id } => commands::agent::stop(&client, id, &out).await?,
+                AgentCommands::Run { id, input, no_wait } => {
                     let payload: serde_json::Value = serde_json::from_str(&input)
                         .map_err(|_| anyhow::anyhow!("--input must be valid JSON"))?;
-                    commands::agent::run_agent(&client, id, payload, &out).await?;
+                    commands::agent::run_agent(&client, id, payload, no_wait, &out).await?;
                 }
-                AgentCommands::Runs { id } => {
-                    commands::agent::runs(&client, id, &out).await?;
-                }
+                AgentCommands::Runs { id } => commands::agent::runs(&client, id, &out).await?,
                 AgentCommands::Inspect { id } => {
-                    commands::agent::inspect(&client, id, &out).await?;
+                    commands::agent::inspect(&client, id, &out).await?
                 }
-                AgentCommands::Logs { id } => {
-                    commands::logs::show(&client, id, &out).await?;
-                }
+                AgentCommands::Logs { id } => commands::logs::show(&client, id, &out).await?,
             }
         }
 
@@ -407,15 +592,11 @@ async fn run() -> Result<()> {
 
         // ── node ──────────────────────────────────────────────────────────────
         Some(Commands::Node { cmd }) => match cmd {
-            NodeCommands::Join => {
-                commands::node::join::run(&cli.profile, &out).await?;
-            }
+            NodeCommands::Join => commands::node::join::run(&cli.profile, &out).await?,
             NodeCommands::Leave { forget } => {
-                commands::node::leave::run(&cli.profile, forget, &out).await?;
+                commands::node::leave::run(&cli.profile, forget, &out).await?
             }
-            NodeCommands::Status => {
-                commands::node::status::run(&cli.profile, &out).await?;
-            }
+            NodeCommands::Status => commands::node::status::run(&cli.profile, &out).await?,
         },
 
         // ── push ──────────────────────────────────────────────────────────────
@@ -428,8 +609,7 @@ async fn run() -> Result<()> {
                     println!("  Open this URL in your browser to enable Web Push notifications:");
                     println!("  {}", console::style(&url).cyan());
                     println!();
-                    // Best-effort browser open — ignore error
-                    let _ = Command::new(if cfg!(target_os = "macos") {
+                    let _ = std::process::Command::new(if cfg!(target_os = "macos") {
                         "open"
                     } else {
                         "xdg-open"
@@ -469,14 +649,158 @@ async fn run() -> Result<()> {
             }
         }
 
+        // ── code (REPL) ───────────────────────────────────────────────────────
+        Some(Commands::Code) => {
+            commands::code::run(&cli.profile).await?;
+        }
+
+        // ── webhook ───────────────────────────────────────────────────────────
+        Some(Commands::Webhook { cmd }) => {
+            let (_, client) = commands::require_auth(&cli.profile)?;
+            match cmd {
+                WebhookCommands::List => commands::webhook::list(&client, &out).await?,
+                WebhookCommands::Create { url, events } => {
+                    commands::webhook::create(&client, url, events, &out).await?
+                }
+                WebhookCommands::Delete { id } => {
+                    commands::webhook::delete(&client, id, &out).await?
+                }
+                WebhookCommands::Test { id } => commands::webhook::test(&client, id, &out).await?,
+                WebhookCommands::Deliveries { id } => {
+                    commands::webhook::deliveries(&client, id, &out).await?
+                }
+            }
+        }
+
+        // ── market ────────────────────────────────────────────────────────────
+        Some(Commands::Market { cmd }) => {
+            let (_, client) = commands::require_auth(&cli.profile)?;
+            match cmd {
+                MarketCommands::List { query } => {
+                    commands::market::list(&client, query, &out).await?
+                }
+                MarketCommands::Inspect { id } => {
+                    commands::market::inspect(&client, id, &out).await?
+                }
+                MarketCommands::Publish { agent_id, price } => {
+                    commands::market::publish(&client, agent_id, price, &out).await?
+                }
+                MarketCommands::Unpublish { id } => {
+                    commands::market::unpublish(&client, id, &out).await?
+                }
+                MarketCommands::Install { id } => {
+                    commands::market::install(&client, id, &out).await?
+                }
+            }
+        }
+
+        // ── connector ─────────────────────────────────────────────────────────
+        Some(Commands::Connector { cmd }) => {
+            let (_, client) = commands::require_auth(&cli.profile)?;
+            match cmd {
+                ConnectorCommands::List => commands::connector::list(&client, &out).await?,
+                ConnectorCommands::Add { provider } => {
+                    commands::connector::add(&client, provider, &out).await?
+                }
+                ConnectorCommands::Remove { id } => {
+                    commands::connector::remove(&client, id, &out).await?
+                }
+                ConnectorCommands::Test { id } => {
+                    commands::connector::test(&client, id, &out).await?
+                }
+            }
+        }
+
+        // ── workflow ──────────────────────────────────────────────────────────
+        Some(Commands::Workflow { cmd }) => {
+            let (_, client) = commands::require_auth(&cli.profile)?;
+            match cmd {
+                WorkflowCommands::List => commands::workflow::list(&client, &out).await?,
+                WorkflowCommands::Inspect { id } => {
+                    commands::workflow::inspect(&client, id, &out).await?
+                }
+                WorkflowCommands::Trigger { id } => {
+                    commands::workflow::trigger(&client, id, &out).await?
+                }
+                WorkflowCommands::Runs { id } => {
+                    commands::workflow::runs(&client, id, &out).await?
+                }
+                WorkflowCommands::Delete { id } => {
+                    commands::workflow::delete(&client, id, &out).await?
+                }
+            }
+        }
+
+        // ── org ───────────────────────────────────────────────────────────────
+        Some(Commands::Org { cmd }) => {
+            let (_, client) = commands::require_auth(&cli.profile)?;
+            match cmd {
+                OrgCommands::List => commands::org::list(&client, &out).await?,
+                OrgCommands::Create { name } => commands::org::create(&client, name, &out).await?,
+                OrgCommands::Members { org_id } => {
+                    commands::org::members(&client, org_id, &out).await?
+                }
+                OrgCommands::Invite {
+                    org_id,
+                    email,
+                    role,
+                } => commands::org::invite(&client, org_id, email, role, &out).await?,
+                OrgCommands::Remove { org_id, user_id } => {
+                    commands::org::remove(&client, org_id, user_id, &out).await?
+                }
+            }
+        }
+
+        // ── notify ────────────────────────────────────────────────────────────
+        Some(Commands::Notify { cmd }) => {
+            let (_, client) = commands::require_auth(&cli.profile)?;
+            match cmd {
+                NotifyCommands::List { limit } => {
+                    commands::notify::list(&client, limit, &out).await?
+                }
+                NotifyCommands::ReadAll => commands::notify::read_all(&client, &out).await?,
+                NotifyCommands::Clear => commands::notify::clear(&client, &out).await?,
+            }
+        }
+
+        // ── audit ─────────────────────────────────────────────────────────────
+        Some(Commands::Audit { cmd }) => {
+            let (_, client) = commands::require_auth(&cli.profile)?;
+            match cmd {
+                AuditCommands::List { limit, action } => {
+                    commands::audit::list(&client, limit, action, &out).await?
+                }
+                AuditCommands::Export { format } => {
+                    commands::audit::export(&client, format, &out).await?
+                }
+            }
+        }
+
+        // ── analytics ─────────────────────────────────────────────────────────
+        Some(Commands::Analytics { cmd }) => {
+            let (_, client) = commands::require_auth(&cli.profile)?;
+            match cmd {
+                AnalyticsCommands::Overview => commands::analytics::overview(&client, &out).await?,
+                AnalyticsCommands::Agents { limit } => {
+                    commands::analytics::agents(&client, limit, &out).await?
+                }
+            }
+        }
+
+        // ── completions ───────────────────────────────────────────────────────
+        Some(Commands::Completions { shell }) => {
+            use clap::CommandFactory;
+            clap_complete::generate(
+                shell,
+                &mut Cli::command(),
+                "maschina",
+                &mut std::io::stdout(),
+            );
+        }
+
         // ── update ────────────────────────────────────────────────────────────
         Some(Commands::Update) => {
             self_update(&out)?;
-        }
-
-        // ── code ──────────────────────────────────────────────────────────────
-        Some(Commands::Code) => {
-            launch_code_tool()?;
         }
 
         // ── config ────────────────────────────────────────────────────────────
@@ -510,7 +834,7 @@ fn models_list(profile: &str, _out: &output::Output) -> Result<()> {
         println!("  {} No providers configured.", console::style("→").dim());
         println!(
             "  Run {} to add one.",
-            console::style("maschina models add").cyan()
+            console::style("maschina model add").cyan()
         );
         println!();
         return Ok(());
@@ -535,7 +859,7 @@ fn models_status(profile: &str, out: &output::Output) -> Result<()> {
     println!();
     if cfg.model_providers.is_empty() {
         println!(
-            "  {} No providers configured — run `maschina models add`",
+            "  {} No providers configured — run `maschina model add`",
             console::style("→").dim()
         );
     } else {
@@ -567,7 +891,7 @@ async fn models_add(profile: &str, name: Option<&str>, add_all: bool) -> Result<
     } else if let Some(n) = name {
         if !ALL_PROVIDERS.contains(&n) {
             anyhow::bail!(
-                "unknown provider '{}'. Choices: {}",
+                "unknown provider '{}'. choices: {}",
                 n,
                 ALL_PROVIDERS.join(", ")
             );
@@ -653,11 +977,9 @@ fn config_set_value(cfg: &mut config::Config, key: &str, value: &str) -> Result<
     Ok(())
 }
 
-// ── update ────────────────────────────────────────────────────────────────────
+// ── self update ───────────────────────────────────────────────────────────────
 
 fn self_update(out: &output::Output) -> Result<()> {
-    // 1. Node update — if running on a Maschina node, run the update script first.
-    //    This pulls latest code, rebuilds changed services, and applies migrations.
     let home = std::env::var("HOME").unwrap_or_default();
     let update_script = std::path::PathBuf::from(&home)
         .join("Desktop")
@@ -667,23 +989,20 @@ fn self_update(out: &output::Output) -> Result<()> {
 
     if update_script.exists() {
         out.info("node detected — running update script...");
-        let status = Command::new("bash").arg(&update_script).status();
-
+        let status = std::process::Command::new("bash")
+            .arg(&update_script)
+            .status();
         match status {
-            Ok(s) if s.success() => {
-                out.success("Node updated successfully", None::<()>);
-            }
-            _ => {
-                out.warn("node update script failed — check `journalctl -u maschina-update@$USER.service`");
-            }
+            Ok(s) if s.success() => out.success("Node updated successfully", None::<()>),
+            _ => out.warn("node update script failed"),
         }
         return Ok(());
     }
 
-    // 2. CLI self-update — not on a node, just update the binary.
     out.info("checking for CLI updates...");
-    let script_url = "https://raw.githubusercontent.com/RustMunkey/maschina/main/install.sh";
-    let status = Command::new("sh")
+    let script_url =
+        "https://raw.githubusercontent.com/RustMunkey/maschina/main/scripts/install.sh";
+    let status = std::process::Command::new("sh")
         .args(["-c", &format!("curl -fsSL {script_url} | sh")])
         .status();
 
@@ -694,37 +1013,5 @@ fn self_update(out: &output::Output) -> Result<()> {
             println!("  https://github.com/RustMunkey/maschina/releases");
         }
     }
-    Ok(())
-}
-
-// ── code tool launcher ────────────────────────────────────────────────────────
-
-fn launch_code_tool() -> Result<()> {
-    // 1. Installed release binary
-    let installed = services::bin_dir().join("maschina-code");
-    if installed.exists() {
-        Command::new(&installed).status()?;
-        return Ok(());
-    }
-
-    // 2. In PATH
-    if Command::new("maschina-code").status().is_ok() {
-        return Ok(());
-    }
-
-    // 3. Not found
-    println!();
-    println!(
-        "  {} maschina code tool not installed",
-        console::style("→").dim()
-    );
-    println!();
-    println!(
-        "  Install it with: {}",
-        console::style("cargo install --git https://github.com/RustMunkey/maschina maschina-code")
-            .cyan()
-    );
-    println!();
-
     Ok(())
 }
