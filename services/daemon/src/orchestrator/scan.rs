@@ -1,3 +1,9 @@
+use aes_gcm::{
+    aead::{Aead, KeyInit},
+    Aes256Gcm, Nonce,
+};
+use sha2::{Digest, Sha256};
+
 use crate::error::{DaemonError, Result};
 use crate::state::AppState;
 use async_nats::jetstream::consumer::pull::Config as PullConfig;
@@ -25,12 +31,54 @@ pub struct AgentExecuteJob {
     pub timeout_secs: u64,
 }
 
+/// Encrypted payload shape — matches what @maschina/jobs publishes when DATA_ENCRYPTION_KEY is set.
+#[derive(Debug, serde::Deserialize)]
+struct EncryptedData {
+    #[serde(rename = "_enc")]
+    enc: String,
+    #[serde(rename = "_iv")]
+    iv: String,
+}
+
 /// Wraps the NATS envelope to extract the job payload.
+/// `data` is either an `AgentExecuteJob` (plaintext) or an `EncryptedData` wrapper.
 #[derive(Debug, serde::Deserialize)]
 struct JobEnvelope {
     #[allow(dead_code)]
     id: String,
-    data: AgentExecuteJob,
+    data: serde_json::Value,
+}
+
+/// Decrypt AES-256-GCM ciphertext using DATA_ENCRYPTION_KEY env var.
+/// Returns None if the key is not set (local dev — data is already plaintext).
+fn decrypt_job_data(enc: &str, iv: &str) -> std::result::Result<Vec<u8>, String> {
+    let raw_key = std::env::var("DATA_ENCRYPTION_KEY")
+        .map_err(|_| "DATA_ENCRYPTION_KEY not set".to_string())?;
+    // Derive 32-byte key via SHA-256 (matches TS implementation)
+    let key_bytes = Sha256::digest(raw_key.as_bytes());
+    let cipher = Aes256Gcm::new(&key_bytes.into());
+    let iv_bytes = hex::decode(iv).map_err(|e| format!("invalid IV hex: {e}"))?;
+    if iv_bytes.len() != 12 {
+        return Err(format!("invalid IV length: {}", iv_bytes.len()));
+    }
+    let nonce = Nonce::from_slice(&iv_bytes);
+    // Ciphertext includes the 16-byte auth tag appended (matches TS encrypt())
+    let ciphertext = hex::decode(enc).map_err(|e| format!("invalid ciphertext hex: {e}"))?;
+    cipher
+        .decrypt(nonce, ciphertext.as_ref())
+        .map_err(|e| format!("AES-GCM decrypt failed: {e}"))
+}
+
+/// Extract AgentExecuteJob from the envelope data — handles both encrypted and plaintext.
+fn extract_job(data: serde_json::Value) -> std::result::Result<AgentExecuteJob, String> {
+    // Check for encrypted wrapper
+    if let Ok(enc_data) = serde_json::from_value::<EncryptedData>(data.clone()) {
+        let plaintext = decrypt_job_data(&enc_data.enc, &enc_data.iv)?;
+        let json_str = std::str::from_utf8(&plaintext).map_err(|e| format!("UTF-8 error: {e}"))?;
+        serde_json::from_str(json_str).map_err(|e| format!("deserialize decrypted job: {e}"))
+    } else {
+        serde_json::from_value(data).map_err(|e| format!("deserialize plaintext job: {e}"))
+    }
 }
 
 /// SCAN phase: pull a batch of agent execute jobs from NATS JetStream.
@@ -83,7 +131,14 @@ pub async fn scan_and_dispatch(state: AppState) -> Result<()> {
             }
         };
 
-        let job = envelope.data;
+        let job = match extract_job(envelope.data) {
+            Ok(j) => j,
+            Err(e) => {
+                error!("Failed to extract/decrypt job payload: {e}");
+                let _ = msg.ack_with(async_nats::jetstream::AckKind::Term).await;
+                continue;
+            }
+        };
 
         // Mark as 'executing' in PostgreSQL before spawning.
         // If the update hits 0 rows, the run was already claimed or canceled.

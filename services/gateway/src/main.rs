@@ -52,6 +52,13 @@ async fn main() -> anyhow::Result<()> {
             state.clone(),
             middleware::auth_and_rate_limit,
         ))
+        // Enforce HTTPS in production (X-Forwarded-Proto validation)
+        .layer(axum_middleware::from_fn_with_state(
+            state.clone(),
+            middleware::enforce_https,
+        ))
+        // Security headers on every response
+        .layer(axum_middleware::from_fn(middleware::security_headers))
         .layer(cors)
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())

@@ -48,9 +48,18 @@ export async function connectNats(servers?: string | string[]): Promise<NatsConn
     authenticator = credsAuthenticator(readFileSync(credFile));
   }
 
+  // Enable TLS when:
+  //   1. NATS_TLS=true is explicitly set
+  //   2. NATS_URL starts with tls:// (NGS / Synadia always uses TLS via credentials)
+  const serverUrls = Array.isArray(urls) ? urls : [urls];
+  const useTls =
+    process.env.NATS_TLS === "true" ||
+    serverUrls.some((u) => u.startsWith("tls://") || u.startsWith("wss://"));
+
   _nc = await connect({
     servers: urls,
     authenticator,
+    tls: useTls ? {} : undefined,
     reconnect: true,
     maxReconnectAttempts: -1, // infinite retries
     reconnectTimeWait: 2000, // 2s between attempts

@@ -18,6 +18,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@maschina/crypto": "workspace:*",
     "@maschina/db": "workspace:*",
     "@maschina/types": "workspace:*",
     "argon2": "^0.41",

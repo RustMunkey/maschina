@@ -20,6 +20,9 @@ pub enum GatewayError {
     #[allow(dead_code)]
     #[error("service unavailable")]
     ServiceUnavailable,
+
+    #[error("HTTPS required")]
+    HttpsRequired,
 }
 
 impl IntoResponse for GatewayError {
@@ -31,6 +34,7 @@ impl IntoResponse for GatewayError {
             GatewayError::ServiceUnavailable => {
                 (StatusCode::SERVICE_UNAVAILABLE, "service_unavailable")
             }
+            GatewayError::HttpsRequired => (StatusCode::FORBIDDEN, "https_required"),
         };
         let message = self.to_string();
         (status, Json(json!({ "error": code, "message": message }))).into_response()

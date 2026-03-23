@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { encrypt } from "@maschina/crypto";
 import type { EventEnvelope } from "@maschina/events";
 import { getJs } from "@maschina/nats";
 import { type Job, jobSubject } from "./types.js";
@@ -6,20 +7,35 @@ import { type Job, jobSubject } from "./types.js";
 // ─── Dispatch a job to NATS JetStream ────────────────────────────────────────
 // Wraps the job in an EventEnvelope for consistent processing + idempotency.
 // The daemon and other consumers pull from the MASCHINA_JOBS stream.
+//
+// Field-level encryption: when DATA_ENCRYPTION_KEY is set, the `data` field is
+// AES-256-GCM encrypted before publish. The consumer (daemon) must decrypt it.
+// Envelope shape when encrypted:
+//   { id, timestamp, version, subject, data: { _enc: ciphertextHex, _iv: ivHex } }
 
 export async function dispatch(job: Job): Promise<string> {
   const js = await getJs();
   const id = randomUUID();
+  const subject = jobSubject(job);
 
-  const envelope: EventEnvelope<Job> = {
+  let envelopeData: Job | { _enc: string; _iv: string };
+  try {
+    const { ciphertext, iv } = encrypt(JSON.stringify(job));
+    envelopeData = { _enc: ciphertext, _iv: iv };
+  } catch {
+    // DATA_ENCRYPTION_KEY not set — send plaintext (local dev only)
+    envelopeData = job;
+  }
+
+  const envelope: EventEnvelope<typeof envelopeData> = {
     id,
     timestamp: new Date().toISOString(),
     version: 1,
-    subject: jobSubject(job),
-    data: job,
+    subject,
+    data: envelopeData,
   };
 
-  await js.publish(jobSubject(job), new TextEncoder().encode(JSON.stringify(envelope)));
+  await js.publish(subject, new TextEncoder().encode(JSON.stringify(envelope)));
 
   return id; // caller can use for idempotency tracking
 }
