@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [prod]
+    branches: [main]
 
 # Never cancel an in-flight deploy — let it finish or fail cleanly.
 concurrency:

@@ -16,12 +16,21 @@ jobs:
         id: metadata
         uses: dependabot/fetch-metadata@v2
 
-      # Auto-merge patch and minor GitHub Actions updates only
-      - name: Auto-merge
+      # Auto-approve + merge patch and minor updates for all ecosystems.
+      # Majors are blocked in dependabot.yml but guarded here too.
+      - name: Auto-approve
         if: |
-          steps.metadata.outputs.package-ecosystem == 'github_actions' &&
-          (steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
-           steps.metadata.outputs.update-type == 'version-update:semver-minor')
+          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+          steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Auto-merge (squash, after CI passes)
+        if: |
+          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+          steps.metadata.outputs.update-type == 'version-update:semver-minor'
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
