@@ -27,6 +27,6 @@
     "@maschina/vitest-config": "workspace:*",
     "@types/web-push": "^3.6.4",
     "typescript": "^5",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.1"
   }
 }

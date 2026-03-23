@@ -37,8 +37,8 @@
     "@maschina/validation": "workspace:*",
     "@maschina/webhooks": "workspace:*",
     "dotenv": "^17.3.1",
-    "drizzle-orm": "^0.39.3",
-    "hono": "^4.6",
+    "drizzle-orm": "^0.45.1",
+    "hono": "^4.12",
     "postgres": "^3",
     "zod": "^3.24"
   },
@@ -48,6 +48,6 @@
     "@types/node": "^22",
     "tsx": "^4.19",
     "typescript": "^5",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.1"
   }
 }

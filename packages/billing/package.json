@@ -21,7 +21,7 @@
     "@maschina/cache": "workspace:*",
     "@maschina/db": "workspace:*",
     "@maschina/plans": "workspace:*",
-    "drizzle-orm": "^0.39.3",
+    "drizzle-orm": "^0.45.1",
     "stripe": "^17"
   },
   "devDependencies": {
@@ -29,6 +29,6 @@
     "@maschina/vitest-config": "workspace:*",
     "@types/node": "^22",
     "typescript": "^5",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.1"
   }
 }

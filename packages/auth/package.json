@@ -21,15 +21,15 @@
     "@maschina/crypto": "workspace:*",
     "@maschina/db": "workspace:*",
     "@maschina/types": "workspace:*",
-    "argon2": "^0.41",
+    "argon2": "^0.44",
     "jose": "^5.9",
-    "drizzle-orm": "^0.39.3"
+    "drizzle-orm": "^0.45.1"
   },
   "devDependencies": {
     "@maschina/tsconfig": "workspace:*",
     "@maschina/vitest-config": "workspace:*",
     "@types/node": "^22",
     "typescript": "^5",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.1"
   }
 }

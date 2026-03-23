@@ -16,8 +16,8 @@
     "@maschina/ui": "workspace:*",
     "@mdx-js/react": "^3.0.0",
     "@phosphor-icons/react": "^2.0.0",
-    "@tanstack/react-query": "^5.0.0",
-    "@tanstack/react-router": "^1.0.0",
+    "@tanstack/react-query": "^5.95.2",
+    "@tanstack/react-router": "^1.168.3",
     "mermaid": "^11.13.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -27,8 +27,8 @@
   "devDependencies": {
     "@mdx-js/rollup": "^3.0.0",
     "@tailwindcss/typography": "^0.5.0",
-    "@tailwindcss/vite": "^4.0.0",
-    "@tanstack/router-plugin": "^1.0.0",
+    "@tailwindcss/vite": "^4.2.2",
+    "@tanstack/router-plugin": "^1.167.4",
     "@types/mdx": "^2.0.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
@@ -39,7 +39,7 @@
     "remark-frontmatter": "^5.0.0",
     "remark-mdx-frontmatter": "^4.0.0",
     "shiki": "^1.0.0",
-    "tailwindcss": "^4.0.0",
+    "tailwindcss": "^4.2.2",
     "typescript": "^5.7.0",
     "vite": "^6.0.0"
   }

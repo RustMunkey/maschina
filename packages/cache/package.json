@@ -19,13 +19,13 @@
   },
   "dependencies": {
     "@maschina/types": "workspace:*",
-    "ioredis": "^5.4"
+    "ioredis": "^5.10"
   },
   "devDependencies": {
     "@maschina/tsconfig": "workspace:*",
     "@maschina/vitest-config": "workspace:*",
     "@types/node": "^22",
     "typescript": "^5",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.1"
   }
 }
