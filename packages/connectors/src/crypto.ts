@@ -1,7 +1,7 @@
 /**
  * AES-256-GCM encryption for connector credentials.
- * Key must be 32 bytes (64 hex chars) from CONNECTOR_ENCRYPTION_KEY env var.
- * Falls back to JWT_SECRET padded/hashed for local dev.
+ * Uses CONNECTOR_ENCRYPTION_KEY, falls back to DATA_ENCRYPTION_KEY.
+ * Never falls back to JWT_SECRET — that key is for JWT signing only.
  */
 
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
@@ -11,8 +11,9 @@ const IV_LENGTH = 12; // 96-bit IV for GCM
 const TAG_LENGTH = 16;
 
 function getKey(): Buffer {
-  const raw = process.env.CONNECTOR_ENCRYPTION_KEY ?? process.env.JWT_SECRET ?? "dev-secret";
-  // Derive a 32-byte key via SHA-256 so any string works
+  const raw = process.env.CONNECTOR_ENCRYPTION_KEY ?? process.env.DATA_ENCRYPTION_KEY;
+  if (!raw)
+    throw new Error("CONNECTOR_ENCRYPTION_KEY (or DATA_ENCRYPTION_KEY fallback) is not set");
   return createHash("sha256").update(raw).digest();
 }
 

@@ -67,14 +67,16 @@ export const agentRuns = pgTable(
     // Status lifecycle: queued → executing → completed | failed | timed_out
     status: text("status").notNull().default("queued"),
 
-    // Input from the caller — passed to the Python runtime as-is
+    // Input from the caller — encrypted at rest when inputPayloadIv is set
     inputPayload: jsonb("input_payload").notNull().default({}),
+    inputPayloadIv: text("input_payload_iv"), // IV for inputPayload encryption
 
     // Optional per-run timeout override (seconds). NULL = use daemon default.
     timeoutOverrideSecs: integer("timeout_override_secs"),
 
-    // Output from the Python runtime
+    // Output from the Python runtime — encrypted at rest when outputPayloadIv is set
     outputPayload: jsonb("output_payload"),
+    outputPayloadIv: text("output_payload_iv"), // IV for outputPayload encryption
 
     // Token accounting — populated by ANALYZE phase from runtime response
     inputTokens: integer("input_tokens"),

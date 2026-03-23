@@ -38,6 +38,7 @@ jobs:
       - name: Build TS packages in dependency order
         run: |
           pnpm --filter @maschina/db build
+          pnpm --filter @maschina/crypto build
           pnpm --filter @maschina/auth build
           pnpm --filter @maschina/cache build
           pnpm --filter @maschina/plans build
@@ -132,6 +133,7 @@ jobs:
       - name: Build TS packages in dependency order
         run: |
           pnpm --filter @maschina/db build
+          pnpm --filter @maschina/crypto build
           pnpm --filter @maschina/auth build
           pnpm --filter @maschina/cache build
           pnpm --filter @maschina/plans build

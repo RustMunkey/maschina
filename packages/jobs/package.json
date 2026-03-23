@@ -18,6 +18,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@maschina/crypto": "workspace:*",
     "@maschina/events": "workspace:*",
     "@maschina/nats": "workspace:*"
   },

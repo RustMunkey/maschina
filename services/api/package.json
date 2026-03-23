@@ -13,6 +13,7 @@
   "dependencies": {
     "@hono/node-server": "^1.13",
     "@maschina/analytics": "workspace:*",
+    "@maschina/crypto": "workspace:*",
     "@maschina/chain": "workspace:*",
     "@maschina/auth": "workspace:*",
     "@maschina/billing": "workspace:*",

@@ -12,14 +12,20 @@
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
+    "@icons-pack/react-simple-icons": "^13.13.0",
     "@maschina/api-client": "workspace:*",
     "@maschina/query": "workspace:*",
     "@maschina/ui": "workspace:*",
     "@phosphor-icons/react": "^2.1.10",
+    "@react-three/fiber": "^9.3.0",
     "@tanstack/react-query": "^5.0.0",
     "@tanstack/react-router": "^1.0.0",
+    "framer-motion": "^12.35.0",
+    "ogl": "^1.0.11",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-globe.gl": "^2.37.0",
+    "three": "^0.167.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",

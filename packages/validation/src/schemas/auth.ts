@@ -52,6 +52,32 @@ export const VerifyEmailSchema = z.object({
   token: z.string().min(1),
 });
 
+// ─── Magic link / OTP ─────────────────────────────────────────────────────────
+
+export const SendOtpSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Invalid email address").max(320),
+  name: z.string().min(1).max(128).trim().optional(), // present only on signup
+});
+
+export const VerifyOtpSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+  code: z
+    .string()
+    .trim()
+    .length(6, "Code must be 6 digits")
+    .regex(/^\d{6}$/, "Code must be digits"),
+});
+
+// ─── Device flow ──────────────────────────────────────────────────────────────
+
+export const DeviceTokenSchema = z.object({
+  deviceCode: z.string().min(1),
+});
+
+export const DeviceConfirmSchema = z.object({
+  userCode: z.string().trim().toUpperCase().min(1).max(20),
+});
+
 // ─── OAuth ────────────────────────────────────────────────────────────────────
 
 export const OAuthCallbackSchema = z.object({
@@ -66,3 +92,7 @@ export type LoginInput = z.infer<typeof LoginSchema>;
 export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
 export type RequestPasswordResetInput = z.infer<typeof RequestPasswordResetSchema>;
 export type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>;
+export type SendOtpInput = z.infer<typeof SendOtpSchema>;
+export type VerifyOtpInput = z.infer<typeof VerifyOtpSchema>;
+export type DeviceTokenInput = z.infer<typeof DeviceTokenSchema>;
+export type DeviceConfirmInput = z.infer<typeof DeviceConfirmSchema>;

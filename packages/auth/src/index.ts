@@ -86,3 +86,25 @@ export {
   resetPassword,
   verifyEmail,
 } from "./verification.js";
+
+// OTP (magic link / passwordless)
+export {
+  OtpExpiredError,
+  OtpInvalidError,
+  OtpRateLimitError,
+  createOtp,
+  pruneExpiredOtps,
+  verifyOtp,
+} from "./otp.js";
+
+// Device flow (CLI auth)
+export type { CreateDeviceCodeResult, DevicePollResult, DevicePollStatus } from "./device.js";
+export {
+  DeviceCodeAlreadyConfirmedError,
+  DeviceCodeExpiredError,
+  DeviceCodeNotFoundError,
+  confirmDeviceCode,
+  createDeviceCode,
+  pollDeviceCode,
+  pruneExpiredDeviceCodes,
+} from "./device.js";
