@@ -2,12 +2,21 @@
  * Internal-only routes — not exposed through the public gateway.
  * Authenticated by a shared INTERNAL_SECRET header, not user JWTs.
  *
- * POST /internal/delegate   — synchronous agent-to-agent delegation
- * POST /internal/run-event  — realtime run status events from daemon
- * POST /internal/notify     — push/in-app notification dispatch from daemon
+ * POST /internal/delegate     — synchronous agent-to-agent delegation
+ * POST /internal/run-event    — realtime run status events from daemon
+ * POST /internal/notify       — push/in-app notification dispatch from daemon
+ * POST /internal/rotate-keys  — re-encrypt all rows with outdated keyVersion
  */
-import { agentSkills, agents, db } from "@maschina/db";
-import { and, eq, isNull } from "@maschina/db";
+import {
+  decryptFieldVersioned,
+  decryptVersioned,
+  encryptFieldVersioned,
+  encryptVersioned,
+  getActiveKeyVersion,
+  isEncryptedField,
+} from "@maschina/crypto";
+import { agentRuns, agentSkills, agents, db, encryptionKeyVersions, users } from "@maschina/db";
+import { and, eq, isNull, lt, ne } from "@maschina/db";
 import { resolveModel } from "@maschina/model";
 import { notifyAgentCompleted, notifyAgentFailed } from "@maschina/notifications";
 import { Hono } from "hono";
@@ -162,6 +171,151 @@ app.post("/notify", async (c) => {
   }
 
   return c.json({ ok: true });
+});
+
+// ─── POST /internal/rotate-keys ──────────────────────────────────────────────
+// Re-encrypts all rows whose keyVersion < ACTIVE_KEY_VERSION using the new key.
+// Safe to run multiple times — skips rows already at the active version.
+// Run this after adding DATA_ENCRYPTION_KEY_V{n} and setting ACTIVE_KEY_VERSION={n}.
+
+app.post("/rotate-keys", async (c) => {
+  const targetVersion = getActiveKeyVersion();
+
+  // Record the new key version in the tracking table (idempotent)
+  await db
+    .insert(encryptionKeyVersions)
+    .values({
+      version: targetVersion,
+      algorithm: "AES-256-GCM",
+      description: `Key version ${targetVersion}`,
+      isActive: true,
+      activatedAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: encryptionKeyVersions.version,
+      set: { isActive: true, activatedAt: new Date() },
+    });
+
+  // Deactivate all other versions
+  await db
+    .update(encryptionKeyVersions)
+    .set({ isActive: false, retiredAt: new Date() })
+    .where(ne(encryptionKeyVersions.version, targetVersion));
+
+  let rotatedAgents = 0;
+  let rotatedRuns = 0;
+  let rotatedUsers = 0;
+
+  // ── Rotate agents.config ──────────────────────────────────────────────────
+  const staleAgents = await db
+    .select({
+      id: agents.id,
+      config: agents.config,
+      configIv: agents.configIv,
+      keyVersion: agents.keyVersion,
+    })
+    .from(agents)
+    .where(and(isNull(agents.deletedAt), lt(agents.keyVersion, targetVersion)));
+
+  for (const row of staleAgents) {
+    if (!row.configIv || typeof row.config !== "string") continue;
+    try {
+      const plaintext = decryptVersioned(row.config, row.configIv, row.keyVersion);
+      const { ciphertext, iv, version } = encryptVersioned(plaintext);
+      await db
+        .update(agents)
+        .set({ config: ciphertext, configIv: iv, keyVersion: version, updatedAt: new Date() })
+        .where(eq(agents.id, row.id));
+      rotatedAgents++;
+    } catch {
+      // Skip rows that fail to decrypt — log and continue
+      console.warn(`[rotate-keys] Failed to re-encrypt agent ${row.id}`);
+    }
+  }
+
+  // ── Rotate agentRuns.inputPayload + outputPayload ─────────────────────────
+  const staleRuns = await db
+    .select({
+      id: agentRuns.id,
+      inputPayload: agentRuns.inputPayload,
+      inputPayloadIv: agentRuns.inputPayloadIv,
+      outputPayload: agentRuns.outputPayload,
+      outputPayloadIv: agentRuns.outputPayloadIv,
+      keyVersion: agentRuns.keyVersion,
+    })
+    .from(agentRuns)
+    .where(lt(agentRuns.keyVersion, targetVersion));
+
+  for (const row of staleRuns) {
+    const updates: Record<string, unknown> = { keyVersion: targetVersion };
+    let changed = false;
+
+    if (row.inputPayloadIv && typeof row.inputPayload === "string") {
+      try {
+        const plaintext = decryptVersioned(row.inputPayload, row.inputPayloadIv, row.keyVersion);
+        const { ciphertext, iv } = encryptVersioned(plaintext);
+        updates.inputPayload = ciphertext;
+        updates.inputPayloadIv = iv;
+        changed = true;
+      } catch {
+        console.warn(`[rotate-keys] Failed to re-encrypt run ${row.id} inputPayload`);
+      }
+    }
+
+    if (row.outputPayloadIv && typeof row.outputPayload === "string") {
+      try {
+        const plaintext = decryptVersioned(row.outputPayload, row.outputPayloadIv, row.keyVersion);
+        const { ciphertext, iv } = encryptVersioned(plaintext);
+        updates.outputPayload = ciphertext;
+        updates.outputPayloadIv = iv;
+        changed = true;
+      } catch {
+        console.warn(`[rotate-keys] Failed to re-encrypt run ${row.id} outputPayload`);
+      }
+    }
+
+    if (changed) {
+      await db.update(agentRuns).set(updates).where(eq(agentRuns.id, row.id));
+      rotatedRuns++;
+    }
+  }
+
+  // ── Rotate users.email + users.name ──────────────────────────────────────
+  const staleUsers = await db
+    .select({ id: users.id, email: users.email, name: users.name, keyVersion: users.keyVersion })
+    .from(users)
+    .where(and(isNull(users.deletedAt), lt(users.keyVersion, targetVersion)));
+
+  for (const row of staleUsers) {
+    const updates: Record<string, unknown> = { keyVersion: targetVersion };
+
+    if (isEncryptedField(row.email)) {
+      try {
+        const plainEmail = decryptFieldVersioned(row.email);
+        updates.email = encryptFieldVersioned(plainEmail);
+      } catch {
+        console.warn(`[rotate-keys] Failed to re-encrypt user ${row.id} email`);
+      }
+    }
+
+    if (row.name && isEncryptedField(row.name)) {
+      try {
+        const plainName = decryptFieldVersioned(row.name);
+        updates.name = encryptFieldVersioned(plainName);
+      } catch {
+        console.warn(`[rotate-keys] Failed to re-encrypt user ${row.id} name`);
+      }
+    }
+
+    await db.update(users).set(updates).where(eq(users.id, row.id));
+    rotatedUsers++;
+  }
+
+  return c.json({
+    ok: true,
+    targetVersion,
+    rotated: { agents: rotatedAgents, runs: rotatedRuns, users: rotatedUsers },
+  });
 });
 
 export default app;

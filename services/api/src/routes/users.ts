@@ -1,5 +1,6 @@
 import { revokeAllSessions } from "@maschina/auth";
 import { verifyPassword } from "@maschina/auth";
+import { encryptFieldVersioned, getActiveKeyVersion } from "@maschina/crypto";
 import { db } from "@maschina/db";
 import { plans, sessions, subscriptions, users } from "@maschina/db";
 import { and, eq, ne } from "@maschina/db";
@@ -59,7 +60,15 @@ app.patch("/me", async (c) => {
   const input = assertValid(UpdateProfileSchema, body);
 
   const updates: Partial<typeof users.$inferInsert> = { updatedAt: new Date() };
-  if (input.name !== undefined) updates.name = sanitizeText(input.name);
+  if (input.name !== undefined) {
+    const sanitized = sanitizeText(input.name);
+    try {
+      updates.name = encryptFieldVersioned(sanitized);
+      updates.keyVersion = getActiveKeyVersion();
+    } catch {
+      updates.name = sanitized; // DATA_ENCRYPTION_KEY not set — local dev only
+    }
+  }
   if (input.avatarUrl !== undefined) updates.avatarUrl = input.avatarUrl;
 
   const [updated] = await db.update(users).set(updates).where(eq(users.id, id)).returning({

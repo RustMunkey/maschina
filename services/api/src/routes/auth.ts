@@ -20,7 +20,13 @@ import {
   verifyOtp,
   verifyPassword,
 } from "@maschina/auth";
-import { decryptField, encryptField, hmacEmail, isEncryptedField } from "@maschina/crypto";
+import {
+  decryptFieldVersioned,
+  encryptFieldVersioned,
+  getActiveKeyVersion,
+  hmacEmail,
+  isEncryptedField,
+} from "@maschina/crypto";
 import { db } from "@maschina/db";
 import { userPasswords, users } from "@maschina/db";
 import { eq } from "@maschina/db";
@@ -52,16 +58,16 @@ function emailIndex(email: string): string {
   return hmacEmail(email);
 }
 
-// Decrypt email stored in DB — handles both legacy plaintext and encrypted values.
+// Decrypt email stored in DB — handles legacy "iv:ct", versioned "v{n}:iv:ct", and plaintext.
 function decryptEmail(stored: string): string {
-  return isEncryptedField(stored) ? decryptField(stored) : stored;
+  return isEncryptedField(stored) ? decryptFieldVersioned(stored) : stored;
 }
 
-// Encrypt name if provided — stored as "ivHex:ciphertextHex".
+// Encrypt name if provided — stored as "v{version}:ivHex:ciphertextHex".
 function encryptName(name: string | null | undefined): string | null {
   if (!name) return null;
   try {
-    return encryptField(name);
+    return encryptFieldVersioned(name);
   } catch {
     return name; // DATA_ENCRYPTION_KEY not set — store plaintext (local dev only)
   }
@@ -69,7 +75,7 @@ function encryptName(name: string | null | undefined): string | null {
 
 function decryptName(stored: string | null): string | null {
   if (!stored) return null;
-  return isEncryptedField(stored) ? decryptField(stored) : stored;
+  return isEncryptedField(stored) ? decryptFieldVersioned(stored) : stored;
 }
 
 // POST /auth/register
@@ -95,10 +101,13 @@ app.post("/register", authRateLimit, async (c) => {
   const passwordHash = await hashPassword(input.password);
 
   let encryptedEmail: string;
+  let userKeyVersion: number;
   try {
-    encryptedEmail = encryptField(input.email);
+    encryptedEmail = encryptFieldVersioned(input.email);
+    userKeyVersion = getActiveKeyVersion();
   } catch {
     encryptedEmail = input.email; // DATA_ENCRYPTION_KEY not set — local dev only
+    userKeyVersion = 1;
   }
 
   const [user] = await db
@@ -108,6 +117,7 @@ app.post("/register", authRateLimit, async (c) => {
       emailIndex: idx,
       name: encryptName(input.name ? sanitizeText(input.name) : null),
       role: "owner",
+      keyVersion: userKeyVersion,
     })
     .returning({ id: users.id, email: users.email, role: users.role });
 
@@ -340,13 +350,15 @@ app.post("/verify-otp", authRateLimit, async (c) => {
     } else {
       // Genuinely new user — create account
       const { randomUUID } = await import("node:crypto");
-      const { encryptField: ef } = await import("@maschina/crypto");
       const now = new Date();
       let storedEmail: string;
+      let newUserKeyVersion: number;
       try {
-        storedEmail = ef(input.email);
+        storedEmail = encryptFieldVersioned(input.email);
+        newUserKeyVersion = getActiveKeyVersion();
       } catch {
         storedEmail = input.email; // DATA_ENCRYPTION_KEY not set — local dev only
+        newUserKeyVersion = 1;
       }
       const [created] = await db
         .insert(users)
@@ -356,6 +368,7 @@ app.post("/verify-otp", authRateLimit, async (c) => {
           emailIndex: idx,
           role: "owner",
           emailVerified: true,
+          keyVersion: newUserKeyVersion,
           createdAt: now,
           updatedAt: now,
         })

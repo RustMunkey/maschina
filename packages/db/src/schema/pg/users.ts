@@ -1,4 +1,13 @@
-import { boolean, index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { userRoleEnum } from "./enums.js";
 
 export const users = pgTable(
@@ -13,6 +22,8 @@ export const users = pgTable(
     emailIndex: text("email_index").notNull().unique(), // HMAC for lookups
     name: text("name"), // encrypted
     avatarUrl: text("avatar_url"),
+
+    keyVersion: integer("key_version").notNull().default(1), // encryption key version for email/name
 
     role: userRoleEnum("role").notNull().default("member"),
     emailVerified: boolean("email_verified").notNull().default(false),

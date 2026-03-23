@@ -6,6 +6,7 @@ export const users = sqliteTable("users", {
   emailIndex: text("email_index").notNull().unique(), // HMAC for lookups
   name: text("name"), // encrypted
   avatarUrl: text("avatar_url"),
+  keyVersion: integer("key_version").notNull().default(1),
   role: text("role", { enum: ["owner", "admin", "member", "viewer"] })
     .notNull()
     .default("member"),
