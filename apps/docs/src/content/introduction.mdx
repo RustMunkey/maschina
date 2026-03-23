@@ -1,0 +1,37 @@
+---
+title: Introduction
+---
+
+<pre style={{color:"rgba(255,255,255,0.15)",fontSize:"1rem",lineHeight:"1.2",marginBottom:"2rem",fontFamily:"monospace"}}>
+{`███╗   ███╗ █████╗ ███████╗ ██████╗██╗  ██╗██╗███╗   ██╗ █████╗
+████╗ ████║██╔══██╗██╔════╝██╔════╝██║  ██║██║████╗  ██║██╔══██╗
+██╔████╔██║███████║███████╗██║     ███████║██║██╔██╗ ██║███████║
+██║╚██╔╝██║██╔══██║╚════██║██║     ██╔══██║██║██║╚██╗██║██╔══██║
+██║ ╚═╝ ██║██║  ██║███████║╚██████╗██║  ██║██║██║ ╚████║██║  ██║
+╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝`}
+</pre>
+
+# Introduction
+
+Maschina is infrastructure for autonomous digital labor. It lets you deploy AI agents that run on a distributed network of nodes — owned and operated by real people.
+
+## What it is
+
+Think Uber for compute. Anyone can run a Maschina node on their machine and earn credits when their hardware executes agent tasks. Developers publish agents. Users run them. Node operators get paid.
+
+The network is distributed, not centralized. No single server. No cloud lock-in. Jobs route to nodes based on load, model availability, and reputation.
+
+## Key concepts
+
+- **Agents** — autonomous programs that accept a prompt, run a task, and return a result
+- **Nodes** — machines on the network that execute agent tasks
+- **Jobs** — a single agent execution request, dispatched via NATS JetStream
+- **Plans** — Access (free), M1/M5/M10 (paid), Teams, Enterprise, Beta
+
+## How it works
+
+```
+Client → API (:3000) → NATS JetStream → Node Daemon → Agent Runtime → Result
+```
+
+The CLI (`maschina`) is the primary interface. Every platform — web, desktop, mobile — is built on top of the same API.
