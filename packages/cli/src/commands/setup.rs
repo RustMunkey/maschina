@@ -1341,6 +1341,7 @@ pub async fn run(profile: &str) -> Result<()> {
         } else {
             Some(tier.clone())
         },
+        tui_theme: None,
         profile: profile.to_string(),
     };
     config::save(&cfg, profile)?;
@@ -1410,6 +1411,7 @@ fn tmp_config(api_url: &str, token: &str, profile: &str) -> Config {
         model_providers: vec![],
         node: None,
         tier: None,
+        tui_theme: None,
         profile: profile.to_string(),
     }
 }
