@@ -1,15 +1,46 @@
 {
-  "name": "@maschina/docs",
+  "name": "@maschina/docs-app",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "npx mintlify dev",
-    "build": "npx mintlify validate"
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b",
+    "lint": "biome check src"
   },
   "dependencies": {
-    "@phosphor-icons/react": "^2.1.7"
+    "@fontsource-variable/inter": "^5.2.8",
+    "@icons-pack/react-simple-icons": "^10.0.0",
+    "@maschina/ui": "workspace:*",
+    "@mdx-js/react": "^3.0.0",
+    "@phosphor-icons/react": "^2.0.0",
+    "@tanstack/react-query": "^5.0.0",
+    "@tanstack/react-router": "^1.0.0",
+    "mermaid": "^11.13.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remark-gfm": "^4.0.1",
+    "sonner": "^2.0.7"
   },
   "devDependencies": {
-    "mintlify": "latest"
+    "@mdx-js/rollup": "^3.0.0",
+    "@tailwindcss/typography": "^0.5.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "@tanstack/router-plugin": "^1.0.0",
+    "@types/mdx": "^2.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "rehype-pretty-code": "^0.14.0",
+    "rehype-slug": "^6.0.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-mdx-frontmatter": "^4.0.0",
+    "shiki": "^1.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0"
   }
 }
