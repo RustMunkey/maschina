@@ -160,9 +160,10 @@ pub async fn run(profile: &str) -> Result<()> {
                             active_name = name.clone();
                             active_model = model.clone();
                             println!(
-                                "  {} switched to {}",
+                                "  {} switched to {} {}",
                                 style("✓").green(),
-                                style(&active_name).bold()
+                                style(&active_name).bold(),
+                                style(format!("({})", &active_model)).dim()
                             );
                         }
                         None => {

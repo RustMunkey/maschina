@@ -2,7 +2,7 @@ use crate::{client::ApiClient, config, output::Output};
 use anyhow::Result;
 use console::style;
 
-pub async fn run(profile: &str, fix: bool, out: &Output) -> Result<()> {
+pub async fn run(profile: &str, fix: bool, _out: &Output) -> Result<()> {
     let cfg = config::load(profile).unwrap_or_default();
     let http = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(5))
@@ -140,7 +140,7 @@ pub async fn run(profile: &str, fix: bool, out: &Output) -> Result<()> {
     let ollama_urls = ["http://localhost:11434", "http://172.17.0.1:11434"];
     let mut ollama_found = false;
     for url in &ollama_urls {
-        if let Ok(resp) = http.get(&format!("{url}/api/tags")).send().await {
+        if let Ok(resp) = http.get(format!("{url}/api/tags")).send().await {
             if resp.status().is_success() {
                 if let Ok(body) = resp.json::<serde_json::Value>().await {
                     let models: Vec<&str> = body["models"]
