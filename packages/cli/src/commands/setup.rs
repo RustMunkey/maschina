@@ -661,7 +661,7 @@ fn draw(f: &mut ratatui::Frame, app: &WizardApp) {
     f.render_widget(
         Paragraph::new(Line::from(vec![
             Span::styled("[ ", dim),
-            Span::styled(format!("{}/{} ", step_n, step_total), dim),
+            Span::styled(format!("{step_n}/{step_total} "), dim),
             Span::styled(step_title, bold),
             Span::styled(" ]  ", dim),
             Span::styled(step_question(app), gray),
@@ -962,9 +962,9 @@ fn draw_input_box(f: &mut ratatui::Frame, app: &WizardApp, area: Rect, dim: Styl
                 let n = app.provider_idx + 1;
                 let m = app.provider_creds.len();
                 if n < m {
-                    format!("esc to skip  ·  {} of {}", n, m)
+                    format!("esc to skip  ·  {n} of {m}")
                 } else {
-                    format!("{} of {}", n, m)
+                    format!("{n} of {m}")
                 }
             }
             Step::DbUrl => match app.db_choice.cursor {
@@ -1154,7 +1154,7 @@ pub async fn run(profile: &str) -> Result<()> {
 
     let api_url = &app.out_api_url;
 
-    let auth_result: Result<(String, String, String)> = (|| async {
+    let auth_result: Result<(String, String, String)> = async {
         match (app.auth_choice.cursor, &app.out_raw_key) {
             (2, Some(key)) => {
                 let sp = spinner("verifying key");
@@ -1281,7 +1281,7 @@ pub async fn run(profile: &str) -> Result<()> {
                 Ok((key, email, tier))
             }
         }
-    })()
+    }
     .await;
 
     let (opt_api_key, verified_email, tier) = match auth_result {
