@@ -266,10 +266,7 @@ timeout_ms = 300000
     println!(
         "  {}  {}",
         style("→ run").dim(),
-        style(format!(
-            "maschina agent run <id> --input '{{\"prompt\":\"hello\"}}'"
-        ))
-        .cyan()
+        style("maschina agent run <id> --input '{\"prompt\":\"hello\"}'".to_string()).cyan()
     );
     println!();
 
@@ -284,7 +281,7 @@ fn row_created(path: &str) {
 
 /// Convert a kebab-case name to PascalCase for use as a class name.
 fn to_class_name(name: &str) -> String {
-    name.split(|c: char| c == '-' || c == '_' || c == ' ')
+    name.split(['-', '_', ' '])
         .filter(|s| !s.is_empty())
         .map(|s| {
             let mut c = s.chars();

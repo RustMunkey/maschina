@@ -65,7 +65,7 @@ pub async fn agents(client: &ApiClient, limit: u32, out: &Output) -> Result<()> 
         let runs = a["runs"].as_u64().unwrap_or(0);
         let failed = a["failed"].as_u64().unwrap_or(0);
         let avg = a["avgDurationMs"].as_f64().unwrap_or(0.0);
-        println!("  {:<24}  {:<10}  {:<10}  {:.0}", name, runs, failed, avg);
+        println!("  {name:<24}  {runs:<10}  {failed:<10}  {avg:.0}");
     }
     println!();
     Ok(())

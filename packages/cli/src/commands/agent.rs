@@ -282,7 +282,7 @@ pub async fn run_agent(
                 .or_else(|| output["output"].as_str());
 
             if let Some(t) = text {
-                println!("{}", t);
+                println!("{t}");
             } else {
                 println!("{}", serde_json::to_string_pretty(output)?);
             }
