@@ -5,7 +5,7 @@
   "identifier": "io.maschina.desktop",
   "build": {
     "frontendDist": "../../app/dist",
-    "devUrl": "http://localhost:5173",
+    "devUrl": "http://localhost:5175",
     "beforeDevCommand": "pnpm --filter @maschina/app dev",
     "beforeBuildCommand": "pnpm --filter @maschina/app build"
   },

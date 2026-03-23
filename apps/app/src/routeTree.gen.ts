@@ -9,88 +9,201 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as AgentsRouteImport } from './routes/agents'
-import { Route as BillingRouteImport } from './routes/billing'
 import { Route as UsageRouteImport } from './routes/usage'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as KeysRouteImport } from './routes/keys'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as BillingRouteImport } from './routes/billing'
+import { Route as AgentsRouteImport } from './routes/agents'
+import { Route as IndexRouteImport } from './routes/index'
 
-const IndexRoute = IndexRouteImport.update({ id: '/', path: '/', getParentRoute: () => rootRouteImport } as any)
-const LoginRoute = LoginRouteImport.update({ id: '/login', path: '/login', getParentRoute: () => rootRouteImport } as any)
-const DashboardRoute = DashboardRouteImport.update({ id: '/dashboard', path: '/dashboard', getParentRoute: () => rootRouteImport } as any)
-const AgentsRoute = AgentsRouteImport.update({ id: '/agents', path: '/agents', getParentRoute: () => rootRouteImport } as any)
-const BillingRoute = BillingRouteImport.update({ id: '/billing', path: '/billing', getParentRoute: () => rootRouteImport } as any)
-const UsageRoute = UsageRouteImport.update({ id: '/usage', path: '/usage', getParentRoute: () => rootRouteImport } as any)
-const SettingsRoute = SettingsRouteImport.update({ id: '/settings', path: '/settings', getParentRoute: () => rootRouteImport } as any)
+const UsageRoute = UsageRouteImport.update({
+  id: '/usage',
+  path: '/usage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KeysRoute = KeysRouteImport.update({
+  id: '/keys',
+  path: '/keys',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillingRoute = BillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentsRoute = AgentsRouteImport.update({
+  id: '/agents',
+  path: '/agents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/dashboard': typeof DashboardRoute
   '/agents': typeof AgentsRoute
   '/billing': typeof BillingRoute
-  '/usage': typeof UsageRoute
+  '/dashboard': typeof DashboardRoute
+  '/keys': typeof KeysRoute
+  '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/usage': typeof UsageRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/dashboard': typeof DashboardRoute
   '/agents': typeof AgentsRoute
   '/billing': typeof BillingRoute
-  '/usage': typeof UsageRoute
+  '/dashboard': typeof DashboardRoute
+  '/keys': typeof KeysRoute
+  '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/usage': typeof UsageRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/dashboard': typeof DashboardRoute
   '/agents': typeof AgentsRoute
   '/billing': typeof BillingRoute
-  '/usage': typeof UsageRoute
+  '/dashboard': typeof DashboardRoute
+  '/keys': typeof KeysRoute
+  '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/usage': typeof UsageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/dashboard' | '/agents' | '/billing' | '/usage' | '/settings'
+  fullPaths:
+    | '/'
+    | '/agents'
+    | '/billing'
+    | '/dashboard'
+    | '/keys'
+    | '/login'
+    | '/settings'
+    | '/usage'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/dashboard' | '/agents' | '/billing' | '/usage' | '/settings'
-  id: '__root__' | '/' | '/login' | '/dashboard' | '/agents' | '/billing' | '/usage' | '/settings'
+  to:
+    | '/'
+    | '/agents'
+    | '/billing'
+    | '/dashboard'
+    | '/keys'
+    | '/login'
+    | '/settings'
+    | '/usage'
+  id:
+    | '__root__'
+    | '/'
+    | '/agents'
+    | '/billing'
+    | '/dashboard'
+    | '/keys'
+    | '/login'
+    | '/settings'
+    | '/usage'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  LoginRoute: typeof LoginRoute
-  DashboardRoute: typeof DashboardRoute
   AgentsRoute: typeof AgentsRoute
   BillingRoute: typeof BillingRoute
-  UsageRoute: typeof UsageRoute
+  DashboardRoute: typeof DashboardRoute
+  KeysRoute: typeof KeysRoute
+  LoginRoute: typeof LoginRoute
   SettingsRoute: typeof SettingsRoute
+  UsageRoute: typeof UsageRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': { id: '/'; path: '/'; fullPath: '/'; preLoaderRoute: typeof IndexRouteImport; parentRoute: typeof rootRouteImport }
-    '/login': { id: '/login'; path: '/login'; fullPath: '/login'; preLoaderRoute: typeof LoginRouteImport; parentRoute: typeof rootRouteImport }
-    '/dashboard': { id: '/dashboard'; path: '/dashboard'; fullPath: '/dashboard'; preLoaderRoute: typeof DashboardRouteImport; parentRoute: typeof rootRouteImport }
-    '/agents': { id: '/agents'; path: '/agents'; fullPath: '/agents'; preLoaderRoute: typeof AgentsRouteImport; parentRoute: typeof rootRouteImport }
-    '/billing': { id: '/billing'; path: '/billing'; fullPath: '/billing'; preLoaderRoute: typeof BillingRouteImport; parentRoute: typeof rootRouteImport }
-    '/usage': { id: '/usage'; path: '/usage'; fullPath: '/usage'; preLoaderRoute: typeof UsageRouteImport; parentRoute: typeof rootRouteImport }
-    '/settings': { id: '/settings'; path: '/settings'; fullPath: '/settings'; preLoaderRoute: typeof SettingsRouteImport; parentRoute: typeof rootRouteImport }
+    '/usage': {
+      id: '/usage'
+      path: '/usage'
+      fullPath: '/usage'
+      preLoaderRoute: typeof UsageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/keys': {
+      id: '/keys'
+      path: '/keys'
+      fullPath: '/keys'
+      preLoaderRoute: typeof KeysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/billing': {
+      id: '/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof BillingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agents': {
+      id: '/agents'
+      path: '/agents'
+      fullPath: '/agents'
+      preLoaderRoute: typeof AgentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute,
-  LoginRoute,
-  DashboardRoute,
-  AgentsRoute,
-  BillingRoute,
-  UsageRoute,
-  SettingsRoute,
+  IndexRoute: IndexRoute,
+  AgentsRoute: AgentsRoute,
+  BillingRoute: BillingRoute,
+  DashboardRoute: DashboardRoute,
+  KeysRoute: KeysRoute,
+  LoginRoute: LoginRoute,
+  SettingsRoute: SettingsRoute,
+  UsageRoute: UsageRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

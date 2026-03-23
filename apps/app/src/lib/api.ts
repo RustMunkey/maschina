@@ -1,1 +1,1 @@
-export { api, apiFetch, ApiError, token } from "@maschina/api-client";
+export { api, apiFetch, ApiError, token, storeSession, clearSession } from "@maschina/api-client";
