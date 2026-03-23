@@ -19,26 +19,11 @@ function ResetPasswordPage() {
     e.preventDefault();
     try {
       await api.post("/auth/reset-password", { token: resetToken, password });
-      await navigate({ to: "/login" });
+      await navigate({ to: "/signin" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Reset failed");
     }
   }
 
-  return (
-    <div>
-      <h1>Set new password</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="password"
-          placeholder="New password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <button type="submit">Set password</button>
-      </form>
-    </div>
-  );
+  return null;
 }

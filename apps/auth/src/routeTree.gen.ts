@@ -9,88 +9,453 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as RegisterRouteImport } from './routes/register'
 import { Route as VerifySentRouteImport } from './routes/verify-sent'
 import { Route as VerifyRouteImport } from './routes/verify'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as SigninRouteImport } from './routes/signin'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as DeviceRouteImport } from './routes/device'
+import { Route as CallbackRouteImport } from './routes/callback'
+import { Route as R504RouteImport } from './routes/504'
+import { Route as R503RouteImport } from './routes/503'
+import { Route as R502RouteImport } from './routes/502'
+import { Route as R500RouteImport } from './routes/500'
+import { Route as R429RouteImport } from './routes/429'
+import { Route as R422RouteImport } from './routes/422'
+import { Route as R410RouteImport } from './routes/410'
+import { Route as R408RouteImport } from './routes/408'
+import { Route as R403RouteImport } from './routes/403'
+import { Route as R401RouteImport } from './routes/401'
+import { Route as R400RouteImport } from './routes/400'
+import { Route as IndexRouteImport } from './routes/index'
 
-const IndexRoute = IndexRouteImport.update({ id: '/', path: '/', getParentRoute: () => rootRouteImport } as any)
-const LoginRoute = LoginRouteImport.update({ id: '/login', path: '/login', getParentRoute: () => rootRouteImport } as any)
-const RegisterRoute = RegisterRouteImport.update({ id: '/register', path: '/register', getParentRoute: () => rootRouteImport } as any)
-const VerifySentRoute = VerifySentRouteImport.update({ id: '/verify-sent', path: '/verify-sent', getParentRoute: () => rootRouteImport } as any)
-const VerifyRoute = VerifyRouteImport.update({ id: '/verify', path: '/verify', getParentRoute: () => rootRouteImport } as any)
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({ id: '/forgot-password', path: '/forgot-password', getParentRoute: () => rootRouteImport } as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({ id: '/reset-password', path: '/reset-password', getParentRoute: () => rootRouteImport } as any)
+const VerifySentRoute = VerifySentRouteImport.update({
+  id: '/verify-sent',
+  path: '/verify-sent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyRoute = VerifyRouteImport.update({
+  id: '/verify',
+  path: '/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SigninRoute = SigninRouteImport.update({
+  id: '/signin',
+  path: '/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeviceRoute = DeviceRouteImport.update({
+  id: '/device',
+  path: '/device',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CallbackRoute = CallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R504Route = R504RouteImport.update({
+  id: '/504',
+  path: '/504',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R503Route = R503RouteImport.update({
+  id: '/503',
+  path: '/503',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R502Route = R502RouteImport.update({
+  id: '/502',
+  path: '/502',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R500Route = R500RouteImport.update({
+  id: '/500',
+  path: '/500',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R429Route = R429RouteImport.update({
+  id: '/429',
+  path: '/429',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R422Route = R422RouteImport.update({
+  id: '/422',
+  path: '/422',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R410Route = R410RouteImport.update({
+  id: '/410',
+  path: '/410',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R408Route = R408RouteImport.update({
+  id: '/408',
+  path: '/408',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R403Route = R403RouteImport.update({
+  id: '/403',
+  path: '/403',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R401Route = R401RouteImport.update({
+  id: '/401',
+  path: '/401',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R400Route = R400RouteImport.update({
+  id: '/400',
+  path: '/400',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
-  '/verify-sent': typeof VerifySentRoute
-  '/verify': typeof VerifyRoute
+  '/400': typeof R400Route
+  '/401': typeof R401Route
+  '/403': typeof R403Route
+  '/408': typeof R408Route
+  '/410': typeof R410Route
+  '/422': typeof R422Route
+  '/429': typeof R429Route
+  '/500': typeof R500Route
+  '/502': typeof R502Route
+  '/503': typeof R503Route
+  '/504': typeof R504Route
+  '/callback': typeof CallbackRoute
+  '/device': typeof DeviceRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/signin': typeof SigninRoute
+  '/verify': typeof VerifyRoute
+  '/verify-sent': typeof VerifySentRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
-  '/verify-sent': typeof VerifySentRoute
-  '/verify': typeof VerifyRoute
+  '/400': typeof R400Route
+  '/401': typeof R401Route
+  '/403': typeof R403Route
+  '/408': typeof R408Route
+  '/410': typeof R410Route
+  '/422': typeof R422Route
+  '/429': typeof R429Route
+  '/500': typeof R500Route
+  '/502': typeof R502Route
+  '/503': typeof R503Route
+  '/504': typeof R504Route
+  '/callback': typeof CallbackRoute
+  '/device': typeof DeviceRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/signin': typeof SigninRoute
+  '/verify': typeof VerifyRoute
+  '/verify-sent': typeof VerifySentRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
-  '/verify-sent': typeof VerifySentRoute
-  '/verify': typeof VerifyRoute
+  '/400': typeof R400Route
+  '/401': typeof R401Route
+  '/403': typeof R403Route
+  '/408': typeof R408Route
+  '/410': typeof R410Route
+  '/422': typeof R422Route
+  '/429': typeof R429Route
+  '/500': typeof R500Route
+  '/502': typeof R502Route
+  '/503': typeof R503Route
+  '/504': typeof R504Route
+  '/callback': typeof CallbackRoute
+  '/device': typeof DeviceRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/signin': typeof SigninRoute
+  '/verify': typeof VerifyRoute
+  '/verify-sent': typeof VerifySentRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/register' | '/verify-sent' | '/verify' | '/forgot-password' | '/reset-password'
+  fullPaths:
+    | '/'
+    | '/400'
+    | '/401'
+    | '/403'
+    | '/408'
+    | '/410'
+    | '/422'
+    | '/429'
+    | '/500'
+    | '/502'
+    | '/503'
+    | '/504'
+    | '/callback'
+    | '/device'
+    | '/forgot-password'
+    | '/register'
+    | '/reset-password'
+    | '/signin'
+    | '/verify'
+    | '/verify-sent'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/register' | '/verify-sent' | '/verify' | '/forgot-password' | '/reset-password'
-  id: '__root__' | '/' | '/login' | '/register' | '/verify-sent' | '/verify' | '/forgot-password' | '/reset-password'
+  to:
+    | '/'
+    | '/400'
+    | '/401'
+    | '/403'
+    | '/408'
+    | '/410'
+    | '/422'
+    | '/429'
+    | '/500'
+    | '/502'
+    | '/503'
+    | '/504'
+    | '/callback'
+    | '/device'
+    | '/forgot-password'
+    | '/register'
+    | '/reset-password'
+    | '/signin'
+    | '/verify'
+    | '/verify-sent'
+  id:
+    | '__root__'
+    | '/'
+    | '/400'
+    | '/401'
+    | '/403'
+    | '/408'
+    | '/410'
+    | '/422'
+    | '/429'
+    | '/500'
+    | '/502'
+    | '/503'
+    | '/504'
+    | '/callback'
+    | '/device'
+    | '/forgot-password'
+    | '/register'
+    | '/reset-password'
+    | '/signin'
+    | '/verify'
+    | '/verify-sent'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  LoginRoute: typeof LoginRoute
-  RegisterRoute: typeof RegisterRoute
-  VerifySentRoute: typeof VerifySentRoute
-  VerifyRoute: typeof VerifyRoute
+  R400Route: typeof R400Route
+  R401Route: typeof R401Route
+  R403Route: typeof R403Route
+  R408Route: typeof R408Route
+  R410Route: typeof R410Route
+  R422Route: typeof R422Route
+  R429Route: typeof R429Route
+  R500Route: typeof R500Route
+  R502Route: typeof R502Route
+  R503Route: typeof R503Route
+  R504Route: typeof R504Route
+  CallbackRoute: typeof CallbackRoute
+  DeviceRoute: typeof DeviceRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SigninRoute: typeof SigninRoute
+  VerifyRoute: typeof VerifyRoute
+  VerifySentRoute: typeof VerifySentRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': { id: '/'; path: '/'; fullPath: '/'; preLoaderRoute: typeof IndexRouteImport; parentRoute: typeof rootRouteImport }
-    '/login': { id: '/login'; path: '/login'; fullPath: '/login'; preLoaderRoute: typeof LoginRouteImport; parentRoute: typeof rootRouteImport }
-    '/register': { id: '/register'; path: '/register'; fullPath: '/register'; preLoaderRoute: typeof RegisterRouteImport; parentRoute: typeof rootRouteImport }
-    '/verify-sent': { id: '/verify-sent'; path: '/verify-sent'; fullPath: '/verify-sent'; preLoaderRoute: typeof VerifySentRouteImport; parentRoute: typeof rootRouteImport }
-    '/verify': { id: '/verify'; path: '/verify'; fullPath: '/verify'; preLoaderRoute: typeof VerifyRouteImport; parentRoute: typeof rootRouteImport }
-    '/forgot-password': { id: '/forgot-password'; path: '/forgot-password'; fullPath: '/forgot-password'; preLoaderRoute: typeof ForgotPasswordRouteImport; parentRoute: typeof rootRouteImport }
-    '/reset-password': { id: '/reset-password'; path: '/reset-password'; fullPath: '/reset-password'; preLoaderRoute: typeof ResetPasswordRouteImport; parentRoute: typeof rootRouteImport }
+    '/verify-sent': {
+      id: '/verify-sent'
+      path: '/verify-sent'
+      fullPath: '/verify-sent'
+      preLoaderRoute: typeof VerifySentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify': {
+      id: '/verify'
+      path: '/verify'
+      fullPath: '/verify'
+      preLoaderRoute: typeof VerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signin': {
+      id: '/signin'
+      path: '/signin'
+      fullPath: '/signin'
+      preLoaderRoute: typeof SigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/device': {
+      id: '/device'
+      path: '/device'
+      fullPath: '/device'
+      preLoaderRoute: typeof DeviceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/callback': {
+      id: '/callback'
+      path: '/callback'
+      fullPath: '/callback'
+      preLoaderRoute: typeof CallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/504': {
+      id: '/504'
+      path: '/504'
+      fullPath: '/504'
+      preLoaderRoute: typeof R504RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/503': {
+      id: '/503'
+      path: '/503'
+      fullPath: '/503'
+      preLoaderRoute: typeof R503RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/502': {
+      id: '/502'
+      path: '/502'
+      fullPath: '/502'
+      preLoaderRoute: typeof R502RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/500': {
+      id: '/500'
+      path: '/500'
+      fullPath: '/500'
+      preLoaderRoute: typeof R500RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/429': {
+      id: '/429'
+      path: '/429'
+      fullPath: '/429'
+      preLoaderRoute: typeof R429RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/422': {
+      id: '/422'
+      path: '/422'
+      fullPath: '/422'
+      preLoaderRoute: typeof R422RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/410': {
+      id: '/410'
+      path: '/410'
+      fullPath: '/410'
+      preLoaderRoute: typeof R410RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/408': {
+      id: '/408'
+      path: '/408'
+      fullPath: '/408'
+      preLoaderRoute: typeof R408RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/403': {
+      id: '/403'
+      path: '/403'
+      fullPath: '/403'
+      preLoaderRoute: typeof R403RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/401': {
+      id: '/401'
+      path: '/401'
+      fullPath: '/401'
+      preLoaderRoute: typeof R401RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/400': {
+      id: '/400'
+      path: '/400'
+      fullPath: '/400'
+      preLoaderRoute: typeof R400RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute,
-  LoginRoute,
-  RegisterRoute,
-  VerifySentRoute,
-  VerifyRoute,
-  ForgotPasswordRoute,
-  ResetPasswordRoute,
+  IndexRoute: IndexRoute,
+  R400Route: R400Route,
+  R401Route: R401Route,
+  R403Route: R403Route,
+  R408Route: R408Route,
+  R410Route: R410Route,
+  R422Route: R422Route,
+  R429Route: R429Route,
+  R500Route: R500Route,
+  R502Route: R502Route,
+  R503Route: R503Route,
+  R504Route: R504Route,
+  CallbackRoute: CallbackRoute,
+  DeviceRoute: DeviceRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  RegisterRoute: RegisterRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  SigninRoute: SigninRoute,
+  VerifyRoute: VerifyRoute,
+  VerifySentRoute: VerifySentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -25,21 +25,5 @@ function ForgotPasswordPage() {
     return <div>Reset link sent. Check your email.</div>;
   }
 
-  return (
-    <div>
-      <h1>Reset your password</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <button type="submit">Send reset link</button>
-      </form>
-      <a href="/login">Back to login</a>
-    </div>
-  );
+  return null;
 }
