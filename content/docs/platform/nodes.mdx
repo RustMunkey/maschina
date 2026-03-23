@@ -1,0 +1,125 @@
+---
+title: Node Operators
+description: Contribute compute to the Maschina Network and earn network incentives.
+---
+
+import { HardDrive, Trophy, Coins, ShieldCheck, Lightning, Wrench } from "@phosphor-icons/react";
+
+<Info>
+Node participation is on the roadmap. This page describes the planned design. Check the [roadmap](/platform/roadmap) for availability timing.
+</Info>
+
+Node operators contribute compute resources — CPU, GPU, memory, storage — to the Maschina network. In return, they earn network incentives based on the compute they provide and the tasks they successfully execute.
+
+## Why Run a Node
+
+- <HardDrive size={16} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} />**Monetize idle hardware** — turn unused machines into productive network participants
+- <Coins size={16} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} />**Earn network rewards** — incentives are distributed based on verified compute contribution
+- <Lightning size={16} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} />**Stake for priority** — nodes with higher stake receive more favorable job routing
+- <Trophy size={16} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} />**Build reputation** — consistent, reliable nodes rise in reputation and receive better assignments
+
+## Node Types
+
+| Type | Description | Hardware profile |
+|---|---|---|
+| **Light** | CPU-only, handles lightweight tasks | Consumer hardware, cloud VMs |
+| **Standard** | CPU + moderate GPU, handles most agent workloads | Mid-tier GPU (e.g. RTX 3090, A10) |
+| **Pro** | High-end GPU, handles large model inference | Data center GPU (A100, H100, H200) |
+| **Enterprise** | Dedicated infrastructure, SLA-backed | Colocation or private cloud |
+
+The orchestration system matches job requirements to node capabilities. A Pro node will receive preference for GPU-intensive workloads. A Light node handles simple CPU tasks.
+
+## How Nodes Work
+
+### Registration
+
+Install the Maschina node client and register with the network:
+
+```bash
+maschina node init
+maschina node register --type standard --stake 1000
+```
+
+During registration, the node:
+1. Publishes its available hardware resources to the infrastructure registry
+2. Submits a stake to participate in the job routing pool
+3. Begins receiving the health check requests from the orchestration layer
+
+### Accepting jobs
+
+The orchestration system dispatches jobs to registered nodes based on capability matching, availability, reputation, and stake tier. The node client runs the job in an isolated container and returns the result.
+
+Node operators can configure:
+- Maximum concurrent jobs
+- Workload types to accept or reject
+- Available hours (schedule-based participation)
+- Minimum job price
+
+### Execution environment
+
+All jobs run in sandboxed containers. Node operators do not have access to job inputs or outputs — execution is isolated. TEE (Trusted Execution Environment) attestation is planned to provide verifiable proof that jobs were executed correctly without exposing content.
+
+## Reputation System
+
+Every node builds a reputation score based on:
+
+| Signal | Effect |
+|---|---|
+| Successful task completions | Increases score |
+| Failed or timed-out tasks | Decreases score |
+| Uptime consistency | Increases score |
+| Response latency | Affects job routing preference |
+| Dispute outcomes | Major impact, positive or negative |
+
+Nodes with high reputation are prioritized in job routing. Nodes with persistent low performance are removed from the active pool. Reputation is public and on-chain.
+
+## Staking
+
+Staking is the mechanism by which node operators signal commitment to the network.
+
+- Nodes must stake a minimum amount to participate
+- Higher stake → higher job routing priority
+- Stake is at risk if a node misbehaves (see slashing)
+- Staking rewards are distributed from the network's emission schedule
+
+### Slashing conditions
+
+| Condition | Penalty |
+|---|---|
+| Returning incorrect results | Stake slash + temporary suspension |
+| Failing to execute accepted jobs | Minor stake reduction |
+| Persistent downtime | Graduated stake reduction |
+| Confirmed malicious behavior | Full slash + permanent ban |
+
+Slashing is governed by the network's consensus mechanism. Disputes can be raised and are resolved through multi-node verification.
+
+## TEE Attestation (Planned)
+
+Trusted Execution Environments provide cryptographic proof that:
+- A job was executed on the claimed hardware
+- The execution environment was not tampered with
+- The output was produced by the correct model
+
+TEE attestation is the planned mechanism for allowing nodes to prove work without exposing the inputs or outputs to the node operator. This is critical for privacy-sensitive enterprise workloads.
+
+## Developer Integration
+
+Node operators can register their nodes to serve specific agent types or skill categories. This allows agents to be routed specifically to nodes that have been verified for a particular workload class.
+
+```bash
+# Register capability tags
+maschina node capabilities add --tag gpu-inference --tag large-context --tag code-execution
+
+# View current node status
+maschina node status
+
+# View earnings summary
+maschina node earnings
+```
+
+## Getting Started
+
+Node participation will launch with the distributed compute phase. To be notified:
+
+- Follow [@MaschinaAI](https://x.com/MaschinaAI) for release announcements
+- Watch the [GitHub](https://github.com/maschina-labs) for the node client release

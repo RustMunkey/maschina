@@ -1,0 +1,212 @@
+---
+title: Rust SDK
+description: The official Maschina SDK for Rust — async, tokio-based.
+---
+
+import { Code, Robot, ArrowsClockwise, Key, GitBranch } from "@phosphor-icons/react";
+
+## Installation
+
+Add to your `Cargo.toml`:
+
+```toml
+[dependencies]
+maschina = "0.1"
+tokio = { version = "1", features = ["full"] }
+serde_json = "1"
+anyhow = "1"
+```
+
+---
+
+## Setup
+
+```rust
+use maschina::MaschinaClient;
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    // From environment variable MASCHINA_API_KEY
+    let client = MaschinaClient::from_env()?;
+
+    // Or explicitly
+    let client = MaschinaClient::new(std::env::var("MASCHINA_API_KEY")?);
+
+    Ok(())
+}
+```
+
+---
+
+## Agents
+
+```rust
+use maschina::agents::{CreateAgentRequest, AgentConfig, UpdateAgentRequest};
+
+// Create
+let agent = client.agents().create(CreateAgentRequest {
+    name: "Research Agent".into(),
+    agent_type: "analysis".into(),
+    description: Some("Produces structured research summaries.".into()),
+    config: Some(AgentConfig {
+        system_prompt: Some("You are a research analyst.".into()),
+        model: Some("claude-sonnet-4-6".into()),
+    }),
+}).await?;
+
+println!("Created: {}", agent.id);
+
+// List
+let agents = client.agents().list(None, None).await?;
+for a in &agents.data {
+    println!("{} — {}", a.name, a.status);
+}
+
+// Get
+let agent = client.agents().get(&agent.id).await?;
+
+// Update
+client.agents().update(&agent.id, UpdateAgentRequest {
+    name: Some("Updated Name".into()),
+    ..Default::default()
+}).await?;
+
+// Delete
+client.agents().delete(&agent.id).await?;
+```
+
+---
+
+## Runs
+
+```rust
+use maschina::runs::RunInput;
+use serde_json::json;
+
+// Run an agent
+let run = client.agents().run(&agent.id, RunInput {
+    input: json!({ "message": "Summarize transformer architecture." }),
+    model: None,
+    timeout: Some(120_000),
+}).await?;
+
+println!("Run queued: {}", run.run_id);
+
+// Get run status
+let status = client.agents().get_run(&agent.id, &run.run_id).await?;
+println!("Status: {}", status.status);
+
+// Poll for completion
+loop {
+    let r = client.agents().get_run(&agent.id, &run.run_id).await?;
+    match r.status.as_str() {
+        "completed" => {
+            println!("Output: {:?}", r.output_payload);
+            break;
+        }
+        "failed" => {
+            eprintln!("Failed: {} — {}", r.error_code.unwrap_or_default(), r.error_message.unwrap_or_default());
+            break;
+        }
+        _ => tokio::time::sleep(std::time::Duration::from_secs(1)).await,
+    }
+}
+
+// List runs
+let runs = client.agents().list_runs(&agent.id, None, None).await?;
+for r in &runs.data {
+    println!("{} — {} ({}ms)", r.id, r.status, r.duration_ms.unwrap_or(0));
+}
+```
+
+---
+
+## API Keys
+
+```rust
+use maschina::keys::CreateKeyRequest;
+
+// List
+let keys = client.keys().list().await?;
+for k in &keys {
+    println!("{} — {}", k.name, k.prefix);
+}
+
+// Create
+let key = client.keys().create(CreateKeyRequest {
+    name: "production".into(),
+}).await?;
+println!("Key: {}", key.key); // shown once
+
+// Revoke
+client.keys().revoke(&key.id).await?;
+```
+
+---
+
+## Webhooks
+
+```rust
+use maschina::webhooks::{CreateWebhookRequest, UpdateWebhookRequest};
+
+// Create
+let webhook = client.webhooks().create(CreateWebhookRequest {
+    url: "https://your-app.com/webhooks/maschina".into(),
+    events: vec![
+        "agent.run.completed".into(),
+        "agent.run.failed".into(),
+    ],
+}).await?;
+println!("Secret: {}", webhook.secret); // shown once
+
+// List
+let webhooks = client.webhooks().list().await?;
+
+// Update
+client.webhooks().update(&webhook.id, UpdateWebhookRequest {
+    active: Some(false),
+    ..Default::default()
+}).await?;
+
+// Test
+client.webhooks().test(&webhook.id).await?;
+
+// Delete
+client.webhooks().delete(&webhook.id).await?;
+```
+
+---
+
+## Usage
+
+```rust
+let usage = client.usage().get().await?;
+println!(
+    "Tokens: {} / {} ({:.1}%)",
+    usage.tokens_used,
+    usage.tokens_limit,
+    usage.tokens_used as f64 / usage.tokens_limit as f64 * 100.0,
+);
+```
+
+---
+
+## Error Handling
+
+```rust
+use maschina::error::MaschinaError;
+
+match client.agents().run(&agent_id, input).await {
+    Ok(run) => println!("Queued: {}", run.run_id),
+    Err(MaschinaError::QuotaExceeded) => eprintln!("Quota exhausted"),
+    Err(MaschinaError::Forbidden(msg)) => eprintln!("Plan restriction: {}", msg),
+    Err(MaschinaError::NotFound) => eprintln!("Agent not found"),
+    Err(e) => eprintln!("Error: {}", e),
+}
+```
+
+---
+
+## Source
+
+The Rust SDK is open source. View it on [GitHub](https://github.com/maschina-labs/sdk-rust).

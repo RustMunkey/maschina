@@ -1,0 +1,114 @@
+---
+title: Roadmap
+description: What's built, what's in progress, and what's coming.
+---
+
+Maschina is being built in phases. Each phase delivers a complete, usable platform while laying the foundation for the next.
+
+## Phase 1 — Core infrastructure (current)
+
+The complete backend infrastructure stack for building and running agents.
+
+**Completed:**
+
+- [x] Agent runtime (Python/FastAPI) — multi-turn, tool calling, risk checks
+- [x] Model routing — Anthropic (Claude 4.x), OpenAI (GPT-5 series), Ollama, passthrough
+- [x] Cascade model fallback — automatic fallback on provider unavailability
+- [x] Job queue — NATS JetStream pull consumer with retries and backoff
+- [x] Authentication — JWT, sessions, API keys, OAuth, RBAC
+- [x] Billing — Stripe Checkout, prepaid credits, per-model multipliers, quota enforcement
+- [x] Webhooks — outbound delivery, HMAC-SHA256 signing, retry with exponential backoff
+- [x] Realtime — WebSocket and SSE run status streaming
+- [x] Search — Meilisearch full-text search across agents
+- [x] Compliance — audit log, GDPR Article 17 deletion, retention policies (M10+)
+- [x] Gateway — Rust/Axum JWT validation, rate limiting, reverse proxy
+- [x] CLI — `maschina` binary: auth, agent management, key management, usage, setup
+- [x] SDKs — TypeScript, Python, Rust
+- [x] Observability — OpenTelemetry, Prometheus, Sentry, Grafana
+- [x] Docker deployment — all services containerized with Compose
+
+**In progress:**
+
+- [ ] apps/auth — authentication web app
+- [ ] apps/app — main user dashboard
+- [ ] apps/web — public marketing site
+- [ ] apps/docs — this docs site (publishing soon)
+- [ ] maschina-labs/self-hosted — public Apache-2.0 self-hosting repo
+- [ ] SDK publishing — npm, PyPI, crates.io
+
+---
+
+## Phase 2 — Multi-agent and marketplace
+
+Enabling agents to call other agents and participate in a structured marketplace.
+
+- [ ] Agent-to-agent calling — agents invoke other agents as sub-tasks
+- [ ] Multi-agent workflow orchestration — sequential and parallel agent pipelines
+- [ ] Skill framework — structured input/output interfaces for marketplace agents
+- [ ] Agent marketplace — public directory with search, discovery, and invoking
+- [ ] Developer accounts — publish agents, set pricing, view earnings
+- [ ] Marketplace billing — per-invocation pricing, developer margin configuration
+- [ ] Agent versioning — deploy new versions without breaking running workflows
+
+---
+
+## Phase 3 — Distributed compute
+
+Opening the infrastructure to external compute providers and community nodes.
+
+- [ ] Node client — `maschina node` binary for running a compute node
+- [ ] Node registration — hardware capability advertising and identity
+- [ ] Compute router — multi-factor node selection (capability, reputation, cost, latency)
+- [ ] Node reputation system — on-chain score based on verified task history
+- [ ] Akash Network integration — dynamic compute sourcing from decentralized cloud
+- [ ] Render Network integration — GPU workloads on decentralized GPU market
+- [ ] IO.NET integration — aggregated GPU capacity
+- [ ] Proof of Compute — cryptographic verification of executed work
+- [ ] TEE attestation — trusted execution environment support for verified nodes
+- [ ] Node dashboard — earnings, reputation, job history
+
+---
+
+## Phase 4 — Token and on-chain economics
+
+Full economic infrastructure for a self-sustaining network.
+
+- [ ] Maschina token — native settlement token on Solana
+- [ ] Staking contracts — node staking, delegation, yield distribution
+- [ ] Slashing contracts — automated penalty execution for misbehavior
+- [ ] Token emission schedule — compute rewards, ecosystem grants, team vesting
+- [ ] On-chain settlement — per-execution micropayments to node operators
+- [ ] Governance contracts — stake-weighted voting on protocol parameters
+- [ ] Token burn mechanism — deflationary pressure from network fees
+- [ ] Liquidity program — initial DEX liquidity on Solana
+
+---
+
+## Phase 5 — Scale and ecosystem
+
+Enterprise features, edge compute, and autonomous organizations.
+
+- [ ] Enterprise tier — dedicated infrastructure, SLAs, custom contracts
+- [ ] Edge compute — IoT and edge device participation in the node network
+- [ ] Hardware acceleration — specialized routing for TPU, custom ASICs
+- [ ] Cross-network compute federation — interoperability with other compute networks
+- [ ] Autonomous agent organizations — groups of agents with shared resources and governance
+- [ ] Global compute grid — geographically distributed routing for latency-sensitive workloads
+- [ ] Advanced analytics — network-wide performance, economic, and usage dashboards
+
+---
+
+## Guiding principles
+
+Every phase decision is guided by:
+
+1. **Working software first** — each phase ships something useful, not just design
+2. **Backwards compatibility** — Phase 1 integrations work in Phase 5
+3. **Progressive decentralization** — centralized components are replaced incrementally, not all at once
+4. **Developer experience** — the API and SDK must remain simple as the underlying system grows complex
+
+---
+
+<Note>
+This roadmap represents current intentions. Priorities may shift based on user feedback, ecosystem developments, and engineering realities. Follow [@MaschinaAI](https://x.com/MaschinaAI) on X for updates.
+</Note>

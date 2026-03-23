@@ -1,0 +1,191 @@
+---
+title: CLI
+description: Manage agents, keys, runs, and local services from the terminal.
+---
+
+import { Terminal, Robot, Key, Lightning, Wrench, User } from "@phosphor-icons/react";
+
+## Installation
+
+```bash
+curl -fsSL https://maschina.ai/install.sh | sh
+```
+
+Or download a binary directly from [GitHub Releases](https://github.com/maschina-labs/self-hosted/releases).
+
+The CLI binary is named `maschina`. Verify the installation:
+
+```bash
+maschina --version
+```
+
+---
+
+## Authentication
+
+### Login
+
+```bash
+maschina login
+# prompts for email and password
+# credentials stored at ~/.config/maschina/config.toml
+```
+
+### Check status
+
+```bash
+maschina status
+```
+
+<Stats data={{
+  "Account": "ash@maschina.ai",
+  "Plan": "M5",
+  "Tokens": "1,204,322 / 5,000,000 used",
+  "API": "https://api.maschina.ai  ✓ reachable"
+}} />
+
+### Logout
+
+```bash
+maschina logout
+```
+
+---
+
+## Agents
+
+```bash
+# List all agents
+maschina agent list
+
+# Deploy a new agent from a local config file
+maschina agent deploy ./agent.json
+
+# Inspect agent config and run stats
+maschina agent inspect AGENT_ID
+
+# Run an agent with inline input
+maschina agent run AGENT_ID --input '{"message": "Summarize Q1 performance."}'
+
+# View recent run history for an agent
+maschina agent runs AGENT_ID
+
+# Stop a queued run
+maschina agent stop RUN_ID
+
+# Delete an agent
+maschina agent delete AGENT_ID
+```
+
+### Agent config file
+
+`maschina agent deploy` reads a JSON config file:
+
+```json
+{
+  "name": "Research Agent",
+  "type": "analysis",
+  "config": {
+    "systemPrompt": "You are a research analyst. Produce structured summaries.",
+    "model": "claude-sonnet-4-6"
+  }
+}
+```
+
+---
+
+## API Keys
+
+```bash
+# List all keys
+maschina keys list
+
+# Create a new key
+maschina keys create "production"
+# → msk_live_xxxxxxxxxxxxxxxxxxxx  (shown once)
+
+# Revoke a key
+maschina keys revoke KEY_ID
+```
+
+---
+
+## Usage
+
+```bash
+maschina usage
+```
+
+<Stats data={{
+  "Plan": "M5",
+  "Period": "2026-03-01 → 2026-04-01",
+  "Tokens used": "1,204,322",
+  "Tokens limit": "5,000,000",
+  "Quota": "24.1% consumed",
+  "Runs this month": "847"
+}} />
+
+---
+
+## Configuration
+
+Config is stored at `~/.config/maschina/config.toml`.
+
+```bash
+# View a config value
+maschina config get api_url
+
+# Set a config value
+maschina config set api_url https://api.maschina.ai
+```
+
+### Multiple profiles
+
+Use profiles to switch between environments (production, staging, local):
+
+```bash
+# Login to a specific profile
+maschina --profile staging login
+
+# Use a profile for any command
+maschina --profile staging agent list
+maschina --profile local agent run AGENT_ID --input '{}'
+```
+
+---
+
+## Self-hosted setup
+
+If you're running Maschina locally with Docker:
+
+```bash
+# Interactive setup wizard — sets API URL, credentials, and local config
+maschina setup
+```
+
+```bash
+# Start all local services
+maschina service start
+
+# Check which services are running
+maschina service status
+
+# Tail logs for a specific service
+maschina service logs api --follow
+maschina service logs runtime --follow
+maschina service logs daemon --follow
+```
+
+---
+
+## Scaffold with maschina-code
+
+The `maschina-code` TUI helps you scaffold agent configs, routes, and connectors interactively:
+
+```bash
+# Interactive scaffold
+maschina-code
+
+# Scaffold a new agent config directly
+maschina-code agent research-agent
+```

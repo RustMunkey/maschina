@@ -42,6 +42,7 @@ export * from "./components/ui/radio-group.js";
 export * from "./components/ui/resizable.js";
 export * from "./components/ui/scroll-area.js";
 export * from "./components/ui/select.js";
+export * from "./components/ui/session-expired-modal.js";
 export * from "./components/ui/separator.js";
 export * from "./components/ui/sheet.js";
 export * from "./components/ui/sidebar.js";
