@@ -27,6 +27,7 @@ export const agents = sqliteTable("agents", {
     .default("idle"),
   config: text("config", { mode: "json" }).notNull().default("{}"), // encrypted
   configIv: text("config_iv"),
+  keyVersion: integer("key_version").notNull().default(1),
   lastRunAt: integer("last_run_at", { mode: "timestamp" }),
   lastError: text("last_error"),
   totalRunsCompleted: integer("total_runs_completed").notNull().default(0),

@@ -1,4 +1,4 @@
-import { decrypt, encrypt } from "@maschina/crypto";
+import { decryptVersioned, encryptVersioned } from "@maschina/crypto";
 import { db } from "@maschina/db";
 import { agentRuns, agents } from "@maschina/db";
 import { and, eq, isNull } from "@maschina/db";
@@ -22,30 +22,34 @@ import type { Variables } from "../context.js";
 import { requireAuth, requireFeature } from "../middleware/auth.js";
 import { requireQuota, trackApiCall } from "../middleware/quota.js";
 
-// Encrypt agent config JSON → { ciphertext, iv } using DATA_ENCRYPTION_KEY.
-// Returns null iv when DATA_ENCRYPTION_KEY is not set (local dev without key).
-function encryptConfig(config: unknown): { encryptedConfig: unknown; configIv: string | null } {
+// Encrypt agent config JSON using the active key version.
+// Returns null iv/keyVersion when DATA_ENCRYPTION_KEY is not set (local dev without key).
+function encryptConfig(config: unknown): {
+  encryptedConfig: unknown;
+  configIv: string | null;
+  keyVersion: number;
+} {
   try {
-    const { ciphertext, iv } = encrypt(JSON.stringify(config));
-    return { encryptedConfig: ciphertext, configIv: iv };
+    const { ciphertext, iv, version } = encryptVersioned(JSON.stringify(config));
+    return { encryptedConfig: ciphertext, configIv: iv, keyVersion: version };
   } catch {
     // DATA_ENCRYPTION_KEY not set — store plaintext (local dev only)
-    return { encryptedConfig: config, configIv: null };
+    return { encryptedConfig: config, configIv: null, keyVersion: 1 };
   }
 }
 
 // Decrypt agent config. Returns raw config when iv is null (unencrypted/local dev).
-function decryptConfig(raw: unknown, iv: string | null): Record<string, unknown> {
+function decryptConfig(raw: unknown, iv: string | null, keyVersion = 1): Record<string, unknown> {
   if (!iv || typeof raw !== "string") return (raw ?? {}) as Record<string, unknown>;
   try {
-    return JSON.parse(decrypt(raw, iv)) as Record<string, unknown>;
+    return JSON.parse(decryptVersioned(raw, iv, keyVersion)) as Record<string, unknown>;
   } catch {
     return {};
   }
 }
 
 function agentToDoc(agent: typeof agents.$inferSelect) {
-  const config = decryptConfig(agent.config, agent.configIv);
+  const config = decryptConfig(agent.config, agent.configIv, agent.keyVersion);
   return {
     id: agent.id,
     name: agent.name,
@@ -97,7 +101,7 @@ app.post("/", requireQuota("agent_execution", 0), async (c) => {
     }
   }
 
-  const { encryptedConfig, configIv } = encryptConfig(input.config ?? {});
+  const { encryptedConfig, configIv, keyVersion } = encryptConfig(input.config ?? {});
 
   const [agent] = await db
     .insert(agents)
@@ -109,7 +113,7 @@ app.post("/", requireQuota("agent_execution", 0), async (c) => {
       status: "idle",
       config: encryptedConfig,
       configIv,
-      version: 1,
+      keyVersion,
     })
     .returning();
 
@@ -148,9 +152,10 @@ app.patch("/:id", async (c) => {
   if (input.name !== undefined) updates.name = sanitizeText(input.name);
   if (input.description !== undefined) updates.description = sanitizeText(input.description);
   if (input.config !== undefined) {
-    const { encryptedConfig, configIv } = encryptConfig(input.config);
+    const { encryptedConfig, configIv, keyVersion } = encryptConfig(input.config);
     updates.config = encryptedConfig;
     updates.configIv = configIv;
+    updates.keyVersion = keyVersion;
   }
 
   const [updated] = await db
@@ -239,7 +244,7 @@ app.post(
 
     if (!agent) throw new HTTPException(404, { message: "Agent not found" });
 
-    const agentConfig = decryptConfig(agent.config, agent.configIv);
+    const agentConfig = decryptConfig(agent.config, agent.configIv, agent.keyVersion);
 
     // Model priority: request body → agent config → tier default
     const requestedModel =
@@ -263,9 +268,11 @@ app.post(
     const timeoutSecs = Math.floor((input.timeout ?? 300_000) / 1000);
 
     // Insert the agent_runs row — encrypt input payload at rest
-    const { encryptedConfig: encryptedInput, configIv: inputPayloadIv } = encryptConfig(
-      input.input ?? {},
-    );
+    const {
+      encryptedConfig: encryptedInput,
+      configIv: inputPayloadIv,
+      keyVersion: runKeyVersion,
+    } = encryptConfig(input.input ?? {});
     const { agentRuns } = await import("@maschina/db");
     const [run] = await db
       .insert(agentRuns)
@@ -275,6 +282,7 @@ app.post(
         status: "queued",
         inputPayload: encryptedInput,
         inputPayloadIv,
+        keyVersion: runKeyVersion,
       })
       .returning({ id: agentRuns.id });
 
@@ -337,8 +345,10 @@ app.get("/:id/runs/:runId", requireAuth, async (c) => {
     id: run.id,
     agentId: run.agentId,
     status: run.status,
-    inputPayload: decryptConfig(run.inputPayload, run.inputPayloadIv),
-    outputPayload: run.outputPayload ? decryptConfig(run.outputPayload, run.outputPayloadIv) : null,
+    inputPayload: decryptConfig(run.inputPayload, run.inputPayloadIv, run.keyVersion),
+    outputPayload: run.outputPayload
+      ? decryptConfig(run.outputPayload, run.outputPayloadIv, run.keyVersion)
+      : null,
     inputTokens: run.inputTokens ?? null,
     outputTokens: run.outputTokens ?? null,
     errorCode: run.errorCode ?? null,

@@ -29,6 +29,7 @@ export const agents = pgTable(
     // Config is encrypted at rest — may contain connector credentials, API endpoints
     config: jsonb("config").notNull().default({}),
     configIv: text("config_iv"), // IV for config encryption
+    keyVersion: integer("key_version").notNull().default(1), // encryption key version
 
     lastRunAt: timestamp("last_run_at", { withTimezone: true }),
     lastError: text("last_error"),
@@ -70,6 +71,7 @@ export const agentRuns = pgTable(
     // Input from the caller — encrypted at rest when inputPayloadIv is set
     inputPayload: jsonb("input_payload").notNull().default({}),
     inputPayloadIv: text("input_payload_iv"), // IV for inputPayload encryption
+    keyVersion: integer("key_version").notNull().default(1), // encryption key version
 
     // Optional per-run timeout override (seconds). NULL = use daemon default.
     timeoutOverrideSecs: integer("timeout_override_secs"),
