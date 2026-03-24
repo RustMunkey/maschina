@@ -8,11 +8,12 @@ Infrastructure for autonomous digital labor. A modular platform for deploying ne
 [![Release](https://img.shields.io/github/v/release/RustMunkey/maschina?color=brightgreen&label=release)](https://github.com/RustMunkey/maschina/releases)
 [![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-1.88+-orange.svg)](https://www.rust-lang.org)
+[![TypeScript](https://img.shields.io/badge/typescript-5.x-blue.svg)](https://www.typescriptlang.org)
+[![Python](https://img.shields.io/badge/python-3.12+-3776ab.svg)](https://www.python.org)
 [![Node](https://img.shields.io/badge/node-22+-brightgreen.svg)](https://nodejs.org)
-[![Discord](https://img.shields.io/discord/1482286168333746216?label=discord&color=5865F2&logo=discord&logoColor=white)](https://discord.gg/maschina)
-[![X](https://img.shields.io/badge/follow-@MaschinaAI-black?logo=x&logoColor=white)](https://x.com/MaschinaAI)
+[![pnpm](https://img.shields.io/badge/pnpm-10+-f69220.svg)](https://pnpm.io)
 
-> **Status:** Active development. v1.1.0.
+> **Status:** Active development.
 
 ---
 
