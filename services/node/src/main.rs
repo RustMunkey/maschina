@@ -117,6 +117,7 @@ async fn main() -> anyhow::Result<()> {
     let executor_handle = tokio::spawn(executor::run(
         cfg.nats_url.clone(),
         cfg.nats_creds.clone(),
+        cfg.nats_ca_cert.clone(),
         node_id,
         cfg.runtime_url.clone(),
         cfg.max_concurrent_tasks,

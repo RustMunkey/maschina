@@ -40,7 +40,9 @@ async fn nats_connect(url: &str) -> anyhow::Result<async_nats::Client> {
         opts = opts.require_tls(true);
     }
 
-    Ok(opts.connect(url).await?)
+    // Disable the 10-second default request timeout so NATS request-reply waits
+    // the full per-run timeout (set via tokio::time::timeout in dispatch_nats).
+    Ok(opts.request_timeout(None).connect(url).await?)
 }
 
 #[tokio::main]

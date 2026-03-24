@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     nats_url: str = "nats://localhost:4222"
+    nats_ca_cert: str = ""
     database_url: str = "postgresql://maschina:maschina@localhost:5432/maschina"
     anthropic_api_key: str = ""
     node_env: str = "development"

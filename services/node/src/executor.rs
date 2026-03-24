@@ -51,9 +51,11 @@ struct ErrorReply {
 
 // ── Executor loop ─────────────────────────────────────────────────────────────
 
+#[allow(clippy::too_many_arguments)]
 pub async fn run(
     nats_url: String,
     nats_creds: Option<String>,
+    nats_ca_cert: Option<String>,
     node_id: Uuid,
     runtime_url: String,
     max_concurrent: u32,
@@ -61,7 +63,7 @@ pub async fn run(
     shutdown: CancellationToken,
 ) -> Result<()> {
     // Connect to NATS
-    let client = connect_nats(&nats_url, nats_creds.as_deref()).await?;
+    let client = connect_nats(&nats_url, nats_creds.as_deref(), nats_ca_cert.as_deref()).await?;
 
     let subject = format!("maschina.nodes.{node_id}.execute");
     // Queue group so if the binary is somehow started twice, only one handles each job
@@ -212,7 +214,11 @@ async fn execute_task(
 
 // ── NATS connection ───────────────────────────────────────────────────────────
 
-async fn connect_nats(url: &str, creds_path: Option<&str>) -> Result<async_nats::Client> {
+async fn connect_nats(
+    url: &str,
+    creds_path: Option<&str>,
+    ca_cert: Option<&str>,
+) -> Result<async_nats::Client> {
     let mut opts = async_nats::ConnectOptions::new()
         .name("maschina-node-executor")
         .ping_interval(Duration::from_secs(30))
@@ -224,6 +230,12 @@ async fn connect_nats(url: &str, creds_path: Option<&str>) -> Result<async_nats:
             .credentials_file(path)
             .await
             .map_err(|e| anyhow::anyhow!("Failed to load NATS creds from {path}: {e}"))?;
+    }
+
+    if let Some(cert_path) = ca_cert {
+        opts = opts
+            .add_root_certificates(cert_path.into())
+            .require_tls(true);
     }
 
     let client = opts
