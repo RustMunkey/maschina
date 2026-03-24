@@ -2,7 +2,7 @@
 
 Infrastructure for autonomous digital labor. A modular platform for deploying networks of AI agents that continuously discover, evaluate, and execute digital opportunities.
 
-> **Status:** Active development. v0.62.0.
+> **Status:** Active development. v1.1.0.
 
 ---
 
