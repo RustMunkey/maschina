@@ -257,6 +257,25 @@ jobs:
           files: artifacts/**/*
           generate_release_notes: false
 
+      - name: Notify Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_RELEASES_WEBHOOK }}
+        if: env.DISCORD_WEBHOOK != ''
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"Maschina ${{ github.ref_name }} released\",
+                \"url\": \"${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref_name }}\",
+                \"color\": 5763719,
+                \"fields\": [
+                  { \"name\": \"Tag\", \"value\": \"\`${{ github.ref_name }}\`\", \"inline\": true },
+                  { \"name\": \"By\", \"value\": \"${{ github.actor }}\", \"inline\": true }
+                ]
+              }]
+            }"
+
   # ── Build + push agent sandbox Docker image to GHCR ──────────────────────
 
   publish-sandbox:
