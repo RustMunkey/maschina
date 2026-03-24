@@ -13,6 +13,7 @@
 #   ps / status        show running containers + health check
 #   build              build all images (or one: ./dc build api)
 #   rebuild            rebuild and restart (or one: ./dc rebuild api)
+#   deploy             pull latest + build + up + health check (full deploy)
 
 set -euo pipefail
 
@@ -59,6 +60,31 @@ case "$cmd" in
   rebuild)
     $COMPOSE up -d --build $svc
     ;;
+  deploy)
+    REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+    echo "→ Pulling latest code..."
+    git -C "$REPO_DIR" pull origin main
+    echo "→ Building images..."
+    $COMPOSE build
+    echo "→ Starting services..."
+    $COMPOSE up -d
+    echo "→ Waiting 30s for services to start..."
+    sleep 30
+    echo ""
+    echo "Health checks:"
+    API=$(curl -sf --max-time 5 http://localhost:3000/health 2>/dev/null && echo "ok" || echo "FAIL")
+    GW=$(curl -sf --max-time 5 http://localhost:8080/health 2>/dev/null && echo "ok" || echo "FAIL")
+    RT=$(curl -sf --max-time 5 http://localhost:4000/health 2>/dev/null && echo "ok" || echo "FAIL")
+    echo "  api:      $API"
+    echo "  gateway:  $GW"
+    echo "  realtime: $RT"
+    echo ""
+    if [[ "$API" == "FAIL" || "$GW" == "FAIL" || "$RT" == "FAIL" ]]; then
+      echo "Deploy incomplete — check logs: ./dc logs [service]"
+      exit 1
+    fi
+    echo "Deploy complete."
+    ;;
   help|*)
     echo "Usage: ./dc [command] [service]"
     echo ""
@@ -71,6 +97,7 @@ case "$cmd" in
     echo "  logs [service]     follow logs"
     echo "  ps / status        containers + health check"
     echo "  build [service]    build images"
+    echo "  deploy             pull + build + up + health check"
     echo "  rebuild [service]  build + restart"
     echo ""
     echo "Services: api gateway daemon realtime runtime worker"
