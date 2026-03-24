@@ -74,6 +74,51 @@ app.post("/", async (c) => {
   );
 });
 
+// POST /keys/:id/rotate — deactivate old key, issue new key with same metadata
+app.post("/:id/rotate", async (c) => {
+  const { id: userId } = c.get("user");
+  const keyId = c.req.param("id");
+
+  const [existing] = await db
+    .select()
+    .from(apiKeys)
+    .where(and(eq(apiKeys.id, keyId), eq(apiKeys.userId, userId), eq(apiKeys.isActive, true)));
+
+  if (!existing) throw new HTTPException(404, { message: "API key not found" });
+
+  const { key, prefix } = generateApiKey(
+    existing.keyPrefix?.startsWith("msk_test_") ? "test" : "live",
+  );
+  const keyHash = hashApiKey(key);
+
+  const [created] = await db.transaction(async (tx: typeof db) => {
+    await tx
+      .update(apiKeys)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(apiKeys.id, keyId));
+
+    return tx
+      .insert(apiKeys)
+      .values({
+        userId,
+        name: existing.name,
+        keyHash,
+        keyPrefix: prefix,
+        monthlyLimit: existing.monthlyLimit,
+        expiresAt: existing.expiresAt,
+        isActive: true,
+      })
+      .returning();
+  });
+
+  return c.json({
+    ...projectApiKey(created),
+    key,
+    warning: "Save this key — it will not be shown again.",
+    rotated: { previousId: keyId },
+  });
+});
+
 // DELETE /keys/:id
 app.delete("/:id", async (c) => {
   const { id: userId } = c.get("user");

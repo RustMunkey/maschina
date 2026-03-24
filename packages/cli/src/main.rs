@@ -234,6 +234,7 @@ pub enum AgentCommands {
 pub enum KeyCommands {
     List,
     Create { name: String },
+    Rotate { id: String },
     Revoke { id: String },
 }
 
@@ -559,6 +560,7 @@ async fn run() -> Result<()> {
             match cmd {
                 KeyCommands::List => commands::keys::list(&client, &out).await?,
                 KeyCommands::Create { name } => commands::keys::create(&client, name, &out).await?,
+                KeyCommands::Rotate { id } => commands::keys::rotate(&client, id, &out).await?,
                 KeyCommands::Revoke { id } => commands::keys::revoke(&client, id, &out).await?,
             }
         }
