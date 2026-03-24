@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# dc — Docker Compose wrapper for Maschina
+# Usage: ./dc [command] [service?]
+#
+# Commands:
+#   start              bring up all services (detached)
+#   stop               stop all services
+#   restart            restart all services (or one: ./dc restart api)
+#   kill               force-kill all services (or one: ./dc kill daemon)
+#   down               stop and remove containers
+#   reset              stop, remove containers AND wipe volumes (nuclear)
+#   logs               follow all logs (or one: ./dc logs api)
+#   ps / status        show running containers + health check
+#   build              build all images (or one: ./dc build api)
+#   rebuild            rebuild and restart (or one: ./dc rebuild api)
+
+set -euo pipefail
+
+COMPOSE="docker compose -f docker/docker-compose.yml -f docker/docker-compose.services.yml --env-file .env"
+
+cmd="${1:-help}"
+svc="${2:-}"
+
+case "$cmd" in
+  start|up)
+    $COMPOSE up -d $svc
+    ;;
+  stop)
+    $COMPOSE stop $svc
+    ;;
+  restart)
+    $COMPOSE restart $svc
+    ;;
+  kill)
+    $COMPOSE kill $svc
+    ;;
+  down)
+    $COMPOSE down $svc
+    ;;
+  reset)
+    echo "WARNING: this wipes all volumes. Ctrl+C to cancel."
+    sleep 3
+    $COMPOSE down -v
+    ;;
+  logs)
+    $COMPOSE logs -f $svc
+    ;;
+  ps|status)
+    $COMPOSE ps
+    echo ""
+    echo "Health:"
+    curl -sf http://localhost:3000/health && echo " api ok" || echo " api FAIL"
+    curl -sf http://localhost:8080/health && echo " gateway ok" || echo " gateway FAIL"
+    curl -sf http://localhost:4000/health && echo " realtime ok" || echo " realtime FAIL"
+    ;;
+  build)
+    $COMPOSE build $svc
+    ;;
+  rebuild)
+    $COMPOSE up -d --build $svc
+    ;;
+  help|*)
+    echo "Usage: ./dc [command] [service]"
+    echo ""
+    echo "  start              bring everything up"
+    echo "  stop               stop everything"
+    echo "  restart [service]  restart all or one service"
+    echo "  kill [service]     force-kill all or one service"
+    echo "  down               stop and remove containers"
+    echo "  reset              !! wipes volumes too"
+    echo "  logs [service]     follow logs"
+    echo "  ps / status        containers + health check"
+    echo "  build [service]    build images"
+    echo "  rebuild [service]  build + restart"
+    echo ""
+    echo "Services: api gateway daemon realtime runtime worker"
+    ;;
+esac
