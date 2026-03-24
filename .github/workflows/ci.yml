@@ -293,7 +293,7 @@ jobs:
           echo "All CI checks passed."
 
       - name: Notify Discord
-        if: github.event_name == 'pull_request' && always() && secrets.DISCORD_CI_WEBHOOK != ''
+        if: always() && github.event_name == 'pull_request'
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_CI_WEBHOOK }}
           STATUS: ${{ steps.gate.outputs.status }}
@@ -303,6 +303,7 @@ jobs:
           ACTOR: ${{ github.actor }}
           SHA: ${{ github.sha }}
         run: |
+          [ -z "$DISCORD_WEBHOOK" ] && exit 0
           if [ "$STATUS" = "passed" ]; then
             COLOR=5763719
             LABEL="passed"
