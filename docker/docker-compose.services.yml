@@ -26,7 +26,12 @@ services:
       PORT: "3000"
       DATABASE_URL: postgresql://${POSTGRES_USER:-maschina}:${POSTGRES_PASSWORD:-maschina}@postgres:5432/${POSTGRES_DB:-maschina}
       REDIS_URL: redis://redis:6379
-      NATS_URL: nats://nats:4222
+      NATS_URL: tls://nats:4222
+      NATS_CA_CERT: /etc/nats/certs/ca.pem
+      NODE_EXTRA_CA_CERTS: /etc/nats/certs/ca.pem
+      OTEL_ENABLED: "false"
+    volumes:
+      - ./nats/certs:/etc/nats/certs:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -86,7 +91,10 @@ services:
     env_file: ../.env
     environment:
       PORT: "4000"
-      NATS_URL: nats://nats:4222
+      NATS_URL: tls://nats:4222
+      NATS_CA_CERT: /etc/nats/certs/ca.pem
+    volumes:
+      - ./nats/certs:/etc/nats/certs:ro
     depends_on:
       nats:
         condition: service_healthy
@@ -110,11 +118,14 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-maschina}:${POSTGRES_PASSWORD:-maschina}@postgres:5432/${POSTGRES_DB:-maschina}
       REDIS_URL: redis://redis:6379
-      NATS_URL: nats://nats:4222
+      NATS_URL: tls://nats:4222
+      NATS_CA_CERT: /etc/nats/certs/ca.pem
       RUNTIME_URL: http://runtime:8001
       REALTIME_URL: http://realtime:4000
       API_URL: http://api:3000
       CHAIN_ENABLED: "false"
+    volumes:
+      - ./nats/certs:/etc/nats/certs:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -165,9 +176,12 @@ services:
     env_file: ../.env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-maschina}:${POSTGRES_PASSWORD:-maschina}@postgres:5432/${POSTGRES_DB:-maschina}
-      NATS_URL: nats://nats:4222
+      NATS_URL: tls://nats:4222
+      NATS_CA_CERT: /etc/nats/certs/ca.pem
       TEMPORAL_URL: temporal:7233
       RUNTIME_URL: http://runtime:8001
+    volumes:
+      - ./nats/certs:/etc/nats/certs:ro
     depends_on:
       postgres:
         condition: service_healthy
