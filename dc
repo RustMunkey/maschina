@@ -53,6 +53,8 @@ case "$cmd" in
     curl -sf http://localhost:3000/health && echo " api ok" || echo " api FAIL"
     curl -sf http://localhost:8080/health && echo " gateway ok" || echo " gateway FAIL"
     curl -sf http://localhost:4000/health && echo " realtime ok" || echo " realtime FAIL"
+    curl -sf http://localhost:9090/-/healthy && echo " prometheus ok" || echo " prometheus FAIL"
+    curl -sf http://localhost:3030/api/health && echo " grafana ok" || echo " grafana FAIL"
     ;;
   build)
     $COMPOSE build $svc

@@ -1,0 +1,12 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: Discord
+    receivers:
+      - uid: discord-webhook
+        type: discord
+        settings:
+          url: ${DISCORD_HEALTH_WEBHOOK}
+          message: "{{ range .Alerts }}**{{ .Status | toUpper }}** {{ .Labels.alertname }}\n{{ .Annotations.summary }}\n{{ end }}"
+        disableResolveMessage: false
