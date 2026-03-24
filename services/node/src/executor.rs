@@ -51,6 +51,7 @@ struct ErrorReply {
 
 // ── Executor loop ─────────────────────────────────────────────────────────────
 
+#[allow(clippy::too_many_arguments)]
 pub async fn run(
     nats_url: String,
     nats_creds: Option<String>,
