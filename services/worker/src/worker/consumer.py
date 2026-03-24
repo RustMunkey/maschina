@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import ssl
 
 import nats
 import nats.js
@@ -48,7 +49,11 @@ CONSUMER_CONFIG = ConsumerConfig(
 
 async def run_consumer() -> None:
     """Connect to NATS, set up JetStream consumer, and start pulling messages."""
-    nc = await nats.connect(settings.nats_url)
+    connect_opts: dict = {"servers": settings.nats_url}
+    if settings.nats_ca_cert:
+        ssl_ctx = ssl.create_default_context(cafile=settings.nats_ca_cert)
+        connect_opts["tls"] = ssl_ctx
+    nc = await nats.connect(**connect_opts)
     js = nc.jetstream()
 
     # Ensure stream exists (idempotent)
