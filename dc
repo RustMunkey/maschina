@@ -64,8 +64,8 @@ case "$cmd" in
     REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
     echo "→ Pulling latest code..."
     git -C "$REPO_DIR" pull origin main
-    echo "→ Building images..."
-    $COMPOSE build
+    echo "→ Pulling latest images from GHCR..."
+    $COMPOSE pull --ignore-pull-failures || true
     echo "→ Starting services..."
     $COMPOSE up -d
     echo "→ Waiting 30s for services to start..."

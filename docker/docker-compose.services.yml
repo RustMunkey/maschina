@@ -13,6 +13,7 @@ services:
 
   # ─── API (TypeScript / Hono) ──────────────────────────────────────────────
   api:
+    image: ghcr.io/rustmunkey/maschina-api:${IMAGE_TAG:-latest}
     build:
       context: ..
       dockerfile: services/api/Dockerfile
@@ -52,6 +53,7 @@ services:
 
   # ─── Gateway (Rust / Axum) ────────────────────────────────────────────────
   gateway:
+    image: ghcr.io/rustmunkey/maschina-gateway:${IMAGE_TAG:-latest}
     build:
       context: ../services/gateway
       dockerfile: Dockerfile
@@ -81,6 +83,7 @@ services:
 
   # ─── Realtime (Rust / Axum) ───────────────────────────────────────────────
   realtime:
+    image: ghcr.io/rustmunkey/maschina-realtime:${IMAGE_TAG:-latest}
     build:
       context: ../services/realtime
       dockerfile: Dockerfile
@@ -109,6 +112,7 @@ services:
 
   # ─── Daemon (Rust) ────────────────────────────────────────────────────────
   daemon:
+    image: ghcr.io/rustmunkey/maschina-daemon:${IMAGE_TAG:-latest}
     build:
       context: ../services/daemon
       dockerfile: Dockerfile
@@ -138,6 +142,7 @@ services:
 
   # ─── Runtime (Python / FastAPI) ───────────────────────────────────────────
   runtime:
+    image: ghcr.io/rustmunkey/maschina-runtime:${IMAGE_TAG:-latest}
     build:
       context: ..
       dockerfile: services/runtime/Dockerfile
@@ -168,6 +173,7 @@ services:
 
   # ─── Worker (Python — NATS consumer + Temporal worker) ────────────────────
   worker:
+    image: ghcr.io/rustmunkey/maschina-worker:${IMAGE_TAG:-latest}
     build:
       context: ..
       dockerfile: services/worker/Dockerfile
