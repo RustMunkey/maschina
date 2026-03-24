@@ -19,6 +19,8 @@ pub struct Config {
     pub nats_url: String,
     /// Path to NATS credentials file (NGS / NKey creds). Optional for local dev.
     pub nats_creds: Option<String>,
+    /// Path to NATS CA certificate (for self-signed TLS). Optional.
+    pub nats_ca_cert: Option<String>,
     /// Local Python runtime URL — where agent execution happens on this machine
     pub runtime_url: String,
     /// Heartbeat interval in seconds
@@ -49,6 +51,7 @@ impl Config {
                 .unwrap_or_else(|_| "http://localhost:8002".into()),
             nats_url: env::var("NATS_URL").unwrap_or_else(|_| "nats://localhost:4222".into()),
             nats_creds: env::var("NATS_CREDS").ok(),
+            nats_ca_cert: env::var("NATS_CA_CERT").ok(),
             runtime_url: env::var("RUNTIME_URL").unwrap_or_else(|_| "http://localhost:8001".into()),
             heartbeat_interval_secs: env::var("NODE_HEARTBEAT_INTERVAL_SECS")
                 .unwrap_or_else(|_| "30".into())
