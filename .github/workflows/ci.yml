@@ -280,11 +280,49 @@ jobs:
     if: always()
     steps:
       - name: Verify all required jobs passed
+        id: gate
         run: |
           results='${{ toJSON(needs) }}'
           failed=$(echo "$results" | jq '[.[].result] | map(select(. == "failure" or . == "cancelled")) | length')
           if [ "$failed" -gt "0" ]; then
+            echo "status=failed" >> $GITHUB_OUTPUT
             echo "One or more required CI jobs failed."
             exit 1
           fi
+          echo "status=passed" >> $GITHUB_OUTPUT
           echo "All CI checks passed."
+
+      - name: Notify Discord
+        if: always() && github.event_name == 'pull_request'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_CI_WEBHOOK }}
+          STATUS: ${{ steps.gate.outputs.status }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          ACTOR: ${{ github.actor }}
+          SHA: ${{ github.sha }}
+        run: |
+          [ -z "$DISCORD_WEBHOOK" ] && exit 0
+          if [ "$STATUS" = "passed" ]; then
+            COLOR=5763719
+            LABEL="passed"
+          else
+            COLOR=15548997
+            LABEL="failed"
+          fi
+          SHORT_SHA="${SHA:0:7}"
+          curl -s -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"CI ${LABEL} — PR #${PR_NUMBER}\",
+                \"url\": \"${PR_URL}\",
+                \"description\": \"${PR_TITLE}\",
+                \"color\": ${COLOR},
+                \"fields\": [
+                  { \"name\": \"By\", \"value\": \"${ACTOR}\", \"inline\": true },
+                  { \"name\": \"Commit\", \"value\": \"\`${SHORT_SHA}\`\", \"inline\": true }
+                ]
+              }]
+            }"
