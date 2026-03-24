@@ -295,6 +295,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Set lowercase repo owner
+        run: echo "REPO_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Build and push agent sandbox image
         uses: docker/build-push-action@v5
         with:
@@ -302,8 +305,8 @@ jobs:
           file: docker/agent-sandbox/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/maschina-agent-sandbox:${{ github.ref_name }}
-            ghcr.io/${{ github.repository_owner }}/maschina-agent-sandbox:latest
+            ghcr.io/${{ env.REPO_OWNER }}/maschina-agent-sandbox:${{ github.ref_name }}
+            ghcr.io/${{ env.REPO_OWNER }}/maschina-agent-sandbox:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -338,6 +341,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set lowercase repo owner
+        run: echo "REPO_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -349,7 +355,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/maschina-${{ matrix.service }}
+          images: ghcr.io/${{ env.REPO_OWNER }}/maschina-${{ matrix.service }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}

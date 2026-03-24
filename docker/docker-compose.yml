@@ -142,12 +142,114 @@ services:
     networks:
       - maschina-internal
 
+  # ─── Observability ────────────────────────────────────────────────────────
+
+  prometheus:
+    image: prom/prometheus:v3.4.0
+    container_name: maschina-prometheus
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    networks:
+      - maschina-internal
+
+  grafana:
+    image: grafana/grafana:12.0.1
+    container_name: maschina-grafana
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3030}:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:-changeme}
+      GF_SECURITY_ADMIN_USER: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: ${GF_ROOT_URL:-http://localhost:3030}
+      # Disable anonymous access
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      # Allow Grafana to load env vars into provisioning files
+      GF_UNIFIED_ALERTING_ENABLED: "true"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - maschina-internal
+
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    container_name: maschina-node-exporter
+    restart: unless-stopped
+    pid: "host"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - maschina-internal
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.17.1
+    container_name: maschina-postgres-exporter
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: postgresql://${POSTGRES_USER:-maschina}:${POSTGRES_PASSWORD:-maschina}@postgres:5432/${POSTGRES_DB:-maschina}?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - maschina-internal
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.70.0
+    container_name: maschina-redis-exporter
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - maschina-internal
+
+  nats-exporter:
+    image: natsio/prometheus-nats-exporter:0.15.0
+    container_name: maschina-nats-exporter
+    restart: unless-stopped
+    command:
+      - '-varz'
+      - '-connz'
+      - '-subz'
+      - '-jsz=all'
+      - 'http://nats:8222'
+    depends_on:
+      nats:
+        condition: service_healthy
+    networks:
+      - maschina-internal
+
 volumes:
   postgres_data:
   redis_data:
   nats_data:
   meilisearch_data:
   qdrant_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   maschina-internal:

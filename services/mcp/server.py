@@ -19,6 +19,7 @@ MEMORY_DIR = Path(
         "MASCHINA_MEMORY_DIR", "/home/ash/.claude/projects/-home-ash-Desktop-maschina/memory"
     )
 )
+CONVERSATION_LOG = MEMORY_DIR / "conversation_history.md"
 SESSION_FILE = REPO / ".claude" / "session.md"
 DECISIONS_FILE = REPO / ".claude" / "decisions.md"
 ARCHITECTURE_FILE = REPO / "MASTER_ARCHITECTURE.md"
@@ -169,6 +170,40 @@ def write_memory(filename: str, content: str) -> str:
     MEMORY_DIR.mkdir(parents=True, exist_ok=True)
     target.write_text(content, encoding="utf-8")
     return f"Wrote {safe_name} at {_timestamp()}"
+
+
+# ── Conversation history ─────────────────────────────────────────────────────
+
+
+@mcp.tool()
+def log_conversation(summary: str, branch: str = "", files_changed: str = "") -> str:
+    """
+    Append a timestamped entry to the persistent conversation history log.
+    Call this at the end of every significant exchange to preserve full context.
+    summary: what was discussed/built/decided this exchange.
+    branch: current git branch (optional).
+    files_changed: comma-separated list of modified files (optional).
+    """
+    MEMORY_DIR.mkdir(parents=True, exist_ok=True)
+    ts = _timestamp()
+    entry = f"\n\n## {ts}"
+    if branch:
+        entry += f" | branch: {branch}"
+    if files_changed:
+        entry += f"\n**Files:** {files_changed}"
+    entry += f"\n\n{summary}"
+    with open(CONVERSATION_LOG, "a", encoding="utf-8") as f:
+        f.write(entry)
+    return f"Logged at {ts}"
+
+
+@mcp.tool()
+def get_conversation_log(last_n_chars: int = 4000) -> str:
+    """Return the last N characters of the conversation history log."""
+    if not CONVERSATION_LOG.exists():
+        return "[No conversation history yet]"
+    text = CONVERSATION_LOG.read_text(encoding="utf-8")
+    return text[-last_n_chars:] if len(text) > last_n_chars else text
 
 
 # ── Entry point ──────────────────────────────────────────────────────────────
