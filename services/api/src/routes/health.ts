@@ -5,11 +5,7 @@ import { Hono } from "hono";
 
 const app = new Hono();
 
-// GET /health — always 200, confirms process is alive
-app.get("/health", (c) => c.json({ status: "ok", timestamp: new Date().toISOString() }));
-
-// GET /ready — checks DB + Redis connectivity
-app.get("/ready", async (c) => {
+async function getChecks(): Promise<{ checks: Record<string, "ok" | "error">; healthy: boolean }> {
   const checks: Record<string, "ok" | "error"> = {};
 
   try {
@@ -27,6 +23,26 @@ app.get("/ready", async (c) => {
   }
 
   const healthy = Object.values(checks).every((v) => v === "ok");
+  return { checks, healthy };
+}
+
+// GET /health — liveness + dependency checks
+app.get("/health", async (c) => {
+  const { checks, healthy } = await getChecks();
+  return c.json(
+    {
+      status: healthy ? "ok" : "degraded",
+      service: "maschina-api",
+      checks,
+      timestamp: new Date().toISOString(),
+    },
+    healthy ? 200 : 503,
+  );
+});
+
+// GET /ready — alias for health (keeps backwards compat)
+app.get("/ready", async (c) => {
+  const { checks, healthy } = await getChecks();
   return c.json({ status: healthy ? "ready" : "degraded", checks }, healthy ? 200 : 503);
 });
 

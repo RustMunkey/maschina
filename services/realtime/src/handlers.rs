@@ -26,13 +26,28 @@ pub struct ConnectParams {
 
 // ─── Health ───────────────────────────────────────────────────────────────────
 
-pub async fn health(State(state): State<AppState>) -> Json<serde_json::Value> {
-    Json(json!({
-        "status": "ok",
-        "service": "maschina-realtime",
-        "connections": state.registry.len(),
-        "env": state.config.node_env,
-    }))
+pub async fn health(State(state): State<AppState>) -> impl IntoResponse {
+    use async_nats::connection::State as NatsState;
+    use axum::http::StatusCode;
+
+    let nats_ok = matches!(state.nats.connection_state(), NatsState::Connected);
+    let status_code = if nats_ok {
+        StatusCode::OK
+    } else {
+        StatusCode::SERVICE_UNAVAILABLE
+    };
+
+    (
+        status_code,
+        Json(json!({
+            "status": if nats_ok { "ok" } else { "degraded" },
+            "service": "maschina-realtime",
+            "checks": {
+                "nats": if nats_ok { "ok" } else { "error" },
+            },
+            "connections": state.registry.len(),
+        })),
+    )
 }
 
 // ─── WebSocket ────────────────────────────────────────────────────────────────
