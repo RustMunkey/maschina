@@ -104,9 +104,12 @@ if needs_rebuild_runtime;  then SERVICES_TO_REBUILD="$SERVICES_TO_REBUILD runtim
 if needs_rebuild_worker;   then SERVICES_TO_REBUILD="$SERVICES_TO_REBUILD worker"; fi
 
 if [[ -n "$SERVICES_TO_REBUILD" ]]; then
-  log "rebuilding:$SERVICES_TO_REBUILD"
+  log "pulling updated images:$SERVICES_TO_REBUILD"
   # shellcheck disable=SC2086
-  docker compose $COMPOSE_SERVICES up -d --build $SERVICES_TO_REBUILD
+  docker compose $COMPOSE_SERVICES pull $SERVICES_TO_REBUILD
+  log "starting updated services..."
+  # shellcheck disable=SC2086
+  docker compose $COMPOSE_SERVICES up -d $SERVICES_TO_REBUILD
   log "services restarted"
 fi
 
