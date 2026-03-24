@@ -78,23 +78,10 @@
       }
     ],
     [
-      "@semantic-release/exec",
-      {
-        "prepareCmd": "sed -i 's/Active development\\. v[0-9][0-9.]*/Active development. v${nextRelease.version}/' README.md"
-      }
-    ],
-    [
       "@semantic-release/github",
       {
         "successComment": false,
         "failComment": false
-      }
-    ],
-    [
-      "@semantic-release/git",
-      {
-        "assets": ["CHANGELOG.md", "README.md"],
-        "message": "chore(release): v${nextRelease.version} [skip ci]"
       }
     ]
   ]
