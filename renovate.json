@@ -1,0 +1,56 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "timezone": "America/New_York",
+  "schedule": ["before 6am on monday"],
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 2,
+  "labels": ["dependencies"],
+  "commitMessagePrefix": "chore(deps):",
+  "semanticCommits": "enabled",
+  "dependencyDashboard": true,
+  "ignorePaths": ["**/node_modules/**", "apps/mobile/**"],
+  "packageRules": [
+    {
+      "description": "Group all non-major GitHub Actions updates",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "groupName": "GitHub Actions",
+      "automerge": true
+    },
+    {
+      "description": "Group all non-major Rust crate updates",
+      "matchManagers": ["cargo"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Rust crates",
+      "automerge": false
+    },
+    {
+      "description": "Group all non-major Python dependency updates",
+      "matchManagers": ["pip_requirements", "pyproject"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Python dependencies",
+      "automerge": false
+    },
+    {
+      "description": "Group all non-major TypeScript/Node updates",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "npm dependencies",
+      "automerge": false
+    },
+    {
+      "description": "Auto-merge patch updates for safe packages",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["patch"],
+      "matchPackagePatterns": ["^@types/", "^eslint", "^prettier", "^vitest", "biome"],
+      "automerge": true
+    },
+    {
+      "description": "Never auto-merge major updates",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "breaking-change"]
+    }
+  ]
+}
