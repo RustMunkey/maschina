@@ -46,6 +46,7 @@ pub async fn health(State(state): State<AppState>) -> impl IntoResponse {
                 "nats": if nats_ok { "ok" } else { "error" },
             },
             "connections": state.registry.len(),
+            "env": state.config.node_env,
         })),
     )
 }
