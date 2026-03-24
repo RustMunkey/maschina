@@ -111,8 +111,8 @@ async fn persist_success(
             .encrypt(nonce, plaintext.as_bytes())
             .map_err(|_| DaemonError::Runtime("Output payload encryption failed".into()))?;
 
-        let ciphertext_hex = hex::encode(&ciphertext);
-        let iv_hex = hex::encode(&iv_bytes);
+        let ciphertext_hex = hex::encode(ciphertext);
+        let iv_hex = hex::encode(iv_bytes);
 
         sqlx::query(
             r#"
