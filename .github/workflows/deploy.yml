@@ -15,8 +15,24 @@ jobs:
     environment: production
     env:
       DELL_WEBHOOK_URL: ${{ secrets.DELL_WEBHOOK_URL }}
-      SLACK_DEPLOY_WEBHOOK: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
+      DISCORD_DEPLOYS_WEBHOOK: ${{ secrets.DISCORD_DEPLOYS_WEBHOOK }}
     steps:
+      - name: Notify Discord — deploy started
+        if: env.DISCORD_DEPLOYS_WEBHOOK != ''
+        run: |
+          curl -s -X POST "$DISCORD_DEPLOYS_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"Deploying Maschina ${{ github.ref_name }}\",
+                \"color\": 16776960,
+                \"fields\": [
+                  { \"name\": \"By\", \"value\": \"${{ github.actor }}\", \"inline\": true },
+                  { \"name\": \"Status\", \"value\": \"In progress...\", \"inline\": true }
+                ]
+              }]
+            }"
+
       - name: Trigger Dell deploy
         if: env.DELL_WEBHOOK_URL != ''
         run: |
@@ -24,13 +40,19 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"ref":"${{ github.ref_name }}","sha":"${{ github.sha }}"}'
 
-      - name: Notify Slack
-        if: env.SLACK_DEPLOY_WEBHOOK != ''
-        uses: slackapi/slack-github-action@v2
-        with:
-          webhook: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
-          webhook-type: incoming-webhook
-          payload: |
-            {
-              "text": ":white_check_mark: *Maschina ${{ github.ref_name }} deployed* — <${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref_name }}|Release notes> — by ${{ github.actor }}"
-            }
+      - name: Notify Discord — deploy done
+        if: env.DISCORD_DEPLOYS_WEBHOOK != ''
+        run: |
+          curl -s -X POST "$DISCORD_DEPLOYS_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"Maschina ${{ github.ref_name }} deployed\",
+                \"url\": \"${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref_name }}\",
+                \"color\": 5763719,
+                \"fields\": [
+                  { \"name\": \"By\", \"value\": \"${{ github.actor }}\", \"inline\": true },
+                  { \"name\": \"Status\", \"value\": \"Live\", \"inline\": true }
+                ]
+              }]
+            }"
