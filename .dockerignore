@@ -1,0 +1,12 @@
+**/.env
+**/.env.*
+!**/.env.example
+**/node_modules
+**/.git
+**/*.log
+**/dist
+**/target
+**/__pycache__
+**/.pytest_cache
+**/.venv
+**/coverage
