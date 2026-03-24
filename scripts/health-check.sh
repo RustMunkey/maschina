@@ -4,29 +4,18 @@
 # Posts to Discord #health when a service goes down or recovers.
 #
 # Setup on Dell:
-#   1. Add DISCORD_HEALTH_WEBHOOK to /home/ash/maschina/.env
-#   2. chmod +x scripts/health-check.sh
-#   3. crontab -e
-#      */5 * * * * /home/ash/maschina/scripts/health-check.sh >> /var/log/maschina-health.log 2>&1
-#
-# State files in /tmp track whether each service was previously down
-# so we only post on state transitions (down → up, up → down).
+#   1. Add DISCORD_HEALTH_WEBHOOK to ~/Desktop/maschina/.env
+#   2. crontab -e
+#      */5 * * * * /home/ash/Desktop/maschina/scripts/health-check.sh >> /var/log/maschina-health.log 2>&1
 
 set -euo pipefail
 
-# Load env
 ENV_FILE="${ENV_FILE:-$(dirname "$0")/../.env}"
 if [[ -f "$ENV_FILE" ]]; then
-  # shellcheck disable=SC1090
   set -a; source "$ENV_FILE"; set +a
 fi
 
 WEBHOOK="${DISCORD_HEALTH_WEBHOOK:-}"
-if [[ -z "$WEBHOOK" ]]; then
-  echo "$(date -u +%FT%TZ) DISCORD_HEALTH_WEBHOOK not set — skipping"
-  exit 0
-fi
-
 STATE_DIR="${STATE_DIR:-/tmp/maschina-health}"
 mkdir -p "$STATE_DIR"
 
@@ -38,18 +27,30 @@ SERVICES["realtime"]="http://localhost:4000/health"
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
+checks_to_fields() {
+  local json="$1"
+  echo "$json" | jq -c '[to_entries[] | {
+    name: .key,
+    value: (if .value == "ok" then ":white_check_mark: ok" else ":x: \(.value)" end),
+    inline: true
+  }]'
+}
+
 post_discord() {
   local color="$1"
   local title="$2"
-  local description="$3"
+  local fields="$3"
+
+  [[ -z "$WEBHOOK" ]] && return 0
 
   curl -sf -X POST "$WEBHOOK" \
     -H "Content-Type: application/json" \
     -d "{
       \"embeds\": [{
         \"title\": $(echo "$title" | jq -Rs .),
-        \"description\": $(echo "$description" | jq -Rs .),
-        \"color\": $color
+        \"color\": $color,
+        \"fields\": $fields,
+        \"timestamp\": \"$(date -u +%FT%TZ)\"
       }]
     }" || true
 }
@@ -59,27 +60,47 @@ check_service() {
   local url="$2"
   local state_file="$STATE_DIR/${name}.down"
 
-  if curl -sf --max-time 5 "$url" >/dev/null 2>&1; then
-    # Service is up
+  local body
+  local http_code=0
+  body=$(curl -sf --max-time 5 "$url" 2>/dev/null) && http_code=200 || true
+
+  local overall_ok=false
+  local checks_json="{}"
+  local status_label="unreachable"
+
+  if [[ $http_code -eq 200 ]] && [[ -n "$body" ]]; then
+    status_label=$(echo "$body" | jq -r '.status // "ok"' 2>/dev/null || echo "ok")
+    checks_json=$(echo "$body" | jq -c '.checks // {}' 2>/dev/null || echo "{}")
+
+    local failed_checks
+    failed_checks=$(echo "$checks_json" | jq '[to_entries[] | select(.value != "ok")] | length' 2>/dev/null || echo "0")
+    [[ "$status_label" == "ok" && "$failed_checks" -eq 0 ]] && overall_ok=true
+  fi
+
+  local fields
+  if [[ "$checks_json" == "{}" ]]; then
+    if $overall_ok; then
+      fields='[{"name":"status","value":":white_check_mark: ok","inline":true}]'
+    else
+      fields="[{\"name\":\"status\",\"value\":\":x: ${status_label}\",\"inline\":true}]"
+    fi
+  else
+    fields=$(checks_to_fields "$checks_json")
+  fi
+
+  if $overall_ok; then
     if [[ -f "$state_file" ]]; then
-      # Was down — now recovered
       rm -f "$state_file"
       echo "$(date -u +%FT%TZ) RECOVERED $name"
-      post_discord 5763719 \
-        "Service recovered: $name" \
-        "\`$name\` is back online."
+      post_discord 5763719 "Recovered: $name" "$fields"
     else
       echo "$(date -u +%FT%TZ) OK $name"
     fi
   else
-    # Service is down
     if [[ ! -f "$state_file" ]]; then
-      # Was up — now down
       touch "$state_file"
-      echo "$(date -u +%FT%TZ) DOWN $name"
-      post_discord 15548997 \
-        "Service down: $name" \
-        "\`$name\` is not responding at \`$url\`."
+      echo "$(date -u +%FT%TZ) DOWN $name ($status_label)"
+      post_discord 15548997 "Down: $name" "$fields"
     else
       echo "$(date -u +%FT%TZ) STILL DOWN $name"
     fi
@@ -87,7 +108,6 @@ check_service() {
 }
 
 # ── run checks ────────────────────────────────────────────────────────────────
-
 for name in "${!SERVICES[@]}"; do
   check_service "$name" "${SERVICES[$name]}"
 done
