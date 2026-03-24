@@ -233,9 +233,16 @@ pub enum AgentCommands {
 #[derive(Subcommand)]
 pub enum KeyCommands {
     List,
-    Create { name: String },
-    Rotate { id: String },
-    Revoke { id: String },
+    Create {
+        name: String,
+    },
+    /// Atomically replace a key — old key is immediately revoked
+    Rotate {
+        id: String,
+    },
+    Revoke {
+        id: String,
+    },
 }
 
 // ── models ────────────────────────────────────────────────────────────────────
