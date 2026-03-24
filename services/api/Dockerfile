@@ -8,6 +8,8 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY packages/tsconfig ./packages/tsconfig
 COPY packages/types/package.json        ./packages/types/package.json
 COPY packages/auth/package.json         ./packages/auth/package.json
+COPY packages/crypto/package.json       ./packages/crypto/package.json
+COPY packages/keys/package.json         ./packages/keys/package.json
 COPY packages/billing/package.json      ./packages/billing/package.json
 COPY packages/cache/package.json        ./packages/cache/package.json
 COPY packages/chain/package.json        ./packages/chain/package.json
@@ -41,6 +43,8 @@ COPY services/api ./services/api
 
 # Build packages in dependency order
 RUN pnpm --filter @maschina/db build
+RUN pnpm --filter @maschina/crypto build
+RUN pnpm --filter @maschina/keys build
 RUN pnpm --filter @maschina/auth build
 RUN pnpm --filter @maschina/cache build
 RUN pnpm --filter @maschina/plans build
