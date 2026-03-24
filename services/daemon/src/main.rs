@@ -19,25 +19,28 @@ use tokio_util::sync::CancellationToken;
 use tracing::info;
 
 async fn nats_connect(url: &str) -> anyhow::Result<async_nats::Client> {
-    // Support Synadia/NGS: set NATS_CREDS to the raw content of your .creds file.
-    // fly secrets set NATS_CREDS="$(cat /path/to/NGS-Default-CLI.creds)"
+    let mut opts = async_nats::ConnectOptions::new();
+
+    // Synadia/NGS credentials
     if let Ok(creds) = std::env::var("NATS_CREDS") {
-        let path = std::env::temp_dir().join("nats.creds");
+        let path = std::env::temp_dir().join("nats-daemon.creds");
         std::fs::write(&path, creds.as_bytes())?;
-        let client = async_nats::ConnectOptions::with_credentials_file(path.clone())
-            .await?
-            .connect(url)
-            .await?;
+        opts = async_nats::ConnectOptions::with_credentials_file(path.clone()).await?;
         let _ = std::fs::remove_file(path);
-        return Ok(client);
+    } else if let Ok(path) = std::env::var("NATS_CREDS_FILE") {
+        opts = async_nats::ConnectOptions::with_credentials_file(path).await?;
     }
-    if let Ok(path) = std::env::var("NATS_CREDS_FILE") {
-        return Ok(async_nats::ConnectOptions::with_credentials_file(path)
-            .await?
-            .connect(url)
-            .await?);
+
+    // TLS: add custom CA cert for self-signed setups (NATS_CA_CERT=/path/to/ca.pem)
+    // Also auto-enables when URL starts with tls://
+    if let Ok(ca_path) = std::env::var("NATS_CA_CERT") {
+        opts = opts.add_root_certificates(ca_path.into());
+        opts = opts.require_tls(true);
+    } else if url.starts_with("tls://") {
+        opts = opts.require_tls(true);
     }
-    Ok(async_nats::connect(url).await?)
+
+    Ok(opts.connect(url).await?)
 }
 
 #[tokio::main]

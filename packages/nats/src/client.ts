@@ -51,15 +51,22 @@ export async function connectNats(servers?: string | string[]): Promise<NatsConn
   // Enable TLS when:
   //   1. NATS_TLS=true is explicitly set
   //   2. NATS_URL starts with tls:// (NGS / Synadia always uses TLS via credentials)
+  //   3. NATS_CA_CERT is set (self-signed cert path — loads CA into trust store)
   const serverUrls = Array.isArray(urls) ? urls : [urls];
   const useTls =
     process.env.NATS_TLS === "true" ||
+    !!process.env.NATS_CA_CERT ||
     serverUrls.some((u) => u.startsWith("tls://") || u.startsWith("wss://"));
+
+  let tlsOptions: { caFile?: string } | undefined;
+  if (useTls) {
+    tlsOptions = process.env.NATS_CA_CERT ? { caFile: process.env.NATS_CA_CERT } : {};
+  }
 
   _nc = await connect({
     servers: urls,
     authenticator,
-    tls: useTls ? {} : undefined,
+    tls: tlsOptions,
     reconnect: true,
     maxReconnectAttempts: -1, // infinite retries
     reconnectTimeWait: 2000, // 2s between attempts
