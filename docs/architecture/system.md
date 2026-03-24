@@ -1,5 +1,6 @@
 # System Architecture
 
+
 Maschina is a polyglot autonomous agent platform built on a microservices architecture. The platform combines Rust for performance-critical control-plane services, TypeScript for API and web layers, and Python for AI/ML workloads. All components are organized in a unified monorepo and communicate over NATS JetStream.
 
 ---
