@@ -1,5 +1,6 @@
 use anyhow::Result;
 use console::style;
+use futures::StreamExt;
 use indicatif::{ProgressBar, ProgressStyle};
 use inquire::{Select, Text};
 use serde::{Deserialize, Serialize};
@@ -40,33 +41,29 @@ struct AgentRun {
     started_at: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-#[allow(dead_code)]
-struct RunStatus {
-    id: String,
-    agent_id: String,
-    status: String,
-    #[serde(default)]
-    output_payload: Option<serde_json::Value>,
-    #[serde(default)]
-    input_tokens: Option<u64>,
-    #[serde(default)]
-    output_tokens: Option<u64>,
-    #[serde(default)]
-    error_code: Option<String>,
-    #[serde(default)]
-    error_message: Option<String>,
-    #[serde(default)]
-    started_at: Option<String>,
-    #[serde(default)]
-    finished_at: Option<String>,
-}
-
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct RunBody {
     input: serde_json::Value,
+}
+
+/// SSE event payload from `GET /agents/:id/runs/:runId/events`
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", tag = "type")]
+enum RunEvent {
+    #[serde(rename = "run:update")]
+    Update { status: String },
+    #[serde(rename = "run:complete")]
+    Complete {
+        status: String,
+        output_payload: Option<serde_json::Value>,
+        input_tokens: Option<u64>,
+        output_tokens: Option<u64>,
+        error_code: Option<String>,
+        error_message: Option<String>,
+        started_at: Option<String>,
+        finished_at: Option<String>,
+    },
 }
 
 pub async fn list(client: &ApiClient, out: &Output) -> Result<()> {
@@ -186,7 +183,7 @@ pub async fn run_agent(
         return Ok(());
     }
 
-    // ── poll until terminal state ──────────────────────────────────────────────
+    // ── stream events via SSE ─────────────────────────────────────────────────
     let spinner = ProgressBar::new_spinner();
     spinner.set_style(
         ProgressStyle::default_spinner()
@@ -197,44 +194,84 @@ pub async fn run_agent(
     spinner.set_message(format!("queued  {}", style(run_id.as_str()).dim()));
     spinner.enable_steady_tick(Duration::from_millis(80));
 
-    let mut last_status = run.status.clone();
-    let poll_interval = Duration::from_secs(2);
+    let sse_path = format!("/agents/{id}/runs/{run_id}/events");
+    let resp = client.get_sse(&sse_path).await.map_err(|e| {
+        spinner.finish_and_clear();
+        e
+    })?;
+
+    let mut byte_stream = resp.bytes_stream();
+    let mut line_buf = String::new();
+
+    // Result fields filled in once we receive run:complete
+    let mut final_status = String::from("unknown");
+    let mut output_payload: Option<serde_json::Value> = None;
+    let mut input_tokens: Option<u64> = None;
+    let mut output_tokens: Option<u64> = None;
+    let mut error_message: Option<String> = None;
+    let mut started_at: Option<String> = None;
+    let mut finished_at: Option<String> = None;
+
     let timeout = Duration::from_secs(300);
     let started = std::time::Instant::now();
 
-    let final_run = loop {
-        tokio::time::sleep(poll_interval).await;
-
+    'outer: while let Some(chunk) = byte_stream.next().await {
         if started.elapsed() >= timeout {
             spinner.finish_and_clear();
             anyhow::bail!("timed out after 5 minutes — run `maschina logs {run_id}` for details");
         }
 
-        let status: RunStatus = match client.get(&format!("/agents/{id}/runs/{run_id}")).await {
-            Ok(s) => s,
-            Err(_) => continue,
-        };
+        let chunk = chunk?;
+        let text = String::from_utf8_lossy(&chunk);
 
-        if status.status != last_status {
-            spinner.set_message(format!(
-                "{}  {}",
-                &status.status,
-                style(run_id.as_str()).dim()
-            ));
-            last_status = status.status.clone();
-        }
+        for ch in text.chars() {
+            if ch == '\n' {
+                let line = line_buf.trim().to_string();
+                line_buf.clear();
 
-        match status.status.as_str() {
-            "completed" | "failed" | "error" | "stopped" => {
-                spinner.finish_and_clear();
-                break status;
+                if let Some(data) = line.strip_prefix("data: ") {
+                    match serde_json::from_str::<RunEvent>(data) {
+                        Ok(RunEvent::Update { status }) => {
+                            spinner.set_message(format!(
+                                "{}  {}",
+                                &status,
+                                style(run_id.as_str()).dim()
+                            ));
+                            final_status = status;
+                        }
+                        Ok(RunEvent::Complete {
+                            status,
+                            output_payload: op,
+                            input_tokens: it,
+                            output_tokens: ot,
+                            error_message: em,
+                            started_at: sa,
+                            finished_at: fa,
+                            ..
+                        }) => {
+                            final_status = status;
+                            output_payload = op;
+                            input_tokens = it;
+                            output_tokens = ot;
+                            error_message = em;
+                            started_at = sa;
+                            finished_at = fa;
+                            spinner.finish_and_clear();
+                            break 'outer;
+                        }
+                        Err(_) => {} // ignore unknown event types
+                    }
+                }
+            } else {
+                line_buf.push(ch);
             }
-            _ => {}
         }
-    };
+    }
+
+    spinner.finish_and_clear();
 
     // ── render result ──────────────────────────────────────────────────────────
-    let ok = final_run.status == "completed";
+    let ok = final_status == "completed";
 
     if ok {
         println!("{} Run completed", style("✓").green().bold());
@@ -242,7 +279,7 @@ pub async fn run_agent(
         println!(
             "{} Run {}",
             style("✗").red().bold(),
-            style(&final_run.status).red()
+            style(&final_status).red()
         );
     }
 
@@ -252,29 +289,26 @@ pub async fn run_agent(
         style(run_id.as_str()).cyan()
     );
 
-    if let (Some(started), Some(finished)) = (&final_run.started_at, &final_run.finished_at) {
-        // rough duration: parse as RFC3339 and diff, or just display both
+    if let (Some(s), Some(f)) = (&started_at, &finished_at) {
         println!(
             "  {:<14} {}",
             style("Started:").dim(),
-            style(started.as_str()).dim()
+            style(s.as_str()).dim()
         );
         println!(
             "  {:<14} {}",
             style("Finished:").dim(),
-            style(finished.as_str()).dim()
+            style(f.as_str()).dim()
         );
     }
 
-    if let (Some(i), Some(o)) = (final_run.input_tokens, final_run.output_tokens) {
+    if let (Some(i), Some(o)) = (input_tokens, output_tokens) {
         println!("  {:<14} {} in / {} out", style("Tokens:").dim(), i, o);
     }
 
     if ok {
-        if let Some(output) = &final_run.output_payload {
+        if let Some(output) = &output_payload {
             println!();
-            // Pretty-print output if it's an object with a "content" or "text" key,
-            // otherwise dump the full JSON.
             let text = output["content"]
                 .as_str()
                 .or_else(|| output["text"].as_str())
@@ -288,7 +322,7 @@ pub async fn run_agent(
             }
         }
     } else {
-        if let Some(msg) = &final_run.error_message {
+        if let Some(msg) = &error_message {
             println!();
             println!("  {} {}", style("Error:").red(), msg);
         }

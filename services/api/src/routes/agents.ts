@@ -18,6 +18,7 @@ import {
 } from "@maschina/validation";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
+import { streamSSE } from "hono/streaming";
 import type { Variables } from "../context.js";
 import { requireAuth, requireFeature } from "../middleware/auth.js";
 import { requireQuota, trackApiCall } from "../middleware/quota.js";
@@ -323,6 +324,84 @@ app.post(
     );
   },
 );
+
+// ── GET /agents/:id/runs/:runId/events (SSE) ──────────────────────────────────
+// Streams run status updates until a terminal state is reached.
+// Events: run:update (status change) | run:complete (terminal, includes output)
+
+const TERMINAL_STATUSES = new Set(["completed", "failed", "error", "stopped", "timeout"]);
+
+app.get("/:id/runs/:runId/events", requireAuth, async (c) => {
+  const user = c.get("user");
+  const agentId = c.req.param("id");
+  const runId = c.req.param("runId");
+
+  const [initial] = await db
+    .select()
+    .from(agentRuns)
+    .where(
+      and(eq(agentRuns.id, runId), eq(agentRuns.agentId, agentId), eq(agentRuns.userId, user.id)),
+    )
+    .limit(1);
+
+  if (!initial) throw new HTTPException(404, { message: "Run not found" });
+
+  return streamSSE(c, async (stream) => {
+    let lastStatus = initial.status;
+
+    const sendUpdate = async (run: typeof agentRuns.$inferSelect) => {
+      await stream.writeSSE({
+        data: JSON.stringify({ type: "run:update", runId: run.id, status: run.status }),
+      });
+    };
+
+    const sendComplete = async (run: typeof agentRuns.$inferSelect) => {
+      await stream.writeSSE({
+        data: JSON.stringify({
+          type: "run:complete",
+          runId: run.id,
+          status: run.status,
+          outputPayload: run.outputPayload
+            ? decryptConfig(run.outputPayload, run.outputPayloadIv, run.keyVersion)
+            : null,
+          inputTokens: run.inputTokens ?? null,
+          outputTokens: run.outputTokens ?? null,
+          errorCode: run.errorCode ?? null,
+          errorMessage: run.errorMessage ?? null,
+          startedAt: run.startedAt?.toISOString() ?? null,
+          finishedAt: run.finishedAt?.toISOString() ?? null,
+        }),
+      });
+    };
+
+    // If already terminal, emit final event immediately and close
+    if (TERMINAL_STATUSES.has(lastStatus)) {
+      await sendComplete(initial);
+      return;
+    }
+
+    // Poll DB every 250ms until terminal
+    while (true) {
+      await new Promise<void>((resolve) => setTimeout(resolve, 250));
+
+      if (stream.aborted) break;
+
+      const [run] = await db.select().from(agentRuns).where(eq(agentRuns.id, runId)).limit(1);
+
+      if (!run) break;
+
+      if (run.status !== lastStatus) {
+        lastStatus = run.status;
+        await sendUpdate(run);
+      }
+
+      if (TERMINAL_STATUSES.has(run.status)) {
+        await sendComplete(run);
+        break;
+      }
+    }
+  });
+});
 
 // ── GET /agents/:id/runs/:runId ───────────────────────────────────────────────
 
