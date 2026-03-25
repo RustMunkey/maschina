@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { hmacEmail } from "@maschina/crypto";
 import {
   agents,
   and,
@@ -312,9 +313,7 @@ app.post("/:id/invites", async (c) => {
   const body = await c.req.json().catch(() => null);
   const input = assertValid(InviteMemberSchema, body);
 
-  // HMAC for email lookup (same pattern as user registration)
-  const jwtSecret = process.env.JWT_SECRET ?? "dev-secret";
-  const emailIndex = crypto.createHmac("sha256", jwtSecret).update(input.email).digest("hex");
+  const emailIndex = hmacEmail(input.email);
 
   // Check for duplicate invite
   const existing = await db
