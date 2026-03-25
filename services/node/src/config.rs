@@ -50,8 +50,8 @@ impl Config {
             internal_url: env::var("NODE_INTERNAL_URL")
                 .unwrap_or_else(|_| "http://localhost:8002".into()),
             nats_url: env::var("NATS_URL").unwrap_or_else(|_| "nats://localhost:4222".into()),
-            nats_creds: env::var("NATS_CREDS").ok(),
-            nats_ca_cert: env::var("NATS_CA_CERT").ok(),
+            nats_creds: env::var("NATS_CREDS").ok().filter(|s| !s.is_empty()),
+            nats_ca_cert: env::var("NATS_CA_CERT").ok().filter(|s| !s.is_empty()),
             runtime_url: env::var("RUNTIME_URL").unwrap_or_else(|_| "http://localhost:8001".into()),
             heartbeat_interval_secs: env::var("NODE_HEARTBEAT_INTERVAL_SECS")
                 .unwrap_or_else(|_| "30".into())
