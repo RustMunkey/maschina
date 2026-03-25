@@ -44,6 +44,9 @@ pub struct NodeConfig {
     pub runtime_url: String,
     /// NATS server URL for receiving tasks
     pub nats_url: String,
+    /// Optional path to a CA certificate for TLS-enabled NATS connections
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nats_ca_cert: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
