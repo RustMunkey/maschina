@@ -233,8 +233,16 @@ pub enum AgentCommands {
 #[derive(Subcommand)]
 pub enum KeyCommands {
     List,
-    Create { name: String },
-    Revoke { id: String },
+    Create {
+        name: String,
+    },
+    /// Atomically replace a key — old key is immediately revoked
+    Rotate {
+        id: String,
+    },
+    Revoke {
+        id: String,
+    },
 }
 
 // ── models ────────────────────────────────────────────────────────────────────
@@ -559,6 +567,7 @@ async fn run() -> Result<()> {
             match cmd {
                 KeyCommands::List => commands::keys::list(&client, &out).await?,
                 KeyCommands::Create { name } => commands::keys::create(&client, name, &out).await?,
+                KeyCommands::Rotate { id } => commands::keys::rotate(&client, id, &out).await?,
                 KeyCommands::Revoke { id } => commands::keys::revoke(&client, id, &out).await?,
             }
         }

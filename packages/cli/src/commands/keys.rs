@@ -87,6 +87,38 @@ pub async fn create(client: &ApiClient, name: String, out: &Output) -> Result<()
     Ok(())
 }
 
+pub async fn rotate(client: &ApiClient, id: String, out: &Output) -> Result<()> {
+    let key: CreatedKey = client
+        .post(&format!("/keys/{id}/rotate"), &serde_json::json!({}))
+        .await?;
+
+    if out.is_json() {
+        out.data(&key);
+        return Ok(());
+    }
+
+    println!("{} API key rotated", style("✓").green().bold());
+    println!("  {:<12} {}", style("Name:").dim(), &key.name);
+    println!(
+        "  {:<12} {}",
+        style("New Key:").dim(),
+        style(&key.key).cyan().bold()
+    );
+    println!("  {:<12} {}", style("New ID:").dim(), style(&key.id).dim());
+    println!(
+        "  {:<12} {}",
+        style("Old ID:").dim(),
+        style(&id).dim().strikethrough()
+    );
+    println!();
+    println!(
+        "  {} Copy this key — it will not be shown again. The old key is now invalid.",
+        style("!").yellow().bold()
+    );
+
+    Ok(())
+}
+
 pub async fn revoke(client: &ApiClient, id: String, out: &Output) -> Result<()> {
     let _: serde_json::Value = client.delete(&format!("/keys/{id}")).await?;
     out.success(&format!("Key {} revoked", style(&id).dim()), None::<()>);
