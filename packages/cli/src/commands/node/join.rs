@@ -7,6 +7,7 @@
 // a transparent proxy between the scheduler (daemon) and a locally-running Python
 // runtime service. No public IP or port-forwarding required — NATS handles connectivity.
 
+use std::env;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -116,6 +117,16 @@ pub async fn run(profile: &str, out: &Output) -> Result<()> {
         .with_help_message("NATS server for receiving tasks (NGS default shown)")
         .prompt()?;
 
+    let nats_ca_cert = Text::new("NATS CA cert path (optional):")
+        .with_default("")
+        .with_help_message(
+            "Path to CA certificate for TLS-enabled NATS (leave blank for NGS/plain)",
+        )
+        .prompt()
+        .ok()
+        .filter(|s| !s.is_empty())
+        .or_else(|| env::var("NATS_CA_CERT").ok().filter(|s| !s.is_empty()));
+
     let region = Text::new("Region (optional):")
         .with_default("")
         .with_help_message("e.g. us-east-1, eu-west-1 — helps route latency-sensitive tasks")
@@ -178,6 +189,7 @@ pub async fn run(profile: &str, out: &Output) -> Result<()> {
         signing_key: privkey_b64,
         runtime_url,
         nats_url,
+        nats_ca_cert,
     };
     cfg.node = Some(node_cfg.clone());
     config::save(&cfg, profile)?;
@@ -200,8 +212,28 @@ pub async fn run(profile: &str, out: &Output) -> Result<()> {
 /// Persistent loop: send heartbeats + process inbound tasks via NATS.
 /// Runs until Ctrl+C.
 async fn run_node_loop(cfg: config::Config, node: NodeConfig, out: &Output) -> Result<()> {
-    // NATS connection
-    let nats = async_nats::connect(&node.nats_url)
+    // NATS connection — prefer stored cert, fall back to NATS_CA_CERT env var
+    let ca_cert_env = env::var("NATS_CA_CERT").ok().filter(|s| !s.is_empty());
+    let ca_cert: Option<&str> = node
+        .nats_ca_cert
+        .as_deref()
+        .filter(|s| !s.is_empty())
+        .or(ca_cert_env.as_deref());
+
+    let mut opts = async_nats::ConnectOptions::new()
+        .name("maschina-node-cli")
+        .ping_interval(Duration::from_secs(30))
+        .connection_timeout(Duration::from_secs(10))
+        .retry_on_initial_connect();
+
+    if let Some(cert_path) = ca_cert {
+        opts = opts
+            .add_root_certificates(cert_path.into())
+            .require_tls(true);
+    }
+
+    let nats = opts
+        .connect(&node.nats_url)
         .await
         .map_err(|e| anyhow::anyhow!("NATS connection failed ({}): {}", node.nats_url, e))?;
 
