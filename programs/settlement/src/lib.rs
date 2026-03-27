@@ -5,17 +5,22 @@ declare_id!("STLMxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 // ─── Maschina Settlement Program ─────────────────────────────────────────────
 //
 // Responsibilities:
-//   1. anchor_receipt   — stores a tamper-proof hash of an execution receipt on-chain.
-//                         Any party can verify a run happened by checking this account.
-//   2. deposit_stake    — node runner locks USDC collateral.
-//   3. withdraw_stake   — operator initiates withdrawal (after lock period).
-//   4. slash_stake      — governance/validator slashes a misbehaving node.
-//   5. settle_earnings  — distributes accumulated earnings to node/developer/treasury/validators.
+//   0. initialize_config — one-time setup of trusted payout account owners.
+//   1. anchor_receipt    — stores a tamper-proof hash of an execution receipt on-chain.
+//                          Any party can verify a run happened by checking this account.
+//   2. init_node_vault   — creates per-node USDC vault (call once per node).
+//   3. deposit_stake     — node runner locks USDC collateral.
+//   4. add_earnings      — records earnings for a completed run, funds the vault.
+//   5. withdraw_stake    — operator initiates withdrawal (after lock period).
+//   6. slash_stake       — governance/validator slashes a misbehaving node.
+//   7. settle_earnings   — distributes accumulated earnings (70/15/10/5 split).
 //
 // Account seeds (deterministic PDAs):
-//   ExecutionReceipt: ["receipt", run_id]
-//   NodeStake:        ["stake",   node_id]
-//   SettlementPool:   ["pool",    node_id]
+//   SettlementConfig:  ["config"]
+//   ExecutionReceipt:  ["receipt", run_id]
+//   NodeStake:         ["stake",   node_id]
+//   SettlementPool:    ["pool",    node_id]
+//   Vault:             ["vault",   node_id]
 
 pub mod errors;
 pub mod instructions;
@@ -26,6 +31,16 @@ use instructions::*;
 #[program]
 pub mod settlement {
     use super::*;
+
+    /// One-time initialisation of the global settlement config.
+    /// Sets the trusted treasury, developer, and validators payout account owners.
+    /// Must be called once by Maschina authority immediately after deploy.
+    pub fn initialize_config(
+        ctx: Context<InitializeConfig>,
+        args: InitializeConfigArgs,
+    ) -> Result<()> {
+        instructions::initialize_config::handler(ctx, args)
+    }
 
     /// Anchor an execution receipt on-chain.
     /// Stores a SHA-256 hash of the canonical receipt JSON + node Ed25519 signature.

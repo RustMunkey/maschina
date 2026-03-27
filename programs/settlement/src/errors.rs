@@ -34,4 +34,19 @@ pub enum SettlementError {
 
     #[msg("Earnings amounts do not sum to total transferred")]
     EarningsMismatch,
+
+    #[msg("Caller is not the authorised settlement authority")]
+    UnauthorisedSettlement,
+
+    #[msg("Developer token account owner does not match config.developer_key")]
+    InvalidDeveloperAccount,
+
+    #[msg("Treasury token account owner does not match config.treasury_key")]
+    InvalidTreasuryAccount,
+
+    #[msg("Validators token account owner does not match config.validators_key")]
+    InvalidValidatorsAccount,
+
+    #[msg("Settlement config has already been initialised")]
+    ConfigAlreadyInitialised,
 }

@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 
 use crate::errors::SettlementError;
-use crate::state::{EarningsSettled, SettlementPool, VAULT_SEED};
+use crate::state::{EarningsSettled, SettlementConfig, SettlementPool, VAULT_SEED};
 
 // ─── Args ─────────────────────────────────────────────────────────────────────
 
@@ -14,16 +14,25 @@ pub struct SettleEarningsArgs {
 // ─── Accounts ─────────────────────────────────────────────────────────────────
 //
 // Sweeps all pending earnings from the vault to recipients.
-// The developer, treasury, and validators accounts are validated off-chain
-// by the settlement authority (Maschina multisig). The operator account is
-// verified on-chain against pool.operator.
+// All payout accounts are validated on-chain against SettlementConfig,
+// which stores the trusted owner keys set at program initialization.
 
 #[derive(Accounts)]
 #[instruction(args: SettleEarningsArgs)]
 pub struct SettleEarnings<'info> {
-    /// Settlement authority (Maschina multisig) — initiates the payout sweep.
-    #[account(mut)]
+    /// Settlement authority — must match config.authority.
+    #[account(
+        mut,
+        constraint = authority.key() == config.authority @ SettlementError::UnauthorisedSettlement,
+    )]
     pub authority: Signer<'info>,
+
+    /// Global settlement config — holds trusted payout account owners.
+    #[account(
+        seeds = [SettlementConfig::SEED],
+        bump = config.bump,
+    )]
+    pub config: Account<'info, SettlementConfig>,
 
     /// USDC mint.
     pub usdc_mint: Account<'info, Mint>,
@@ -56,18 +65,30 @@ pub struct SettleEarnings<'info> {
     pub operator_usdc: Account<'info, TokenAccount>,
 
     /// Developer's USDC token account — receives 10% (0 for first-party agents).
-    /// Validated off-chain by the settlement authority.
-    #[account(mut, token::mint = usdc_mint)]
+    /// Must be owned by config.developer_key.
+    #[account(
+        mut,
+        token::mint = usdc_mint,
+        constraint = developer_usdc.owner == config.developer_key @ SettlementError::InvalidDeveloperAccount,
+    )]
     pub developer_usdc: Account<'info, TokenAccount>,
 
     /// Maschina treasury USDC token account — receives 15% (25% if no developer).
-    /// Validated off-chain by the settlement authority.
-    #[account(mut, token::mint = usdc_mint)]
+    /// Must be owned by config.treasury_key.
+    #[account(
+        mut,
+        token::mint = usdc_mint,
+        constraint = treasury_usdc.owner == config.treasury_key @ SettlementError::InvalidTreasuryAccount,
+    )]
     pub treasury_usdc: Account<'info, TokenAccount>,
 
     /// Validators pool USDC token account — receives 5%.
-    /// Validated off-chain by the settlement authority.
-    #[account(mut, token::mint = usdc_mint)]
+    /// Must be owned by config.validators_key.
+    #[account(
+        mut,
+        token::mint = usdc_mint,
+        constraint = validators_usdc.owner == config.validators_key @ SettlementError::InvalidValidatorsAccount,
+    )]
     pub validators_usdc: Account<'info, TokenAccount>,
 
     pub token_program: Program<'info, Token>,

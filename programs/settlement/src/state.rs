@@ -90,6 +90,31 @@ impl SettlementPool {
     pub const LEN: usize = 8 + 16 + 32 + 8 + 8 + 8 + 8 + 8 + 1;
 }
 
+// ─── SettlementConfig ─────────────────────────────────────────────────────────
+// Global program config — stores trusted payout account owners.
+// Keyed by [b"config"]. Initialized once by Maschina authority.
+// Prevents anyone from routing treasury/developer/validator payouts to
+// arbitrary accounts during settle_earnings.
+
+#[account]
+pub struct SettlementConfig {
+    /// Maschina settlement authority — the only key allowed to call settle_earnings.
+    pub authority: Pubkey,
+    /// Owner of the treasury USDC token account (Maschina treasury multisig).
+    pub treasury_key: Pubkey,
+    /// Owner of the developer USDC token account (marketplace developer fee wallet).
+    pub developer_key: Pubkey,
+    /// Owner of the validators USDC token account (validators pool wallet).
+    pub validators_key: Pubkey,
+    /// Bump seed
+    pub bump: u8,
+}
+
+impl SettlementConfig {
+    pub const LEN: usize = 8 + 32 + 32 + 32 + 32 + 1;
+    pub const SEED: &'static [u8] = b"config";
+}
+
 // ─── Vault seed helper ────────────────────────────────────────────────────────
 // The per-node USDC vault is a token account whose authority is the pool PDA.
 // Seeds: [b"vault", node_id]. Created by init_node_vault.
