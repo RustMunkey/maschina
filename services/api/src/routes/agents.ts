@@ -1,7 +1,7 @@
 import { decryptVersioned, encryptVersioned } from "@maschina/crypto";
 import { db } from "@maschina/db";
-import { agentRuns, agents } from "@maschina/db";
-import { and, eq, isNull } from "@maschina/db";
+import { type AgentRun, agentRuns, agents } from "@maschina/db";
+import { and, desc, eq, isNull } from "@maschina/db";
 import { Subjects } from "@maschina/events";
 import { dispatchAgentRun } from "@maschina/jobs";
 import { resolveModel, validateModelAccess } from "@maschina/model";
@@ -323,6 +323,81 @@ app.post(
     );
   },
 );
+
+// ── GET /agents/:id/runs — paginated list ────────────────────────────────────
+
+app.get("/:id/runs", requireAuth, async (c) => {
+  const user = c.get("user");
+  const agentId = c.req.param("id");
+  const limit = Math.min(Number(c.req.query("limit") ?? 20), 100);
+  const offset = Number(c.req.query("offset") ?? 0);
+
+  const [agent] = await db
+    .select({ id: agents.id })
+    .from(agents)
+    .where(and(eq(agents.id, agentId), eq(agents.userId, user.id)))
+    .limit(1);
+
+  if (!agent) throw new HTTPException(404, { message: "Agent not found" });
+
+  const rows = await db
+    .select()
+    .from(agentRuns)
+    .where(and(eq(agentRuns.agentId, agentId), eq(agentRuns.userId, user.id)))
+    .orderBy(desc(agentRuns.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  return c.json(
+    rows.map((run: AgentRun) => ({
+      id: run.id,
+      agentId: run.agentId,
+      status: run.status,
+      inputTokens: run.inputTokens ?? null,
+      outputTokens: run.outputTokens ?? null,
+      errorCode: run.errorCode ?? null,
+      errorMessage: run.errorMessage ?? null,
+      createdAt: run.createdAt.toISOString(),
+      startedAt: run.startedAt?.toISOString() ?? null,
+      finishedAt: run.finishedAt?.toISOString() ?? null,
+    })),
+  );
+});
+
+// ── POST /agents/:id/runs/:runId/cancel ───────────────────────────────────────
+
+app.post("/:id/runs/:runId/cancel", requireAuth, async (c) => {
+  const user = c.get("user");
+  const agentId = c.req.param("id");
+  const runId = c.req.param("runId");
+
+  const [run] = await db
+    .select()
+    .from(agentRuns)
+    .where(
+      and(eq(agentRuns.id, runId), eq(agentRuns.agentId, agentId), eq(agentRuns.userId, user.id)),
+    )
+    .limit(1);
+
+  if (!run) throw new HTTPException(404, { message: "Run not found" });
+  if (run.status === "completed" || run.status === "canceled" || run.status === "failed") {
+    throw new HTTPException(409, { message: `Run already in terminal state: ${run.status}` });
+  }
+
+  const [cancelled] = await db
+    .update(agentRuns)
+    .set({ status: "canceled", finishedAt: new Date() })
+    .where(and(eq(agentRuns.id, runId), eq(agentRuns.userId, user.id)))
+    .returning({ id: agentRuns.id, status: agentRuns.status });
+
+  publishSafe(Subjects.AgentRunCancelled, {
+    runId,
+    agentId,
+    userId: user.id,
+  });
+
+  return c.json(cancelled);
+});
 
 // ── GET /agents/:id/runs/:runId ───────────────────────────────────────────────
 

@@ -62,6 +62,12 @@ export interface AgentRunTimedOutData {
   timeoutSecs: number;
 }
 
+export interface AgentRunCancelledData {
+  runId: string;
+  agentId: string;
+  userId: string;
+}
+
 // ─── User events ──────────────────────────────────────────────────────────────
 
 export interface UserRegisteredData {
@@ -182,6 +188,7 @@ export const Subjects = {
   AgentRunCompleted: "maschina.agent.run.completed",
   AgentRunFailed: "maschina.agent.run.failed",
   AgentRunTimedOut: "maschina.agent.run.timed_out",
+  AgentRunCancelled: "maschina.agent.run.cancelled",
 
   // User
   UserRegistered: "maschina.user.registered",
@@ -221,6 +228,7 @@ export interface EventMap {
   [Subjects.AgentRunCompleted]: AgentRunCompletedData;
   [Subjects.AgentRunFailed]: AgentRunFailedData;
   [Subjects.AgentRunTimedOut]: AgentRunTimedOutData;
+  [Subjects.AgentRunCancelled]: AgentRunCancelledData;
 
   [Subjects.UserRegistered]: UserRegisteredData;
   [Subjects.UserEmailVerified]: UserEmailVerifiedData;

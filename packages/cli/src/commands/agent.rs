@@ -203,7 +203,21 @@ pub async fn run_agent(
     let started = std::time::Instant::now();
 
     let final_run = loop {
-        tokio::time::sleep(poll_interval).await;
+        tokio::select! {
+            _ = tokio::signal::ctrl_c() => {
+                spinner.finish_and_clear();
+                eprintln!("{} Cancelling run…", style("!").yellow().bold());
+                let _ = client
+                    .post::<serde_json::Value, serde_json::Value>(
+                        &format!("/agents/{id}/runs/{run_id}/cancel"),
+                        &serde_json::json!({}),
+                    )
+                    .await;
+                eprintln!("{} Run cancelled", style("✓").green().bold());
+                return Ok(());
+            }
+            _ = tokio::time::sleep(poll_interval) => {}
+        }
 
         if started.elapsed() >= timeout {
             spinner.finish_and_clear();
@@ -225,7 +239,7 @@ pub async fn run_agent(
         }
 
         match status.status.as_str() {
-            "completed" | "failed" | "error" | "stopped" => {
+            "completed" | "failed" | "error" | "stopped" | "canceled" => {
                 spinner.finish_and_clear();
                 break status;
             }
