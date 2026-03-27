@@ -215,55 +215,74 @@ pub async fn run_agent(
     let timeout = Duration::from_secs(300);
     let started = std::time::Instant::now();
 
-    'outer: while let Some(chunk) = byte_stream.next().await {
-        if started.elapsed() >= timeout {
-            spinner.finish_and_clear();
-            anyhow::bail!("timed out after 5 minutes — run `maschina logs {run_id}` for details");
-        }
+    'outer: loop {
+        tokio::select! {
+            _ = tokio::signal::ctrl_c() => {
+                spinner.finish_and_clear();
+                eprintln!("{} Cancelling run…", style("!").yellow().bold());
+                let _ = client
+                    .post::<serde_json::Value, serde_json::Value>(
+                        &format!("/agents/{id}/runs/{run_id}/cancel"),
+                        &serde_json::json!({}),
+                    )
+                    .await;
+                eprintln!("{} Run cancelled", style("✓").green().bold());
+                return Ok(());
+            }
+            chunk = byte_stream.next() => {
+                if started.elapsed() >= timeout {
+                    spinner.finish_and_clear();
+                    anyhow::bail!("timed out after 5 minutes — run `maschina logs {run_id}` for details");
+                }
 
-        let chunk = chunk?;
-        let text = String::from_utf8_lossy(&chunk);
+                let chunk = match chunk {
+                    Some(c) => c?,
+                    None => break,
+                };
+                let text = String::from_utf8_lossy(&chunk);
 
-        for ch in text.chars() {
-            if ch == '\n' {
-                let line = line_buf.trim().to_string();
-                line_buf.clear();
+                for ch in text.chars() {
+                    if ch == '\n' {
+                        let line = line_buf.trim().to_string();
+                        line_buf.clear();
 
-                if let Some(data) = line.strip_prefix("data: ") {
-                    match serde_json::from_str::<RunEvent>(data) {
-                        Ok(RunEvent::Update { status }) => {
-                            spinner.set_message(format!(
-                                "{}  {}",
-                                &status,
-                                style(run_id.as_str()).dim()
-                            ));
-                            final_status = status;
+                        if let Some(data) = line.strip_prefix("data: ") {
+                            match serde_json::from_str::<RunEvent>(data) {
+                                Ok(RunEvent::Update { status }) => {
+                                    spinner.set_message(format!(
+                                        "{}  {}",
+                                        &status,
+                                        style(run_id.as_str()).dim()
+                                    ));
+                                    final_status = status;
+                                }
+                                Ok(RunEvent::Complete {
+                                    status,
+                                    output_payload: op,
+                                    input_tokens: it,
+                                    output_tokens: ot,
+                                    error_message: em,
+                                    started_at: sa,
+                                    finished_at: fa,
+                                    ..
+                                }) => {
+                                    final_status = status;
+                                    output_payload = op;
+                                    input_tokens = it;
+                                    output_tokens = ot;
+                                    error_message = em;
+                                    started_at = sa;
+                                    finished_at = fa;
+                                    spinner.finish_and_clear();
+                                    break 'outer;
+                                }
+                                Err(_) => {} // ignore unknown event types
+                            }
                         }
-                        Ok(RunEvent::Complete {
-                            status,
-                            output_payload: op,
-                            input_tokens: it,
-                            output_tokens: ot,
-                            error_message: em,
-                            started_at: sa,
-                            finished_at: fa,
-                            ..
-                        }) => {
-                            final_status = status;
-                            output_payload = op;
-                            input_tokens = it;
-                            output_tokens = ot;
-                            error_message = em;
-                            started_at = sa;
-                            finished_at = fa;
-                            spinner.finish_and_clear();
-                            break 'outer;
-                        }
-                        Err(_) => {} // ignore unknown event types
+                    } else {
+                        line_buf.push(ch);
                     }
                 }
-            } else {
-                line_buf.push(ch);
             }
         }
     }
