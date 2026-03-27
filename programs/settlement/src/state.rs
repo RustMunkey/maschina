@@ -35,7 +35,7 @@ impl ExecutionReceipt {
 }
 
 // ─── NodeStake ────────────────────────────────────────────────────────────────
-// Tracks a node operator's staked USDC collateral.
+// Tracks a node runner's staked USDC collateral.
 // Keyed by [b"stake", node_id].
 
 #[account]
@@ -43,7 +43,7 @@ impl ExecutionReceipt {
 pub struct NodeStake {
     /// Node UUID (16 bytes)
     pub node_id: [u8; 16],
-    /// Node operator's Solana wallet
+    /// Node runner's Solana wallet
     pub operator: Pubkey,
     /// Staked amount in USDC lamports (6 decimals)
     pub staked_amount: u64,

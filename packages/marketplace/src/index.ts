@@ -10,10 +10,10 @@ import type { MarketplaceListing } from "@maschina/db";
 //
 // 2. Per-execution task revenue (on-chain/token) — calcExecutionRevenue()
 //    Used when a node executes a task on behalf of an agent. Mirrors the
-//    architecture's economic model: node earns compute revenue, developer
+//    architecture's economic model: node runner earns compute revenue, developer
 //    earns usage royalty, platform treasury accumulates protocol fees,
 //    validators receive a small participation reward.
-//    65% node / 20% developer / 10% treasury / 5% validators
+//    70% node runner / 15% treasury / 10% developer / 5% validators
 
 // ── Listing sale (fiat) ───────────────────────────────────────────────────────
 
@@ -33,24 +33,39 @@ export function calcRevenueShare(totalCents: number): RevenueShare {
 }
 
 // ── Per-execution task revenue (on-chain) ────────────────────────────────────
+//
+// Split (decided 2026-03-27, see .claude/ECONOMICS.md):
+//   70% node runner  — the machine that executed the job
+//   15% treasury     — protocol sustainability, grants, buybacks, governance
+//   10% developer    — agent template author (marketplace listing owner)
+//    5% validators   — nodes that verified honest completion
+//
+// The 10% developer royalty only applies to published marketplace templates.
+// For first-party/internal agents, pass withDeveloper: false and that 10%
+// rolls into treasury (giving treasury 25% total).
+//
+// Milestone: node runner share rises to 75% once the network reaches 100
+// active node runners. Treasury absorbs the 5% reduction. Requires governance
+// vote. The split constants below must not be changed without updating
+// the Solana settlement program and governance parameters.
 
-const EXECUTION_NODE_SHARE = 0.65;
-const EXECUTION_DEVELOPER_SHARE = 0.2;
-const EXECUTION_TREASURY_SHARE = 0.1;
+const EXECUTION_NODE_SHARE = 0.7;
+const EXECUTION_DEVELOPER_SHARE = 0.1;
+const EXECUTION_TREASURY_SHARE = 0.15;
 // validator share = remainder (0.05) to avoid floating-point drift
 
 export interface ExecutionRevenue {
-  nodeCents: number; // 65% — compute node operator
-  developerCents: number; // 20% — agent developer (marketplace listing owner)
-  treasuryCents: number; // 10% — protocol treasury
+  nodeCents: number; // 70% — node runner that executed the job
+  developerCents: number; // 10% — agent template author (0 if first-party)
+  treasuryCents: number; // 15% — protocol treasury (25% if no developer)
   validatorCents: number; //  5% — validator nodes
 }
 
-export function calcExecutionRevenue(totalCents: number): ExecutionRevenue {
+export function calcExecutionRevenue(totalCents: number, withDeveloper = true): ExecutionRevenue {
   const nodeCents = Math.floor(totalCents * EXECUTION_NODE_SHARE);
-  const developerCents = Math.floor(totalCents * EXECUTION_DEVELOPER_SHARE);
-  const treasuryCents = Math.floor(totalCents * EXECUTION_TREASURY_SHARE);
-  const validatorCents = totalCents - nodeCents - developerCents - treasuryCents;
+  const developerCents = withDeveloper ? Math.floor(totalCents * EXECUTION_DEVELOPER_SHARE) : 0;
+  const validatorCents = Math.floor(totalCents * 0.05);
+  const treasuryCents = totalCents - nodeCents - developerCents - validatorCents;
   return { nodeCents, developerCents, treasuryCents, validatorCents };
 }
 
