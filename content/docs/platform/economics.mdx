@@ -41,7 +41,7 @@ As the network scales, Maschina transitions from a centralized credit system to 
 |---|---|---|
 | **Users** | Submit agent runs | Pay for compute consumed |
 | **Developers** | Build and publish agents | Earn margins on skill invocations |
-| **Node Operators** | Contribute compute | Earn rewards for verified work |
+| **Node Runners** | Contribute compute | Earn rewards for verified work |
 | **Stakers** | Provide economic security | Earn yield on staked capital |
 | **Maschina** | Infrastructure and protocol | Collects network fees |
 
@@ -51,7 +51,7 @@ The native token serves as the settlement currency for all network transactions.
 
 **Utility:**
 - <HardDrive size={16} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} />Pay for compute resources on the network
-- <Coins size={16} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} />Stake to participate as a node operator
+- <Coins size={16} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} />Stake to participate as a node runner
 - <ChartLine size={16} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} />Earn rewards for contributing verified compute
 - <Scales size={16} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} />Governance participation (protocol upgrades, parameter changes)
 - <ShieldCheck size={16} weight="duotone" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}} />Access to premium features and priority routing
@@ -62,7 +62,7 @@ The native token serves as the settlement currency for all network transactions.
 flowchart TD
     User([User]) -->|pays tokens| Protocol[Protocol Layer]
     Protocol -->|network fee| Treasury[Protocol Treasury]
-    Protocol -->|compute cost| Node[Node Operator]
+    Protocol -->|compute cost| Node[Node Runner]
     Protocol -->|developer margin| Dev[Agent Developer]
     Treasury -->|burn| Burn[🔥 Token Burn]
     Treasury -->|grants| Grants[Developer Grants]
@@ -78,7 +78,7 @@ The network incentivizes early participation through a structured emission sched
 - Tokens are emitted as rewards for verified compute contribution
 - Emission rate decreases over time (deflationary pressure)
 - A portion of network fees is burned, reducing circulating supply
-- Early node operators receive higher emission rates as network bootstrap incentives
+- Early node runners receive higher emission rates as network bootstrap incentives
 
 ### Staking Mechanics
 
@@ -149,7 +149,7 @@ Every network fee is split across participants:
 
 ```mermaid
 pie title Network Fee Distribution
-    "Compute Rewards (Node Operators)" : 40
+    "Compute Rewards (Node Runners)" : 40
     "Developer Rewards (Agent Publishers)" : 30
     "Protocol Treasury" : 20
     "Token Burn" : 10
@@ -157,7 +157,7 @@ pie title Network Fee Distribution
 
 | Recipient | Share | Purpose |
 |---|---|---|
-| Compute rewards pool | 40% | Distributed to node operators per verified job |
+| Compute rewards pool | 40% | Distributed to node runners per verified job |
 | Developer rewards | 30% | Distributed to agent publishers per invocation |
 | Protocol treasury | 20% | Funds development, grants, and infrastructure |
 | Token burn | 10% | Deflationary pressure, reduces circulating supply |

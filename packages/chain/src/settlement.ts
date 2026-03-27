@@ -3,7 +3,7 @@
 // Wraps the on-chain settlement program for:
 //   - Anchoring execution receipts (tamper-proof run proof)
 //   - Node stake deposit / withdrawal / slash
-//   - Earnings settlement (65/20/10/5 split)
+//   - Earnings settlement (70/15/10/5 split: node runner/treasury/developer/validators)
 //
 // The IDL is committed at programs/settlement/target/idl/settlement.json after
 // `anchor build`. At runtime the IDL is loaded from there; in tests it is

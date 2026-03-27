@@ -359,7 +359,7 @@ fn task_price_cents(input_tokens: i64, output_tokens: i64, model: &str) -> i64 {
 }
 
 /// Fire-and-forget: write a node_earnings row for this successful run.
-/// Applies the 65/20/10/5 split (node/developer/treasury/validators).
+/// Applies the 70/15/10/5 split (node runner/treasury/developer/validators).
 fn record_node_earnings(
     state: &AppState,
     run: &QueuedRun,
@@ -381,9 +381,9 @@ fn record_node_earnings(
 
     tokio::spawn(async move {
         let total = task_price_cents(input_tokens, output_tokens, &model);
-        let node_cents = (total as f64 * 0.65).floor() as i64;
-        let developer_cents = (total as f64 * 0.20).floor() as i64;
-        let treasury_cents = (total as f64 * 0.10).floor() as i64;
+        let node_cents = (total as f64 * 0.70).floor() as i64;
+        let developer_cents = (total as f64 * 0.10).floor() as i64;
+        let treasury_cents = (total as f64 * 0.15).floor() as i64;
         let validator_cents = total - node_cents - developer_cents - treasury_cents;
 
         let _ = sqlx::query(

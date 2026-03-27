@@ -199,11 +199,11 @@ export const nodeEarnings = pgTable(
       .notNull()
       .default("1"),
 
-    // Task price and 65/20/10/5 split — all in USD cents
+    // Task price and 70/15/10/5 split — all in USD cents
     totalCents: integer("total_cents").notNull(),
-    nodeCents: integer("node_cents").notNull(), // 65% — this node
-    developerCents: integer("developer_cents").notNull(), // 20% — agent developer
-    treasuryCents: integer("treasury_cents").notNull(), // 10% — protocol treasury
+    nodeCents: integer("node_cents").notNull(), // 70% — this node runner
+    developerCents: integer("developer_cents").notNull(), // 10% — agent template author (0 if first-party)
+    treasuryCents: integer("treasury_cents").notNull(), // 15% — protocol treasury (25% if no developer)
     validatorCents: integer("validator_cents").notNull(), //  5% — validators
 
     // Settlement lifecycle: pending → settled (on-chain) | slashed
