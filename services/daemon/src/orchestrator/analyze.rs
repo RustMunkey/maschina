@@ -1,3 +1,8 @@
+use aes_gcm::aead::{Aead, KeyInit};
+use aes_gcm::{Aes256Gcm, Key, Nonce};
+use rand::RngCore;
+use sha2::{Digest, Sha256};
+
 use crate::error::DaemonError;
 use crate::orchestrator::scan_compat::JobToRun as QueuedRun;
 use crate::runtime::RunOutput;
@@ -87,25 +92,75 @@ async fn persist_success(
     run: &QueuedRun,
     output: &RunOutput,
 ) -> crate::error::Result<()> {
-    sqlx::query(
-        r#"
-        UPDATE agent_runs
-        SET status         = 'completed',
-            finished_at    = NOW(),
-            output_payload = $1,
-            input_tokens   = $2,
-            output_tokens  = $3,
-            sandbox_type   = $4
-        WHERE id = $5
-        "#,
-    )
-    .bind(&output.output_payload)
-    .bind(output.input_tokens as i64)
-    .bind(output.output_tokens as i64)
-    .bind(&output.sandbox_type)
-    .bind(run.id)
-    .execute(&state.db)
-    .await?;
+    let plaintext = serde_json::to_string(&output.output_payload)
+        .map_err(|e| DaemonError::Runtime(format!("Failed to serialize output: {e}")))?;
+
+    if let Some(ref raw_key) = state.config.data_encryption_key {
+        // Derive 32-byte AES key: SHA-256(raw_key_string) — matches @maschina/crypto deriveKey()
+        let key_bytes = Sha256::digest(raw_key.as_bytes());
+        let key = Key::<Aes256Gcm>::from_slice(&key_bytes);
+        let cipher = Aes256Gcm::new(key);
+
+        // 12-byte random IV (96-bit GCM nonce)
+        let mut iv_bytes = [0u8; 12];
+        rand::thread_rng().fill_bytes(&mut iv_bytes);
+        let nonce = Nonce::from_slice(&iv_bytes);
+
+        // aes-gcm appends the 16-byte auth tag to the ciphertext automatically
+        let ciphertext = cipher
+            .encrypt(nonce, plaintext.as_bytes())
+            .map_err(|_| DaemonError::Runtime("Output payload encryption failed".into()))?;
+
+        let ciphertext_hex = hex::encode(ciphertext);
+        let iv_hex = hex::encode(iv_bytes);
+
+        sqlx::query(
+            r#"
+            UPDATE agent_runs
+            SET status             = 'completed',
+                finished_at        = NOW(),
+                output_payload     = $1,
+                output_payload_iv  = $2,
+                key_version        = 1,
+                input_tokens       = $3,
+                output_tokens      = $4,
+                sandbox_type       = $5
+            WHERE id = $6
+            "#,
+        )
+        .bind(&ciphertext_hex)
+        .bind(&iv_hex)
+        .bind(output.input_tokens as i64)
+        .bind(output.output_tokens as i64)
+        .bind(&output.sandbox_type)
+        .bind(run.id)
+        .execute(&state.db)
+        .await?;
+    } else {
+        // No encryption key configured — store plaintext (dev/local only)
+        sqlx::query(
+            r#"
+            UPDATE agent_runs
+            SET status         = 'completed',
+                finished_at    = NOW(),
+                output_payload = $1,
+                input_tokens   = $2,
+                output_tokens  = $3,
+                sandbox_type   = $4
+            WHERE id = $5
+            "#,
+        )
+        .bind(
+            serde_json::from_str::<serde_json::Value>(&plaintext)
+                .unwrap_or(output.output_payload.clone()),
+        )
+        .bind(output.input_tokens as i64)
+        .bind(output.output_tokens as i64)
+        .bind(&output.sandbox_type)
+        .bind(run.id)
+        .execute(&state.db)
+        .await?;
+    }
 
     Ok(())
 }
