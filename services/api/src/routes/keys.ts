@@ -95,7 +95,7 @@ app.post("/:id/rotate", async (c) => {
     await tx
       .update(apiKeys)
       .set({ isActive: false, updatedAt: new Date() })
-      .where(eq(apiKeys.id, keyId));
+      .where(and(eq(apiKeys.id, keyId), eq(apiKeys.isActive, true)));
 
     return tx
       .insert(apiKeys)
