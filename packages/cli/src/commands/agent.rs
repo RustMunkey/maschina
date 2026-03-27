@@ -220,13 +220,16 @@ pub async fn run_agent(
             _ = tokio::signal::ctrl_c() => {
                 spinner.finish_and_clear();
                 eprintln!("{} Cancelling run…", style("!").yellow().bold());
-                let _ = client
+                match client
                     .post::<serde_json::Value, serde_json::Value>(
                         &format!("/agents/{id}/runs/{run_id}/cancel"),
                         &serde_json::json!({}),
                     )
-                    .await;
-                eprintln!("{} Run cancelled", style("✓").green().bold());
+                    .await
+                {
+                    Ok(_) => eprintln!("{} Run cancelled", style("✓").green().bold()),
+                    Err(e) => eprintln!("{} Cancel failed: {e}", style("✗").red().bold()),
+                }
                 return Ok(());
             }
             chunk = byte_stream.next() => {

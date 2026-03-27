@@ -363,8 +363,8 @@ app.get("/runs/:runId", requireAuth, async (c) => {
 app.get("/:id/runs", requireAuth, async (c) => {
   const user = c.get("user");
   const agentId = c.req.param("id");
-  const limit = Math.min(Number(c.req.query("limit") ?? 20), 100);
-  const offset = Number(c.req.query("offset") ?? 0);
+  const limit = Math.min(Math.max(0, Number.parseInt(c.req.query("limit") ?? "20", 10) || 20), 100);
+  const offset = Math.max(0, Number.parseInt(c.req.query("offset") ?? "0", 10) || 0);
 
   const [agent] = await db
     .select({ id: agents.id })
