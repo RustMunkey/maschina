@@ -34,9 +34,19 @@ pub mod settlement {
         instructions::anchor_receipt::handler(ctx, args)
     }
 
+    /// Initialise the per-node USDC vault. Call once after deposit_stake.
+    pub fn init_node_vault(ctx: Context<InitNodeVault>, args: InitNodeVaultArgs) -> Result<()> {
+        instructions::init_node_vault::handler(ctx, args)
+    }
+
     /// Node runner deposits USDC stake.
     pub fn deposit_stake(ctx: Context<DepositStake>, args: DepositStakeArgs) -> Result<()> {
         instructions::deposit_stake::handler(ctx, args)
+    }
+
+    /// Record earnings for a completed run and fund the vault (called by Maschina authority).
+    pub fn add_earnings(ctx: Context<AddEarnings>, args: AddEarningsArgs) -> Result<()> {
+        instructions::add_earnings::handler(ctx, args)
     }
 
     /// Initiate stake withdrawal. Starts the lock period (7 days by default).

@@ -2,7 +2,16 @@
 seeds = false
 skip-lint = false
 
+# Placeholder IDs — replaced with real addresses after `anchor deploy`.
+# Run: anchor deploy --provider.cluster devnet
+# Then paste the program IDs printed by the deploy command below.
+
 [programs.localnet]
+treasury = "TRSYxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+marketplace = "MKTPxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+settlement = "STLMxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+[programs.devnet]
 treasury = "TRSYxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 marketplace = "MKTPxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 settlement = "STLMxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -11,6 +20,9 @@ settlement = "STLMxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 url = "https://api.apr.dev"
 
 [provider]
+# Switch between localnet and devnet:
+#   anchor build && anchor deploy                          (localnet)
+#   anchor build && anchor deploy --provider.cluster devnet (devnet)
 cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 

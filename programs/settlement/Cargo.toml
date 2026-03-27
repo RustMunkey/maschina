@@ -17,3 +17,4 @@ default = []
 
 [dependencies]
 anchor-lang = "0.30"
+anchor-spl = { version = "0.30", features = ["token", "associated_token"] }

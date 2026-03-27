@@ -25,4 +25,13 @@ pub enum SettlementError {
 
     #[msg("Unauthorised: caller is not the node runner")]
     Unauthorised,
+
+    #[msg("Vault has insufficient USDC to cover the settlement")]
+    InsufficientVaultBalance,
+
+    #[msg("Operator token account does not match node runner's registered wallet")]
+    InvalidOperatorAccount,
+
+    #[msg("Earnings amounts do not sum to total transferred")]
+    EarningsMismatch,
 }

@@ -90,6 +90,12 @@ impl SettlementPool {
     pub const LEN: usize = 8 + 16 + 32 + 8 + 8 + 8 + 8 + 8 + 1;
 }
 
+// ─── Vault seed helper ────────────────────────────────────────────────────────
+// The per-node USDC vault is a token account whose authority is the pool PDA.
+// Seeds: [b"vault", node_id]. Created by init_node_vault.
+
+pub const VAULT_SEED: &[u8] = b"vault";
+
 // ─── Events ───────────────────────────────────────────────────────────────────
 
 #[event]
@@ -122,4 +128,13 @@ pub struct EarningsSettled {
     pub developer_amount: u64,
     pub treasury_amount: u64,
     pub validator_amount: u64,
+}
+
+#[event]
+pub struct EarningsRecorded {
+    pub node_id: [u8; 16],
+    pub run_id: [u8; 16],
+    pub total_amount: u64,
+    pub new_pending_node: u64,
+    pub new_pending_treasury: u64,
 }
