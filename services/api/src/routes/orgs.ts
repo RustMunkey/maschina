@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { hmacEmail } from "@maschina/crypto";
 import {
   agents,
   and,
@@ -312,9 +313,19 @@ app.post("/:id/invites", async (c) => {
   const body = await c.req.json().catch(() => null);
   const input = assertValid(InviteMemberSchema, body);
 
-  // HMAC for email lookup (same pattern as user registration)
-  const jwtSecret = process.env.JWT_SECRET ?? "dev-secret";
-  const emailIndex = crypto.createHmac("sha256", jwtSecret).update(input.email).digest("hex");
+  const emailIndex = hmacEmail(input.email);
+
+  // Build the set of indexes to check — include the legacy JWT_SECRET-based hash
+  // if HMAC_SECRET differs, so invites created before the secret rotation are found.
+  const legacySecret = process.env.JWT_SECRET;
+  const hmacSecret = process.env.HMAC_SECRET;
+  const indexes =
+    hmacSecret && legacySecret && hmacSecret !== legacySecret
+      ? [
+          emailIndex,
+          crypto.createHmac("sha256", legacySecret).update(input.email.toLowerCase()).digest("hex"),
+        ]
+      : [emailIndex];
 
   // Check for duplicate invite
   const existing = await db
@@ -323,7 +334,7 @@ app.post("/:id/invites", async (c) => {
     .where(
       and(
         eq(organizationInvites.orgId, orgId),
-        eq(organizationInvites.emailIndex, emailIndex),
+        inArray(organizationInvites.emailIndex, indexes),
         isNull(organizationInvites.acceptedAt),
       ),
     );
