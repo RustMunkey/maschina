@@ -14,11 +14,12 @@
  *   - HELIUS_API_KEY in env (optional)
  *
  * What this tests:
- *   1. init_node_vault  — creates per-node USDC vault (PDA token account)
- *   2. deposit_stake    — node runner deposits 100 USDC collateral
- *   3. add_earnings     — authority records 10 USDC earnings for a completed job
- *   4. settle_earnings  — distributes vault: 70/15/10/5 to operator/treasury/developer/validators
- *   5. Verifies all balances match expected amounts
+ *   1. initialize_config — one-time global config: sets trusted payout account owners
+ *   2. init_node_vault  — creates per-node USDC vault (PDA token account)
+ *   3. deposit_stake    — node runner deposits 100 USDC collateral
+ *   4. add_earnings     — authority records 10 USDC earnings for a completed job
+ *   5. settle_earnings  — distributes vault: 70/15/10/5 to operator/treasury/developer/validators
+ *   6. Verifies all balances match expected amounts
  */
 
 import fs from "node:fs";
@@ -213,10 +214,28 @@ async function main() {
   await mintTo(connection, authority, usdcMint, authorityUsdc, authority, mintAmount);
   console.log(`      Minted ${mintAmount / 1e6} USDC to authority`);
 
-  // ── Step 3: Initialize node accounts ────────────────────────────────────────
+  // ── Step 3: Initialize global settlement config ──────────────────────────────
+  // Must be called once after deploy. Sets trusted payout account owners so
+  // settle_earnings can validate all recipient accounts on-chain.
+
+  console.log("\n[3/6] Initialising settlement config...");
+  await program.methods
+    .initializeConfig({
+      treasuryKey: treasuryKeypair.publicKey,
+      developerKey: developerKeypair.publicKey,
+      validatorsKey: validatorsKeypair.publicKey,
+    })
+    .accounts({
+      authority: authority.publicKey,
+      systemProgram: SystemProgram.programId,
+    })
+    .rpc();
+  console.log("      initialize_config: OK");
+
+  // ── Step 4: Initialize node vault ───────────────────────────────────────────
 
   const nodeId = uuidToBytes("00000000-0000-0000-0000-000000000001");
-  console.log("\n[3/5] Initialising node vault...");
+  console.log("\n[4/6] Initialising node vault...");
 
   await program.methods
     .initNodeVault({ nodeId: Array.from(nodeId) })
@@ -228,9 +247,9 @@ async function main() {
     .rpc();
   console.log("      init_node_vault: OK");
 
-  // ── Step 4: Deposit stake ────────────────────────────────────────────────────
+  // ── Step 5: Deposit stake ────────────────────────────────────────────────────
 
-  console.log("\n[4/5] Depositing stake...");
+  console.log("\n[5/6] Depositing stake...");
   await program.methods
     .depositStake({ nodeId: Array.from(nodeId), amount: new BN(STAKE_AMOUNT) })
     .accounts({
@@ -248,7 +267,7 @@ async function main() {
   const agentId = uuidToBytes("bbbbbbbb-0000-0000-0000-000000000001");
   const userId = uuidToBytes("cccccccc-0000-0000-0000-000000000001");
 
-  console.log("\n[5/5] Recording earnings + settling...");
+  console.log("\n[6/6] Recording earnings + settling...");
   await program.methods
     .addEarnings({
       nodeId: Array.from(nodeId),
@@ -276,6 +295,7 @@ async function main() {
       validatorsUsdc,
       usdcMint,
       tokenProgram: TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
     })
     .rpc();
   console.log("      settle_earnings: OK");
