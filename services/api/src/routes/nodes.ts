@@ -141,6 +141,23 @@ app.post("/:id/heartbeat", requireAuth, async (c) => {
   return c.json({ ok: true });
 });
 
+// ─── GET /nodes/me — current user's node (used by `maschina doctor`) ─────────
+
+app.get("/me", requireAuth, async (c) => {
+  const user = c.get("user");
+
+  const [node] = await db
+    .select()
+    .from(nodes)
+    .where(eq(nodes.userId, user.id))
+    .orderBy(desc(nodes.createdAt))
+    .limit(1);
+
+  if (!node) throw new HTTPException(404, { message: "No node registered for this account" });
+
+  return c.json(node);
+});
+
 // ─── GET /nodes ───────────────────────────────────────────────────────────────
 
 app.get("/", requireAuth, async (c) => {
