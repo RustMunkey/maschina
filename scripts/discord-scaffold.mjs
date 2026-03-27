@@ -3,7 +3,7 @@
 // Usage: DISCORD_TOKEN=xxx GUILD_ID=yyy node scripts/discord-scaffold.mjs
 //
 // What it does:
-//   - Creates roles (Admin, Dev, Ops, Node Operator, Community)
+//   - Creates roles (Admin, Dev, Ops, Node Runner, Community)
 //   - Creates all categories and channels with correct permissions
 //   - Sets slowmode / topic on relevant channels
 //   - Safe to re-run — skips existing channels/roles by name
@@ -122,7 +122,7 @@ async function main() {
     mentionable: true,
   });
   roles.nodeOperator = await upsertRole(existing, {
-    name: "Node Operator",
+    name: "Node Runner",
     color: 0x2ecc71,
     hoist: true,
     mentionable: true,
@@ -218,19 +218,19 @@ async function main() {
     rate_limit: 10,
   });
 
-  // ── NODE OPERATORS ────────────────────────────────────────────────────────
-  console.log("\nNODE OPERATORS");
-  const catNodes = await upsertCategory(existingWithNewRoles, "NODE OPERATORS");
+  // ── NODE RUNNERS ─────────────────────────────────────────────────────────
+  console.log("\nNODE RUNNERS");
+  const catNodes = await upsertCategory(existingWithNewRoles, "NODE RUNNERS");
 
   await upsertChannel(existingWithNewRoles, {
     name: "node-general",
     parent_id: catNodes.id,
-    topic: "Discussion for node operators — setup, questions, tips.",
+    topic: "Discussion for node runners — setup, questions, tips.",
   });
   await upsertChannel(existingWithNewRoles, {
     name: "node-announcements",
     parent_id: catNodes.id,
-    topic: "Protocol updates that affect node operators.",
+    topic: "Protocol updates that affect node runners.",
     permission_overwrites: readOnlyOverwrites,
   });
 

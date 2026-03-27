@@ -7,7 +7,7 @@ declare_id!("STLMxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 // Responsibilities:
 //   1. anchor_receipt   — stores a tamper-proof hash of an execution receipt on-chain.
 //                         Any party can verify a run happened by checking this account.
-//   2. deposit_stake    — node operator locks USDC collateral.
+//   2. deposit_stake    — node runner locks USDC collateral.
 //   3. withdraw_stake   — operator initiates withdrawal (after lock period).
 //   4. slash_stake      — governance/validator slashes a misbehaving node.
 //   5. settle_earnings  — distributes accumulated earnings to node/developer/treasury/validators.
@@ -34,7 +34,7 @@ pub mod settlement {
         instructions::anchor_receipt::handler(ctx, args)
     }
 
-    /// Node operator deposits USDC stake.
+    /// Node runner deposits USDC stake.
     pub fn deposit_stake(ctx: Context<DepositStake>, args: DepositStakeArgs) -> Result<()> {
         instructions::deposit_stake::handler(ctx, args)
     }
@@ -57,7 +57,7 @@ pub mod settlement {
         instructions::withdraw_stake::finalise_handler(ctx, args)
     }
 
-    /// Settle accumulated earnings for a node (65/20/10/5 split).
+    /// Settle accumulated earnings for a node (70/15/10/5 split: node runner/treasury/developer/validators).
     pub fn settle_earnings(ctx: Context<SettleEarnings>, args: SettleEarningsArgs) -> Result<()> {
         instructions::settle_earnings::handler(ctx, args)
     }

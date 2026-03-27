@@ -23,6 +23,6 @@ pub enum SettlementError {
     #[msg("Nothing to settle — pool is empty")]
     EmptyPool,
 
-    #[msg("Unauthorised: caller is not the node operator")]
+    #[msg("Unauthorised: caller is not the node runner")]
     Unauthorised,
 }

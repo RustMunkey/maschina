@@ -26,7 +26,7 @@ pub struct SettleEarnings<'info> {
     )]
     pub pool: Account<'info, SettlementPool>,
 
-    /// Node operator wallet — receives the 65% node share.
+    /// Node runner wallet — receives the 70% node share.
     /// CHECK: validated via pool.operator == operator.key()
     #[account(
         mut,

@@ -1,5 +1,5 @@
 ---
-title: Node Operators
+title: Node Runners
 description: Contribute compute to the Maschina Network and earn network incentives.
 ---
 
@@ -9,7 +9,7 @@ import { HardDrive, Trophy, Coins, ShieldCheck, Lightning, Wrench } from "@phosp
 Node participation is on the roadmap. This page describes the planned design. Check the [roadmap](/platform/roadmap) for availability timing.
 </Info>
 
-Node operators contribute compute resources — CPU, GPU, memory, storage — to the Maschina network. In return, they earn network incentives based on the compute they provide and the tasks they successfully execute.
+Node runners contribute compute resources — CPU, GPU, memory, storage — to the Maschina network. In return, they earn network incentives based on the compute they provide and the tasks they successfully execute.
 
 ## Why Run a Node
 
@@ -49,7 +49,7 @@ During registration, the node:
 
 The orchestration system dispatches jobs to registered nodes based on capability matching, availability, reputation, and stake tier. The node client runs the job in an isolated container and returns the result.
 
-Node operators can configure:
+Node runners can configure:
 - Maximum concurrent jobs
 - Workload types to accept or reject
 - Available hours (schedule-based participation)
@@ -57,7 +57,7 @@ Node operators can configure:
 
 ### Execution environment
 
-All jobs run in sandboxed containers. Node operators do not have access to job inputs or outputs — execution is isolated. TEE (Trusted Execution Environment) attestation is planned to provide verifiable proof that jobs were executed correctly without exposing content.
+All jobs run in sandboxed containers. Node runners do not have access to job inputs or outputs — execution is isolated. TEE (Trusted Execution Environment) attestation is planned to provide verifiable proof that jobs were executed correctly without exposing content.
 
 ## Reputation System
 
@@ -75,7 +75,7 @@ Nodes with high reputation are prioritized in job routing. Nodes with persistent
 
 ## Staking
 
-Staking is the mechanism by which node operators signal commitment to the network.
+Staking is the mechanism by which node runners signal commitment to the network.
 
 - Nodes must stake a minimum amount to participate
 - Higher stake → higher job routing priority
@@ -100,11 +100,11 @@ Trusted Execution Environments provide cryptographic proof that:
 - The execution environment was not tampered with
 - The output was produced by the correct model
 
-TEE attestation is the planned mechanism for allowing nodes to prove work without exposing the inputs or outputs to the node operator. This is critical for privacy-sensitive enterprise workloads.
+TEE attestation is the planned mechanism for allowing nodes to prove work without exposing the inputs or outputs to the node runner. This is critical for privacy-sensitive enterprise workloads.
 
 ## Developer Integration
 
-Node operators can register their nodes to serve specific agent types or skill categories. This allows agents to be routed specifically to nodes that have been verified for a particular workload class.
+Node runners can register their nodes to serve specific agent types or skill categories. This allows agents to be routed specifically to nodes that have been verified for a particular workload class.
 
 ```bash
 # Register capability tags

@@ -40,11 +40,19 @@ describe("calcRevenueShare", () => {
 // ─── calcExecutionRevenue ──────────────────────────────────────────────────────
 
 describe("calcExecutionRevenue", () => {
-  it("splits 65/20/10/5 for 1000 cents", () => {
-    const result = calcExecutionRevenue(1000);
-    expect(result.nodeCents).toBe(650);
-    expect(result.developerCents).toBe(200);
-    expect(result.treasuryCents).toBe(100);
+  it("splits 70/15/10/5 for 1000 cents with developer", () => {
+    const result = calcExecutionRevenue(1000, true);
+    expect(result.nodeCents).toBe(700);
+    expect(result.developerCents).toBe(100);
+    expect(result.treasuryCents).toBe(150);
+    expect(result.validatorCents).toBe(50);
+  });
+
+  it("splits 70/25/0/5 for 1000 cents without developer (first-party agent)", () => {
+    const result = calcExecutionRevenue(1000, false);
+    expect(result.nodeCents).toBe(700);
+    expect(result.developerCents).toBe(0);
+    expect(result.treasuryCents).toBe(250);
     expect(result.validatorCents).toBe(50);
   });
 
@@ -55,12 +63,12 @@ describe("calcExecutionRevenue", () => {
     }
   });
 
-  it("validator gets the remainder to absorb rounding", () => {
-    // 99 cents: node=64, dev=19, treasury=9, validator=7
+  it("treasury absorbs rounding (not validator)", () => {
+    // 99 cents: node=69, dev=9, validator=4, treasury=remainder=17
     const r = calcExecutionRevenue(99);
-    expect(r.nodeCents).toBe(64);
-    expect(r.developerCents).toBe(19);
-    expect(r.treasuryCents).toBe(9);
+    expect(r.nodeCents).toBe(69);
+    expect(r.developerCents).toBe(9);
+    expect(r.validatorCents).toBe(4);
     expect(r.nodeCents + r.developerCents + r.treasuryCents + r.validatorCents).toBe(99);
   });
 
