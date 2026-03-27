@@ -39,6 +39,11 @@ pub struct Config {
     pub api_url: String,
     /// Shared secret for daemon→API internal calls (X-Internal-Secret header).
     pub internal_secret: String,
+
+    /// AES-256-GCM key for encrypting run output payloads at rest.
+    /// Reads DATA_ENCRYPTION_KEY_V1, falls back to DATA_ENCRYPTION_KEY.
+    /// When absent, output payloads are stored plaintext (dev only).
+    pub data_encryption_key: Option<String>,
 }
 
 impl Config {
@@ -82,6 +87,10 @@ impl Config {
                 .unwrap_or(false),
             api_url: env::var("API_URL").unwrap_or_else(|_| "http://localhost:3000".into()),
             internal_secret: env::var("INTERNAL_SECRET").unwrap_or_default(),
+            data_encryption_key: env::var("DATA_ENCRYPTION_KEY_V1")
+                .or_else(|_| env::var("DATA_ENCRYPTION_KEY"))
+                .ok()
+                .filter(|s| !s.is_empty()),
         })
     }
 
