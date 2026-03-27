@@ -315,6 +315,18 @@ app.post("/:id/invites", async (c) => {
 
   const emailIndex = hmacEmail(input.email);
 
+  // Build the set of indexes to check — include the legacy JWT_SECRET-based hash
+  // if HMAC_SECRET differs, so invites created before the secret rotation are found.
+  const legacySecret = process.env.JWT_SECRET;
+  const hmacSecret = process.env.HMAC_SECRET;
+  const indexes =
+    hmacSecret && legacySecret && hmacSecret !== legacySecret
+      ? [
+          emailIndex,
+          crypto.createHmac("sha256", legacySecret).update(input.email.toLowerCase()).digest("hex"),
+        ]
+      : [emailIndex];
+
   // Check for duplicate invite
   const existing = await db
     .select()
@@ -322,7 +334,7 @@ app.post("/:id/invites", async (c) => {
     .where(
       and(
         eq(organizationInvites.orgId, orgId),
-        eq(organizationInvites.emailIndex, emailIndex),
+        inArray(organizationInvites.emailIndex, indexes),
         isNull(organizationInvites.acceptedAt),
       ),
     );
