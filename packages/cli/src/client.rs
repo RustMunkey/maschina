@@ -6,6 +6,8 @@ use crate::config::Config;
 
 pub struct ApiClient {
     inner: Client,
+    /// Separate client without a timeout — used for long-lived SSE connections.
+    inner_stream: Client,
     base: String,
     api_key: String,
 }
@@ -25,8 +27,13 @@ impl ApiClient {
             .user_agent(concat!("maschina-cli/", env!("CARGO_PKG_VERSION")))
             .build()?;
 
+        let inner_stream = Client::builder()
+            .user_agent(concat!("maschina-cli/", env!("CARGO_PKG_VERSION")))
+            .build()?;
+
         Ok(Self {
             inner,
+            inner_stream,
             base: config.api_url.trim_end_matches('/').to_string(),
             api_key,
         })
@@ -66,6 +73,32 @@ impl ApiClient {
 
     pub async fn delete<T: DeserializeOwned>(&self, path: &str) -> Result<T> {
         parse(self.auth(self.inner.delete(self.url(path))).send().await?).await
+    }
+
+    /// Open a streaming GET (SSE). Returns the raw response — caller streams bytes.
+    pub async fn get_sse(&self, path: &str) -> Result<Response> {
+        let resp = self
+            .auth(self.inner_stream.get(self.url(path)))
+            .header("Accept", "text/event-stream")
+            .send()
+            .await?;
+
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let body = resp.text().await.unwrap_or_default();
+            let msg = serde_json::from_str::<serde_json::Value>(&body)
+                .ok()
+                .and_then(|v| {
+                    v.get("message")
+                        .or_else(|| v.get("error"))
+                        .and_then(|m| m.as_str())
+                        .map(|s| s.to_string())
+                })
+                .unwrap_or_else(|| format!("HTTP {}: {}", status.as_u16(), body));
+            bail!("{msg}");
+        }
+
+        Ok(resp)
     }
 
     fn url(&self, path: &str) -> String {
