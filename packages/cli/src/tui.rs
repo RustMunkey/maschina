@@ -108,7 +108,7 @@ impl ThemeKind {
 // ── constants ─────────────────────────────────────────────────────────────────
 
 static SPIN: [&str; 10] = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
-static LOGO_TEXT: &str = include_str!("../../../../ascii-logo.txt");
+static LOGO_TEXT: &str = include_str!("../../../ascii-logo.txt");
 
 static NAV_ITEMS: &[(&str, &str)] = &[
     ("run", "send a prompt to the network"),
