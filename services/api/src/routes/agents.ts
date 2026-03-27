@@ -324,6 +324,39 @@ app.post(
   },
 );
 
+// ── GET /agents/runs/:runId — flat run lookup (no agentId required) ──────────
+// Used by `maschina logs <runId>`.
+
+app.get("/runs/:runId", requireAuth, async (c) => {
+  const user = c.get("user");
+  const runId = c.req.param("runId");
+
+  const [run] = await db
+    .select()
+    .from(agentRuns)
+    .where(and(eq(agentRuns.id, runId), eq(agentRuns.userId, user.id)))
+    .limit(1);
+
+  if (!run) throw new HTTPException(404, { message: "Run not found" });
+
+  return c.json({
+    id: run.id,
+    agentId: run.agentId,
+    status: run.status,
+    inputPayload: decryptConfig(run.inputPayload, run.inputPayloadIv, run.keyVersion),
+    outputPayload: run.outputPayload
+      ? decryptConfig(run.outputPayload, run.outputPayloadIv, run.keyVersion)
+      : null,
+    inputTokens: run.inputTokens ?? null,
+    outputTokens: run.outputTokens ?? null,
+    errorCode: run.errorCode ?? null,
+    errorMessage: run.errorMessage ?? null,
+    createdAt: run.createdAt.toISOString(),
+    startedAt: run.startedAt?.toISOString() ?? null,
+    finishedAt: run.finishedAt?.toISOString() ?? null,
+  });
+});
+
 // ── GET /agents/:id/runs — paginated list ────────────────────────────────────
 
 app.get("/:id/runs", requireAuth, async (c) => {
