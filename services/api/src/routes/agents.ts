@@ -329,7 +329,14 @@ app.post(
 // Streams run status updates until a terminal state is reached.
 // Events: run:update (status change) | run:complete (terminal, includes output)
 
-const TERMINAL_STATUSES = new Set(["completed", "failed", "error", "stopped", "timeout"]);
+const TERMINAL_STATUSES = new Set([
+  "completed",
+  "failed",
+  "error",
+  "stopped",
+  "timed_out",
+  "canceled",
+]);
 
 app.get("/:id/runs/:runId/events", requireAuth, async (c) => {
   const user = c.get("user");
@@ -380,11 +387,24 @@ app.get("/:id/runs/:runId/events", requireAuth, async (c) => {
       return;
     }
 
-    // Poll DB every 250ms until terminal
+    // Poll DB every 250ms until terminal (max 10 min — daemon watchdog handles actual timeout)
+    const pollStart = Date.now();
+    const MAX_POLL_MS = 10 * 60 * 1000;
+
     while (true) {
       await new Promise<void>((resolve) => setTimeout(resolve, 250));
 
       if (stream.aborted) break;
+
+      if (Date.now() - pollStart > MAX_POLL_MS) {
+        await stream.writeSSE({
+          data: JSON.stringify({
+            type: "run:timeout",
+            message: "SSE poll timeout — check run status directly",
+          }),
+        });
+        break;
+      }
 
       const [run] = await db.select().from(agentRuns).where(eq(agentRuns.id, runId)).limit(1);
 
