@@ -354,13 +354,13 @@ function HomePage() {
               Everyone who builds with AI.<br />Everyone who has a machine.
             </h2>
             <p className="text-base text-white/40 leading-relaxed">
-              Developers get a global execution layer for their agents. Node operators get paid to run them. The network belongs to both.
+              Developers get a global execution layer for their agents. Node runners get paid to run them. The network belongs to both.
             </p>
           </div>
           <div className="flex flex-col gap-3">
             {[
               { title: "Developers",     body: "Deploy agents in minutes. Access every major model. Pay per run, not per seat." },
-              { title: "Node operators", body: "Contribute your idle compute. Earn on every job routed your way. No staking required." },
+              { title: "Node runners", body: "Contribute your idle compute. Earn on every job routed your way. No staking required." },
               { title: "Teams",          body: "Share agents across your org. Role-based access, audit logs, and shared billing." },
               { title: "Enterprises",    body: "On-premise deployment, custom SLA, dedicated infrastructure, and volume pricing." },
             ].map((item) => (

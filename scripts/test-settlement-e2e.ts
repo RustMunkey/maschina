@@ -1,24 +1,24 @@
 /**
  * test-settlement-e2e.ts
  *
- * End-to-end test of the Maschina settlement program on devnet.
+ * End-to-end test of the Maschina settlement program on localnet.
  * Runs the full economics flow and verifies the 70/15/10/5 USDC split.
  *
- * Run:
- *   npx tsx scripts/test-settlement-e2e.ts
- *
  * Prerequisites:
- *   - PR 171 merged + anchor build completed (generates IDL)
- *   - Settlement program deployed to devnet (SETTLEMENT_PROGRAM_ID in env)
- *   - Devnet SOL balance on authority keypair
- *   - HELIUS_API_KEY in env (optional)
+ *   1. solana-test-validator --reset (in another terminal)
+ *   2. anchor build && anchor deploy (from programs/ directory)
+ *   3. ~/.config/solana/id.json keypair with SOL
+ *
+ * Run:
+ *   SETTLEMENT_PROGRAM_ID=BwFjSM25XTnUG18yX3H5bk6M2CMyBS367pV4A41C8UUb \
+ *   SOLANA_CLUSTER=localnet npx tsx scripts/test-settlement-e2e.ts
  *
  * What this tests:
  *   1. initialize_config — one-time global config: sets trusted payout account owners
- *   2. init_node_vault  — creates per-node USDC vault (PDA token account)
- *   3. deposit_stake    — node runner deposits 100 USDC collateral
- *   4. add_earnings     — authority records 10 USDC earnings for a completed job
- *   5. settle_earnings  — distributes vault: 70/15/10/5 to operator/treasury/developer/validators
+ *   2. deposit_stake     — node operator deposits 100 USDC collateral (updates counter only)
+ *   3. init_node_vault   — creates per-node USDC vault (PDA token account)
+ *   4. add_earnings      — authority records 10 USDC earnings with 70/15/10/5 split
+ *   5. settle_earnings   — distributes vault: 70/15/10/5 to operator/treasury/developer/validators
  *   6. Verifies all balances match expected amounts
  */
 
@@ -33,39 +33,33 @@ import {
   createAssociatedTokenAccount,
   createMint,
   getAccount,
-  getAssociatedTokenAddressSync,
   mintTo,
 } from "@solana/spl-token";
-import {
-  Connection,
-  Keypair,
-  PublicKey,
-  SystemProgram,
-  sendAndConfirmTransaction,
-} from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const CLUSTER = (process.env.SOLANA_CLUSTER ?? "devnet") as "devnet" | "mainnet-beta";
+const CLUSTER = process.env.SOLANA_CLUSTER ?? "localnet";
 
-// Economics constants — must match programs/settlement/src/instructions/settle_earnings.rs
-const NODE_BPS = 7000; // 70%
-const TREASURY_BPS = 1500; // 15%
-const DEVELOPER_BPS = 1000; // 10%
-const VALIDATOR_BPS = 500; // 5%
+// Economics constants — must match programs/settlement/src/instructions/add_earnings.rs
+// 70% node / 15% treasury / 10% developer / 5% validators
+const NODE_BPS = 7000;
+const TREASURY_BPS = 1500;
+const DEVELOPER_BPS = 1000;
+const VALIDATOR_BPS = 500;
 
 // Test amounts (USDC, 6 decimals)
-const STAKE_AMOUNT = 100_000_000; // 100 USDC
-const EARNINGS_AMOUNT = 10_000_000; // 10 USDC per job
+const STAKE_AMOUNT = 100_000_000; // 100 USDC (counter only — no real transfer in deposit_stake)
+const EARNINGS_AMOUNT = 10_000_000; // 10 USDC
 
-// Expected settle amounts
-const EXPECTED_NODE = Math.floor((EARNINGS_AMOUNT * NODE_BPS) / 10_000); // 7_000_000
-const EXPECTED_TREASURY = Math.floor((EARNINGS_AMOUNT * TREASURY_BPS) / 10_000); // 1_500_000
-const EXPECTED_DEVELOPER = Math.floor((EARNINGS_AMOUNT * DEVELOPER_BPS) / 10_000); // 1_000_000
-const EXPECTED_VALIDATORS =
-  EARNINGS_AMOUNT - EXPECTED_NODE - EXPECTED_TREASURY - EXPECTED_DEVELOPER; // 500_000 (remainder)
+// Pre-compute split (mirrors the authority's responsibility to compute before calling add_earnings)
+const NODE_AMOUNT = Math.floor((EARNINGS_AMOUNT * NODE_BPS) / 10_000); // 7_000_000
+const TREASURY_AMOUNT = Math.floor((EARNINGS_AMOUNT * TREASURY_BPS) / 10_000); // 1_500_000
+const DEVELOPER_AMOUNT = Math.floor((EARNINGS_AMOUNT * DEVELOPER_BPS) / 10_000); // 1_000_000
+const VALIDATOR_AMOUNT = EARNINGS_AMOUNT - NODE_AMOUNT - TREASURY_AMOUNT - DEVELOPER_AMOUNT; // 500_000 (remainder)
 
 function getRpcUrl(): string {
+  if (CLUSTER === "localnet") return "http://127.0.0.1:8899";
   const apiKey = process.env.HELIUS_API_KEY;
   if (apiKey) {
     return CLUSTER === "mainnet-beta"
@@ -112,9 +106,7 @@ function uuidToBytes(uuid: string): Uint8Array {
 function check(label: string, actual: bigint, expected: number) {
   const ok = Number(actual) === expected;
   const mark = ok ? "✓" : "✗";
-  console.log(
-    `  ${mark} ${label}: ${actual} USDC lamports (expected ${expected}) ${ok ? "" : "<-- MISMATCH"}`,
-  );
+  console.log(`  ${mark} ${label}: ${actual} (expected ${expected})${ok ? "" : "  <-- MISMATCH"}`);
   if (!ok) process.exitCode = 1;
 }
 
@@ -122,7 +114,10 @@ function check(label: string, actual: bigint, expected: number) {
 
 async function main() {
   console.log("Maschina Settlement E2E Test");
-  console.log(`Cluster: ${CLUSTER}\n`);
+  console.log(`Cluster: ${CLUSTER}`);
+  console.log(
+    `Economics: ${NODE_BPS / 100}% node / ${TREASURY_BPS / 100}% treasury / ${DEVELOPER_BPS / 100}% developer / ${VALIDATOR_BPS / 100}% validators\n`,
+  );
 
   const connection = new Connection(getRpcUrl(), "confirmed");
   const authority = loadKeypair();
@@ -140,56 +135,60 @@ async function main() {
     process.exit(1);
   }
 
-  const program = new Program(idl, programId, provider);
+  // biome-ignore lint/suspicious/noExplicitAny: Anchor IDL requires any
+  const program = new Program(idl as any, provider);
 
   console.log(`Authority:  ${authority.publicKey.toBase58()}`);
   console.log(`Program ID: ${programId.toBase58()}`);
 
   const balance = await connection.getBalance(authority.publicKey);
-  console.log(`SOL balance: ${balance / 1e9}`);
+  console.log(`SOL balance: ${(balance / 1e9).toFixed(4)}`);
   if (balance < 0.5 * 1e9) {
-    console.error("Need at least 0.5 SOL. Run: solana airdrop 2 --url devnet");
+    console.error("Need at least 0.5 SOL. On localnet run: solana airdrop 5");
     process.exit(1);
   }
 
   // ── Step 1: Create a test USDC mint ─────────────────────────────────────────
-  // On devnet we create our own USDC-like mint for testing.
-  // On mainnet you'd use the real USDC mint from USDC_MINT_MAINNET.
-
-  console.log("\n[1/5] Creating test USDC mint...");
+  console.log("\n[1/6] Creating test USDC mint...");
   const usdcMint = await createMint(
     connection,
     authority,
-    authority.publicKey, // mint authority
-    authority.publicKey, // freeze authority
-    6, // decimals (matches real USDC)
+    authority.publicKey,
+    authority.publicKey,
+    6,
   );
-  console.log(`      Test USDC mint: ${usdcMint.toBase58()}`);
+  console.log(`      Mint: ${usdcMint.toBase58()}`);
 
-  // ── Step 2: Create ATAs and mint test USDC ───────────────────────────────────
+  // ── Step 2: Set up token accounts and mint test USDC ────────────────────────
+  console.log("\n[2/6] Setting up token accounts...");
 
-  console.log("\n[2/5] Setting up token accounts...");
+  // The operator is a separate keypair so we can clearly verify operator_usdc received exactly NODE_AMOUNT.
+  // On localnet we airdrop SOL to operator so it can sign deposit_stake.
+  const operatorKeypair = Keypair.generate();
+  const treasuryKeypair = Keypair.generate();
+  const developerKeypair = Keypair.generate();
+  const validatorsKeypair = Keypair.generate();
 
-  // Authority is both the Maschina authority AND acts as operator for this test
+  // Airdrop SOL to operator so it can pay for deposit_stake account creation
+  const airdropSig = await connection.requestAirdrop(operatorKeypair.publicKey, 1e9);
+  await connection.confirmTransaction(airdropSig);
+  console.log(`      Airdropped 1 SOL → operator ${operatorKeypair.publicKey.toBase58()}`);
+
+  // Authority's USDC — source for add_earnings transfer
   const authorityUsdc = await createAssociatedTokenAccount(
     connection,
     authority,
     usdcMint,
     authority.publicKey,
   );
-
-  // Create separate parties for the settlement split
-  const operatorKeypair = Keypair.generate();
-  const treasuryKeypair = Keypair.generate();
-  const developerKeypair = Keypair.generate();
-  const validatorsKeypair = Keypair.generate();
-
+  // Operator's USDC — receives 70%
   const operatorUsdc = await createAssociatedTokenAccount(
     connection,
     authority,
     usdcMint,
     operatorKeypair.publicKey,
   );
+  // Payout accounts
   const treasuryUsdc = await createAssociatedTokenAccount(
     connection,
     authority,
@@ -209,16 +208,30 @@ async function main() {
     validatorsKeypair.publicKey,
   );
 
-  // Mint enough USDC to authority for stake + earnings
-  const mintAmount = STAKE_AMOUNT + EARNINGS_AMOUNT + 1_000_000; // buffer
-  await mintTo(connection, authority, usdcMint, authorityUsdc, authority, mintAmount);
-  console.log(`      Minted ${mintAmount / 1e6} USDC to authority`);
+  // Mint USDC to authority for add_earnings
+  await mintTo(
+    connection,
+    authority,
+    usdcMint,
+    authorityUsdc,
+    authority,
+    EARNINGS_AMOUNT + 1_000_000,
+  );
+  console.log(`      Minted ${(EARNINGS_AMOUNT + 1_000_000) / 1e6} USDC to authority`);
 
-  // ── Step 3: Initialize global settlement config ──────────────────────────────
-  // Must be called once after deploy. Sets trusted payout account owners so
-  // settle_earnings can validate all recipient accounts on-chain.
-
+  // ── Step 3: Initialize settlement config ────────────────────────────────────
   console.log("\n[3/6] Initialising settlement config...");
+  const [configPda] = PublicKey.findProgramAddressSync([Buffer.from("config")], programId);
+  const configAccount = await connection.getAccountInfo(configPda);
+  if (configAccount) {
+    console.error("\nConfig PDA already exists from a previous run.");
+    console.error("Reset the validator and redeploy before re-running:");
+    console.error("  solana-test-validator --reset");
+    console.error(
+      "  solana program deploy programs/target/deploy/settlement.so --keypair ~/.config/solana/id.json --url http://127.0.0.1:8899 --program-id programs/target/deploy/settlement-keypair.json",
+    );
+    process.exit(1);
+  }
   await program.methods
     .initializeConfig({
       treasuryKey: treasuryKeypair.publicKey,
@@ -232,80 +245,80 @@ async function main() {
     .rpc();
   console.log("      initialize_config: OK");
 
-  // ── Step 4: Initialize node vault ───────────────────────────────────────────
-
+  // ── Step 4: Deposit stake (operator signs) ───────────────────────────────────
+  // Note: deposit_stake in this version only updates the counter — no SPL transfer.
   const nodeId = uuidToBytes("00000000-0000-0000-0000-000000000001");
-  console.log("\n[4/6] Initialising node vault...");
+  console.log("\n[4/6] Depositing stake (operator signs)...");
+  const operatorWallet = new anchor.Wallet(operatorKeypair);
+  const operatorProvider = new AnchorProvider(connection, operatorWallet, {
+    commitment: "confirmed",
+  });
+  // biome-ignore lint/suspicious/noExplicitAny: Anchor IDL requires any
+  const operatorProgram = new Program(idl as any, operatorProvider);
 
+  await operatorProgram.methods
+    .depositStake({ nodeId: Array.from(nodeId), amount: new BN(STAKE_AMOUNT) })
+    .accounts({
+      operator: operatorKeypair.publicKey,
+      systemProgram: SystemProgram.programId,
+    })
+    .rpc();
+  console.log(`      deposit_stake: ${STAKE_AMOUNT / 1e6} USDC (counter only)`);
+
+  // ── Step 5: Init node vault ──────────────────────────────────────────────────
+  console.log("\n[5/6] Initialising node vault...");
   await program.methods
     .initNodeVault({ nodeId: Array.from(nodeId) })
     .accounts({
-      authority: authority.publicKey,
+      payer: authority.publicKey,
       usdcMint,
       tokenProgram: TOKEN_PROGRAM_ID,
     })
     .rpc();
   console.log("      init_node_vault: OK");
 
-  // ── Step 5: Deposit stake ────────────────────────────────────────────────────
-
-  console.log("\n[5/6] Depositing stake...");
-  await program.methods
-    .depositStake({ nodeId: Array.from(nodeId), amount: new BN(STAKE_AMOUNT) })
-    .accounts({
-      authority: authority.publicKey,
-      authorityUsdc,
-      usdcMint,
-      tokenProgram: TOKEN_PROGRAM_ID,
-    })
-    .rpc();
-  console.log(`      deposit_stake: ${STAKE_AMOUNT / 1e6} USDC deposited`);
-
-  // ── Step 5: Add earnings for a fake job ─────────────────────────────────────
-
+  // ── Step 6: Add earnings then settle ────────────────────────────────────────
   const runId = uuidToBytes("aaaaaaaa-0000-0000-0000-000000000001");
-  const agentId = uuidToBytes("bbbbbbbb-0000-0000-0000-000000000001");
-  const userId = uuidToBytes("cccccccc-0000-0000-0000-000000000001");
+  console.log("\n[6/6] Adding earnings and settling...");
+  console.log(
+    `      Split: node=${NODE_AMOUNT / 1e6} treasury=${TREASURY_AMOUNT / 1e6} developer=${DEVELOPER_AMOUNT / 1e6} validators=${VALIDATOR_AMOUNT / 1e6} USDC`,
+  );
 
-  console.log("\n[6/6] Recording earnings + settling...");
   await program.methods
     .addEarnings({
       nodeId: Array.from(nodeId),
       runId: Array.from(runId),
-      totalAmount: new BN(EARNINGS_AMOUNT),
+      nodeAmount: new BN(NODE_AMOUNT),
+      developerAmount: new BN(DEVELOPER_AMOUNT),
+      treasuryAmount: new BN(TREASURY_AMOUNT),
+      validatorAmount: new BN(VALIDATOR_AMOUNT),
     })
     .accounts({
       authority: authority.publicKey,
-      authorityUsdc,
       usdcMint,
+      authorityUsdc,
       tokenProgram: TOKEN_PROGRAM_ID,
     })
     .rpc();
-  console.log(`      add_earnings: ${EARNINGS_AMOUNT / 1e6} USDC added to vault`);
-
-  // ── Step 6: Settle earnings ──────────────────────────────────────────────────
+  console.log("      add_earnings: OK");
 
   await program.methods
     .settleEarnings({ nodeId: Array.from(nodeId) })
     .accounts({
       authority: authority.publicKey,
-      operatorUsdc,
-      treasuryUsdc,
-      developerUsdc,
-      validatorsUsdc,
       usdcMint,
+      operatorUsdc,
+      developerUsdc,
+      treasuryUsdc,
+      validatorsUsdc,
       tokenProgram: TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,
     })
     .rpc();
   console.log("      settle_earnings: OK");
 
-  // ── Step 7: Verify balances ──────────────────────────────────────────────────
-
+  // ── Verify balances ──────────────────────────────────────────────────────────
   console.log("\n--- Balance verification ---");
-  console.log(
-    `Economics: ${NODE_BPS / 100}% node / ${TREASURY_BPS / 100}% treasury / ${DEVELOPER_BPS / 100}% developer / ${VALIDATOR_BPS / 100}% validators`,
-  );
   console.log(`Input: ${EARNINGS_AMOUNT / 1e6} USDC\n`);
 
   const operatorBal = (await getAccount(connection, operatorUsdc)).amount;
@@ -313,22 +326,22 @@ async function main() {
   const developerBal = (await getAccount(connection, developerUsdc)).amount;
   const validatorsBal = (await getAccount(connection, validatorsUsdc)).amount;
 
-  check("Operator   (70%)", operatorBal, EXPECTED_NODE);
-  check("Treasury   (15%)", treasuryBal, EXPECTED_TREASURY);
-  check("Developer  (10%)", developerBal, EXPECTED_DEVELOPER);
-  check("Validators  (5%)", validatorsBal, EXPECTED_VALIDATORS);
+  check("Operator   (70%)", operatorBal, NODE_AMOUNT);
+  check("Treasury   (15%)", treasuryBal, TREASURY_AMOUNT);
+  check("Developer  (10%)", developerBal, DEVELOPER_AMOUNT);
+  check("Validators  (5%)", validatorsBal, VALIDATOR_AMOUNT);
 
   const total = operatorBal + treasuryBal + developerBal + validatorsBal;
   const totalOk = Number(total) === EARNINGS_AMOUNT;
   console.log(
-    `\n  ${totalOk ? "✓" : "✗"} Total distributed: ${total} / ${EARNINGS_AMOUNT} USDC lamports`,
+    `\n  ${totalOk ? "✓" : "✗"} Total distributed: ${total} / ${EARNINGS_AMOUNT} lamports`,
   );
   if (!totalOk) process.exitCode = 1;
 
-  if (process.exitCode === 1) {
-    console.log("\nSome checks failed. Review the settlement program split logic.");
-  } else {
+  if (process.exitCode !== 1) {
     console.log("\n✓ All checks passed. Settlement economics verified.");
+  } else {
+    console.log("\nSome checks failed. Review the settlement program split logic.");
   }
 }
 

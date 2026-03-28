@@ -10,7 +10,7 @@ const VALUES = [
   { title: "Default to distributed", body: "We build decentralized infrastructure and operate the same way — async-first, globally distributed, no single point of failure." },
   { title: "Own the outcome", body: "Small team, real ownership. Everyone is close to the product and close to the user. No layers, no waiting for approval." },
   { title: "Build to last", body: "We move fast but we don't cut corners on correctness. Infrastructure that people depend on needs to be right." },
-  { title: "Earn trust, don't demand it", body: "From users, from node operators, from each other. Trust is the foundation of a network." },
+  { title: "Earn trust, don't demand it", body: "From users, from node runners, from each other. Trust is the foundation of a network." },
 ];
 
 function CareersPage() {

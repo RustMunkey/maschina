@@ -49,9 +49,10 @@ const MACH_TOKEN = {
   initialSupply: 0n,
 } as const;
 
-const CLUSTER = (process.env.SOLANA_CLUSTER ?? "devnet") as "devnet" | "mainnet-beta";
+const CLUSTER = process.env.SOLANA_CLUSTER ?? "devnet";
 
 function getRpcUrl(): string {
+  if (CLUSTER === "localnet") return "http://127.0.0.1:8899";
   const apiKey = process.env.HELIUS_API_KEY;
   if (apiKey) {
     return CLUSTER === "mainnet-beta"
@@ -88,10 +89,17 @@ async function main() {
     process.exit(1);
   }
 
-  // Generate a deterministic mint keypair so we can re-derive the address.
-  // In production, save the mint keypair securely — loss = loss of mint authority.
+  // Generate mint keypair and save it — loss of this file = loss of mint authority.
   const mintKeypair = Keypair.generate();
-  console.log(`\nMint keypair: ${mintKeypair.publicKey.toBase58()}`);
+  const mintKeypairPath = path.join(
+    path.dirname(new URL(import.meta.url).pathname),
+    "..",
+    "wallets",
+    "mach-mint.json",
+  );
+  fs.writeFileSync(mintKeypairPath, JSON.stringify(Array.from(mintKeypair.secretKey)));
+  console.log(`\nMint keypair saved: ${mintKeypairPath}`);
+  console.log(`Mint address: ${mintKeypair.publicKey.toBase58()}`);
 
   // ── Metadata ────────────────────────────────────────────────────────────────
 

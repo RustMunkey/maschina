@@ -58,9 +58,10 @@ const REALM_NAME = "Maschina";
 // 1 MACH (6 decimals) minimum to create a governance proposal
 const MIN_TOKENS_TO_CREATE_GOVERNANCE = new BN(1_000_000);
 
-const CLUSTER = (process.env.SOLANA_CLUSTER ?? "devnet") as "devnet" | "mainnet-beta";
+const CLUSTER = process.env.SOLANA_CLUSTER ?? "devnet";
 
 function getRpcUrl(): string {
+  if (CLUSTER === "localnet") return "http://127.0.0.1:8899";
   const apiKey = process.env.HELIUS_API_KEY;
   if (apiKey) {
     return CLUSTER === "mainnet-beta"

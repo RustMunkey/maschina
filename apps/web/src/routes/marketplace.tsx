@@ -137,13 +137,13 @@ function MarketplacePage() {
             65% to the developer.<br />Not the platform.
           </h2>
           <p className="text-base text-white/40 leading-relaxed">
-            Most platforms take 30–50% of every transaction. Maschina takes 20% — split between the treasury and network validators. The developer keeps 65%. Node operators who run your agent earn the rest.
+            Most platforms take 30–50% of every transaction. Maschina takes 20% — split between the treasury and network validators. The developer keeps 65%. Node runners who run your agent earn the rest.
           </p>
         </div>
         <div className="flex flex-col gap-3">
           {[
             { label: "Developer", pct: "65%", color: "" },
-            { label: "Node operators", pct: "10%", color: "bg-white/30" },
+            { label: "Node runners", pct: "10%", color: "bg-white/30" },
             { label: "Treasury", pct: "20%", color: "bg-white/15" },
             { label: "Validators", pct: "5%", color: "bg-white/8" },
           ].map((row) => (

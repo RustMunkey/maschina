@@ -5,7 +5,6 @@ use anchor_lang::prelude::*;
 // Keyed by [b"receipt", run_id].
 
 #[account]
-#[derive(Default)]
 pub struct ExecutionReceipt {
     /// The Maschina run UUID (16 bytes, stored as [u8; 16])
     pub run_id: [u8; 16],
@@ -27,6 +26,23 @@ pub struct ExecutionReceipt {
     pub output_tokens: u64,
     /// Bump seed for PDA
     pub bump: u8,
+}
+
+impl Default for ExecutionReceipt {
+    fn default() -> Self {
+        Self {
+            run_id: [0u8; 16],
+            payload_hash: [0u8; 32],
+            node_signature: [0u8; 64],
+            node_pubkey: [0u8; 32],
+            agent_id: [0u8; 16],
+            user_id: [0u8; 16],
+            completed_at: 0,
+            input_tokens: 0,
+            output_tokens: 0,
+            bump: 0,
+        }
+    }
 }
 
 impl ExecutionReceipt {
@@ -115,6 +131,37 @@ impl SettlementConfig {
     pub const SEED: &'static [u8] = b"config";
 }
 
+// ─── NodeIdentity ─────────────────────────────────────────────────────────────
+// On-chain SBT (non-transferable by design — no token, just a PDA).
+// One per node runner. Keyed by [b"identity", node_id].
+// Authority is the operator — only they can init. Program can update fields.
+
+#[account]
+#[derive(Default)]
+pub struct NodeIdentity {
+    /// Node UUID (16 bytes)
+    pub node_id: [u8; 16],
+    /// Node runner's Solana wallet — the one who registered
+    pub operator: Pubkey,
+    /// Tier: 0=access, 1=verified, 2=elite (updated by authority based on stake/rep)
+    pub tier: u8,
+    /// Unix timestamp of registration
+    pub join_timestamp: i64,
+    /// Total completed runs across lifetime
+    pub total_runs: u64,
+    /// Reputation score 0-1000 (starts at 100, slashing reduces, good runs increase)
+    pub reputation_score: u16,
+    /// Whether the node is currently active
+    pub is_active: bool,
+    /// Bump seed
+    pub bump: u8,
+}
+
+impl NodeIdentity {
+    // 8 discriminator + 16 + 32 + 1 + 8 + 8 + 2 + 1 + 1
+    pub const LEN: usize = 8 + 16 + 32 + 1 + 8 + 8 + 2 + 1 + 1;
+}
+
 // ─── Vault seed helper ────────────────────────────────────────────────────────
 // The per-node USDC vault is a token account whose authority is the pool PDA.
 // Seeds: [b"vault", node_id]. Created by init_node_vault.
@@ -153,6 +200,13 @@ pub struct EarningsSettled {
     pub developer_amount: u64,
     pub treasury_amount: u64,
     pub validator_amount: u64,
+}
+
+#[event]
+pub struct NodeRegistered {
+    pub node_id: [u8; 16],
+    pub operator: Pubkey,
+    pub join_timestamp: i64,
 }
 
 #[event]

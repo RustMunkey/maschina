@@ -1,0 +1,1627 @@
+{
+  "address": "DysEiPCWKkcMUemm1YHftCQv2UVH3JvDJsdAGbyBW4Md",
+  "metadata": {
+    "name": "settlement",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Maschina on-chain execution receipt anchoring and earnings settlement"
+  },
+  "instructions": [
+    {
+      "name": "initialize_config",
+      "discriminator": [
+        208,
+        127,
+        21,
+        1,
+        194,
+        190,
+        196,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "InitializeConfigArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "anchor_receipt",
+      "discriminator": [
+        136,
+        22,
+        95,
+        34,
+        144,
+        40,
+        8,
+        215
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "receipt",
+          "writable": true
+        },
+        {
+          "name": "pool",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "AnchorReceiptArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "init_node_vault",
+      "discriminator": [
+        248,
+        27,
+        124,
+        72,
+        122,
+        49,
+        104,
+        51
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "pool",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "args.node_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_mint"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "args.node_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "InitNodeVaultArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "deposit_stake",
+      "discriminator": [
+        160,
+        167,
+        9,
+        220,
+        74,
+        243,
+        228,
+        43
+      ],
+      "accounts": [
+        {
+          "name": "operator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "stake",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "args.node_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "pool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "args.node_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "DepositStakeArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "add_earnings",
+      "discriminator": [
+        33,
+        238,
+        51,
+        61,
+        134,
+        44,
+        42,
+        111
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "usdc_mint"
+        },
+        {
+          "name": "authority_usdc",
+          "writable": true
+        },
+        {
+          "name": "pool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "args.node_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "args.node_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "AddEarningsArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "withdraw_stake",
+      "discriminator": [
+        153,
+        8,
+        22,
+        138,
+        105,
+        176,
+        87,
+        66
+      ],
+      "accounts": [
+        {
+          "name": "operator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "stake",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "args.node_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "WithdrawStakeArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "slash_stake",
+      "discriminator": [
+        190,
+        242,
+        137,
+        27,
+        41,
+        18,
+        233,
+        37
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "stake",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "args.node_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "SlashStakeArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "finalise_withdrawal",
+      "discriminator": [
+        135,
+        182,
+        225,
+        138,
+        209,
+        41,
+        158,
+        231
+      ],
+      "accounts": [
+        {
+          "name": "operator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "stake",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "args.node_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "FinaliseWithdrawalArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "register_node",
+      "discriminator": [
+        102,
+        85,
+        117,
+        114,
+        194,
+        188,
+        211,
+        168
+      ],
+      "accounts": [
+        {
+          "name": "operator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "identity",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  105,
+                  100,
+                  101,
+                  110,
+                  116,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "args.node_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "RegisterNodeArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "settle_earnings",
+      "discriminator": [
+        9,
+        232,
+        65,
+        32,
+        126,
+        170,
+        223,
+        194
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_mint"
+        },
+        {
+          "name": "pool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "args.node_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "args.node_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "operator_usdc",
+          "writable": true
+        },
+        {
+          "name": "developer_usdc",
+          "writable": true
+        },
+        {
+          "name": "treasury_usdc",
+          "writable": true
+        },
+        {
+          "name": "validators_usdc",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "SettleEarningsArgs"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ExecutionReceipt",
+      "discriminator": [
+        126,
+        220,
+        166,
+        135,
+        248,
+        208,
+        202,
+        171
+      ]
+    },
+    {
+      "name": "NodeStake",
+      "discriminator": [
+        223,
+        245,
+        220,
+        76,
+        131,
+        5,
+        37,
+        29
+      ]
+    },
+    {
+      "name": "SettlementPool",
+      "discriminator": [
+        250,
+        2,
+        120,
+        66,
+        158,
+        4,
+        185,
+        82
+      ]
+    },
+    {
+      "name": "SettlementConfig",
+      "discriminator": [
+        205,
+        26,
+        40,
+        112,
+        76,
+        134,
+        3,
+        14
+      ]
+    },
+    {
+      "name": "NodeIdentity",
+      "discriminator": [
+        12,
+        20,
+        207,
+        82,
+        159,
+        83,
+        249,
+        176
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "ReceiptAnchored",
+      "discriminator": [
+        72,
+        237,
+        204,
+        175,
+        136,
+        188,
+        9,
+        203
+      ]
+    },
+    {
+      "name": "StakeDeposited",
+      "discriminator": [
+        69,
+        152,
+        144,
+        109,
+        232,
+        34,
+        225,
+        19
+      ]
+    },
+    {
+      "name": "StakeSlashed",
+      "discriminator": [
+        43,
+        41,
+        196,
+        25,
+        218,
+        235,
+        244,
+        35
+      ]
+    },
+    {
+      "name": "EarningsSettled",
+      "discriminator": [
+        249,
+        231,
+        189,
+        52,
+        64,
+        174,
+        122,
+        223
+      ]
+    },
+    {
+      "name": "EarningsRecorded",
+      "discriminator": [
+        30,
+        145,
+        66,
+        204,
+        110,
+        48,
+        97,
+        132
+      ]
+    },
+    {
+      "name": "NodeRegistered",
+      "discriminator": [
+        15,
+        57,
+        183,
+        59,
+        93,
+        55,
+        157,
+        195
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidSignature",
+      "msg": "Invalid node signature"
+    },
+    {
+      "code": 6001,
+      "name": "ReceiptAlreadyExists",
+      "msg": "Receipt already anchored for this run"
+    },
+    {
+      "code": 6002,
+      "name": "InsufficientStake",
+      "msg": "Insufficient stake to withdraw requested amount"
+    },
+    {
+      "code": 6003,
+      "name": "WithdrawalLocked",
+      "msg": "Withdrawal is still locked \u2014 wait for the lock period to expire"
+    },
+    {
+      "code": 6004,
+      "name": "NoPendingWithdrawal",
+      "msg": "No pending withdrawal to finalise"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidSlashBps",
+      "msg": "Slash basis points must be between 1 and 10000"
+    },
+    {
+      "code": 6006,
+      "name": "EmptyPool",
+      "msg": "Nothing to settle \u2014 pool is empty"
+    },
+    {
+      "code": 6007,
+      "name": "Unauthorised",
+      "msg": "Unauthorised: caller is not the node runner"
+    },
+    {
+      "code": 6008,
+      "name": "InsufficientVaultBalance",
+      "msg": "Vault has insufficient USDC to cover the settlement"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidOperatorAccount",
+      "msg": "Operator token account does not match node runner's registered wallet"
+    },
+    {
+      "code": 6010,
+      "name": "EarningsMismatch",
+      "msg": "Earnings amounts do not sum to total transferred"
+    },
+    {
+      "code": 6011,
+      "name": "UnauthorisedSettlement",
+      "msg": "Caller is not the authorised settlement authority"
+    },
+    {
+      "code": 6012,
+      "name": "InvalidDeveloperAccount",
+      "msg": "Developer token account owner does not match config.developer_key"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidTreasuryAccount",
+      "msg": "Treasury token account owner does not match config.treasury_key"
+    },
+    {
+      "code": 6014,
+      "name": "InvalidValidatorsAccount",
+      "msg": "Validators token account owner does not match config.validators_key"
+    },
+    {
+      "code": 6015,
+      "name": "ConfigAlreadyInitialised",
+      "msg": "Settlement config has already been initialised"
+    }
+  ],
+  "types": [
+    {
+      "name": "InitializeConfigArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "treasury_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "developer_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "validators_key",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AnchorReceiptArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "run_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "payload_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "node_signature",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "node_pubkey",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "agent_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "user_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "completed_at",
+            "type": "i64"
+          },
+          {
+            "name": "input_tokens",
+            "type": "u64"
+          },
+          {
+            "name": "output_tokens",
+            "type": "u64"
+          },
+          {
+            "name": "billed_usdc",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "InitNodeVaultArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "node_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "DepositStakeArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "node_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AddEarningsArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "node_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "run_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "node_amount",
+            "type": "u64"
+          },
+          {
+            "name": "developer_amount",
+            "type": "u64"
+          },
+          {
+            "name": "treasury_amount",
+            "type": "u64"
+          },
+          {
+            "name": "validator_amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WithdrawStakeArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "node_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FinaliseWithdrawalArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "node_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "SlashStakeArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "node_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "slash_bps",
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SettleEarningsArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "node_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ExecutionReceipt",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "run_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "payload_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "node_signature",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "node_pubkey",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "agent_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "user_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "completed_at",
+            "type": "i64"
+          },
+          {
+            "name": "input_tokens",
+            "type": "u64"
+          },
+          {
+            "name": "output_tokens",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "NodeStake",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "node_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "operator",
+            "type": "pubkey"
+          },
+          {
+            "name": "staked_amount",
+            "type": "u64"
+          },
+          {
+            "name": "pending_withdrawal",
+            "type": "u64"
+          },
+          {
+            "name": "withdrawal_unlocks_at",
+            "type": "i64"
+          },
+          {
+            "name": "total_slashed",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SettlementPool",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "node_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "operator",
+            "type": "pubkey"
+          },
+          {
+            "name": "pending_node",
+            "type": "u64"
+          },
+          {
+            "name": "pending_developer",
+            "type": "u64"
+          },
+          {
+            "name": "pending_treasury",
+            "type": "u64"
+          },
+          {
+            "name": "pending_validators",
+            "type": "u64"
+          },
+          {
+            "name": "run_count",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SettlementConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "developer_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "validators_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ReceiptAnchored",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "run_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "payload_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "node_pubkey",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "completed_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StakeDeposited",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "node_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "operator",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "new_total",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StakeSlashed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "node_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "slash_amount",
+            "type": "u64"
+          },
+          {
+            "name": "remaining",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EarningsSettled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "node_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "node_amount",
+            "type": "u64"
+          },
+          {
+            "name": "developer_amount",
+            "type": "u64"
+          },
+          {
+            "name": "treasury_amount",
+            "type": "u64"
+          },
+          {
+            "name": "validator_amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EarningsRecorded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "node_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "run_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "total_amount",
+            "type": "u64"
+          },
+          {
+            "name": "new_pending_node",
+            "type": "u64"
+          },
+          {
+            "name": "new_pending_treasury",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RegisterNodeArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "node_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "NodeIdentity",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "node_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "operator",
+            "type": "pubkey"
+          },
+          {
+            "name": "tier",
+            "type": "u8"
+          },
+          {
+            "name": "join_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "total_runs",
+            "type": "u64"
+          },
+          {
+            "name": "reputation_score",
+            "type": "u16"
+          },
+          {
+            "name": "is_active",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "NodeRegistered",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "node_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "operator",
+            "type": "pubkey"
+          },
+          {
+            "name": "join_timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}

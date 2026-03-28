@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("STLMxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+declare_id!("DysEiPCWKkcMUemm1YHftCQv2UVH3JvDJsdAGbyBW4Md");
 
 // ─── Maschina Settlement Program ─────────────────────────────────────────────
 //
@@ -80,6 +80,12 @@ pub mod settlement {
         args: FinaliseWithdrawalArgs,
     ) -> Result<()> {
         instructions::withdraw_stake::finalise_handler(ctx, args)
+    }
+
+    /// Register a node runner's identity on-chain (non-transferable SBT PDA).
+    /// Call once per node. Sets tier, join timestamp, reputation score.
+    pub fn register_node(ctx: Context<RegisterNode>, args: RegisterNodeArgs) -> Result<()> {
+        instructions::register_node::handler(ctx, args)
     }
 
     /// Settle accumulated earnings for a node (70/15/10/5 split: node runner/treasury/developer/validators).

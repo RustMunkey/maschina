@@ -80,7 +80,7 @@ export const Route = createFileRoute("/introduction")({
           ]}
         />
         <p className="text-white/60 leading-7 mb-4 text-sm max-w-xl">
-          Settlement happens on Solana — node operators receive payment automatically when a run completes and is verified.
+          Settlement happens on Solana — node runners receive payment automatically when a run completes and is verified.
         </p>
 
         <h2 style={{ fontFamily: "Sohne, sans-serif" }} className="text-xl text-white mt-10 mb-4 tracking-tight">

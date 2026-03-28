@@ -53,7 +53,7 @@ pub struct SettleEarnings<'info> {
         token::mint = usdc_mint,
         token::authority = pool,
     )]
-    pub vault: Account<'info, TokenAccount>,
+    pub vault: Box<Account<'info, TokenAccount>>,
 
     /// Node runner's USDC token account — receives 70%.
     /// Must be owned by pool.operator (the registered wallet for this node).
@@ -62,7 +62,7 @@ pub struct SettleEarnings<'info> {
         token::mint = usdc_mint,
         constraint = operator_usdc.owner == pool.operator @ SettlementError::InvalidOperatorAccount,
     )]
-    pub operator_usdc: Account<'info, TokenAccount>,
+    pub operator_usdc: Box<Account<'info, TokenAccount>>,
 
     /// Developer's USDC token account — receives 10% (0 for first-party agents).
     /// Must be owned by config.developer_key.
@@ -71,7 +71,7 @@ pub struct SettleEarnings<'info> {
         token::mint = usdc_mint,
         constraint = developer_usdc.owner == config.developer_key @ SettlementError::InvalidDeveloperAccount,
     )]
-    pub developer_usdc: Account<'info, TokenAccount>,
+    pub developer_usdc: Box<Account<'info, TokenAccount>>,
 
     /// Maschina treasury USDC token account — receives 15% (25% if no developer).
     /// Must be owned by config.treasury_key.
@@ -80,7 +80,7 @@ pub struct SettleEarnings<'info> {
         token::mint = usdc_mint,
         constraint = treasury_usdc.owner == config.treasury_key @ SettlementError::InvalidTreasuryAccount,
     )]
-    pub treasury_usdc: Account<'info, TokenAccount>,
+    pub treasury_usdc: Box<Account<'info, TokenAccount>>,
 
     /// Validators pool USDC token account — receives 5%.
     /// Must be owned by config.validators_key.
@@ -89,7 +89,7 @@ pub struct SettleEarnings<'info> {
         token::mint = usdc_mint,
         constraint = validators_usdc.owner == config.validators_key @ SettlementError::InvalidValidatorsAccount,
     )]
-    pub validators_usdc: Account<'info, TokenAccount>,
+    pub validators_usdc: Box<Account<'info, TokenAccount>>,
 
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,

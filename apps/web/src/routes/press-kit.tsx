@@ -7,7 +7,7 @@ export const Route = createFileRoute("/press-kit")({
   component: PressKitPage,
 });
 
-const BOILERPLATE = `Maschina is a distributed execution network for AI agents. Developers deploy agents through a single API and CLI — Maschina handles routing, execution, billing, and settlement across a global network of nodes. Node operators contribute compute and earn on every job routed their way. Maschina is built on the principle that the infrastructure for autonomous AI should be open, distributed, and economically fair.`;
+const BOILERPLATE = `Maschina is a distributed execution network for AI agents. Developers deploy agents through a single API and CLI — Maschina handles routing, execution, billing, and settlement across a global network of nodes. Node runners contribute compute and earn on every job routed their way. Maschina is built on the principle that the infrastructure for autonomous AI should be open, distributed, and economically fair.`;
 
 function PressKitPage() {
   return (
