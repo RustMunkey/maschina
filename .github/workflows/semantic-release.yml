@@ -33,6 +33,9 @@ jobs:
 
       - name: Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # NPM_TOKEN: ${{ secrets.NPM_TOKEN }}  # uncomment when ready to publish to npm
+          # GH_TOKEN must be a PAT with repo + workflow scopes so @semantic-release/git
+          # can push the version bump commit back to the protected main branch.
+          # Create at: github.com/settings/tokens → Classic → repo + workflow scopes
+          # Add as secret: github.com/RustMunkey/maschina/settings/secrets/actions
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: pnpm exec semantic-release
