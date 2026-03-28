@@ -25,4 +25,28 @@ pub enum SettlementError {
 
     #[msg("Unauthorised: caller is not the node runner")]
     Unauthorised,
+
+    #[msg("Vault has insufficient USDC to cover the settlement")]
+    InsufficientVaultBalance,
+
+    #[msg("Operator token account does not match node runner's registered wallet")]
+    InvalidOperatorAccount,
+
+    #[msg("Earnings amounts do not sum to total transferred")]
+    EarningsMismatch,
+
+    #[msg("Caller is not the authorised settlement authority")]
+    UnauthorisedSettlement,
+
+    #[msg("Developer token account owner does not match config.developer_key")]
+    InvalidDeveloperAccount,
+
+    #[msg("Treasury token account owner does not match config.treasury_key")]
+    InvalidTreasuryAccount,
+
+    #[msg("Validators token account owner does not match config.validators_key")]
+    InvalidValidatorsAccount,
+
+    #[msg("Settlement config has already been initialised")]
+    ConfigAlreadyInitialised,
 }

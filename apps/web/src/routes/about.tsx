@@ -48,7 +48,7 @@ function AboutPage() {
         <div>
           <ScrambleText text="MISSION" className="text-xs text-white/30 tracking-widest uppercase mb-6 block" />
           <p className="text-2xl font-medium text-white leading-snug pl-5" style={{ borderLeft: "2px solid #F84242" }}>
-            Make autonomous agents accessible to every developer and profitable for every node operator.
+            Make autonomous agents accessible to every developer and profitable for every node runner.
           </p>
         </div>
         <div>

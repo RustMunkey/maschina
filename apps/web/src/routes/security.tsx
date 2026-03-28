@@ -11,7 +11,7 @@ const PRACTICES = [
   { title: "Encryption at rest",      body: "Agent configs, run payloads, and sensitive user data are encrypted at rest using AES-256-GCM. Encryption keys are compartmentalized by data type." },
   { title: "Encryption in transit",   body: "All API endpoints are served over HTTPS/TLS 1.3. Internal service communication uses mTLS. NATS traffic is encrypted in transit." },
   { title: "Authentication",          body: "Passwords are hashed with argon2id. API keys use a prefix + hash model — we never store plaintext keys. Sessions are short-lived JWT tokens." },
-  { title: "Access control",          body: "Role-based access control at the API level. Node operators can only receive jobs, not read user data. Internal services have minimal required permissions." },
+  { title: "Access control",          body: "Role-based access control at the API level. Node runners can only receive jobs, not read user data. Internal services have minimal required permissions." },
   { title: "Infrastructure",          body: "Services run behind a reverse proxy. Internal services are not publicly exposed. Firewall rules restrict access by IP and port. fail2ban is active on all SSH-accessible hosts." },
   { title: "Dependency management",   body: "Dependencies are pinned and audited. We run automated vulnerability scans on CI. Critical patches are applied within 24 hours of disclosure." },
 ];

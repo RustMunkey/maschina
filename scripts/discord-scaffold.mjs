@@ -121,7 +121,7 @@ async function main() {
     hoist: true,
     mentionable: true,
   });
-  roles.nodeOperator = await upsertRole(existing, {
+  roles.nodeRunner = await upsertRole(existing, {
     name: "Node Runner",
     color: 0x2ecc71,
     hoist: true,

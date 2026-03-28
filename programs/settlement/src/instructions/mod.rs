@@ -1,11 +1,19 @@
+pub mod add_earnings;
 pub mod anchor_receipt;
 pub mod deposit_stake;
+pub mod init_node_vault;
+pub mod initialize_config;
+pub mod register_node;
 pub mod settle_earnings;
 pub mod slash_stake;
 pub mod withdraw_stake;
 
+pub use add_earnings::*;
 pub use anchor_receipt::*;
 pub use deposit_stake::*;
+pub use init_node_vault::*;
+pub use initialize_config::*;
+pub use register_node::*;
 pub use settle_earnings::*;
 pub use slash_stake::*;
 pub use withdraw_stake::*;

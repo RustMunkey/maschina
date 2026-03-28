@@ -57,6 +57,10 @@ dev.db
 *.jks
 *.keystore
 
+# ─── Solana Keypairs ─────────────────────────────────────────────────────────
+wallets/
+programs/target/deploy/*-keypair.json
+
 # ─── AI / Claude ─────────────────────────────────────────────────────────────
 CLAUDE.md
 .claude/

@@ -9,7 +9,7 @@ export const Route = createFileRoute("/terms")({
 const SECTIONS = [
   {
     title: "Acceptance",
-    body: "By accessing or using Maschina, you agree to these Terms of Service. If you don't agree, don't use the service. These terms apply to all users — developers, node operators, and guests.",
+    body: "By accessing or using Maschina, you agree to these Terms of Service. If you don't agree, don't use the service. These terms apply to all users — developers, node runners, and guests.",
   },
   {
     title: "What Maschina provides",
@@ -28,8 +28,8 @@ const SECTIONS = [
     body: "Subscription fees are charged monthly or annually. Credits are consumed per agent run. Unused credits do not roll over unless stated. Refunds are evaluated case-by-case — contact us within 7 days of a charge.",
   },
   {
-    title: "Node operators",
-    body: "Node operators agree to execute jobs faithfully, maintain uptime commitments, and abide by network policies. Maschina may remove nodes from the network at any time for policy violations or reliability failures.",
+    title: "Node runners",
+    body: "Node runners agree to execute jobs faithfully, maintain uptime commitments, and abide by network policies. Maschina may remove nodes from the network at any time for policy violations or reliability failures.",
   },
   {
     title: "Availability",

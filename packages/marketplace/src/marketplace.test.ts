@@ -69,6 +69,7 @@ describe("calcExecutionRevenue", () => {
     expect(r.nodeCents).toBe(69);
     expect(r.developerCents).toBe(9);
     expect(r.validatorCents).toBe(4);
+    expect(r.treasuryCents).toBe(17);
     expect(r.nodeCents + r.developerCents + r.treasuryCents + r.validatorCents).toBe(99);
   });
 
