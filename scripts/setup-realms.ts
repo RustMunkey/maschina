@@ -106,9 +106,9 @@ async function main() {
     process.exit(1);
   }
 
-  // Detect which version of the Realms program is deployed
-  const programVersion = await getGovernanceProgramVersion(connection, GOVERNANCE_PROGRAM_ID);
-  console.log(`\nRealms program version: ${programVersion}`);
+  // Use v3 directly — getGovernanceProgramVersion fails on some RPC endpoints
+  const programVersion = PROGRAM_VERSION_V3;
+  console.log(`\nRealms program version: ${programVersion} (v3 pinned)`);
 
   // Build create-realm instruction
   const instructions: Parameters<typeof withCreateRealm>[0] = [];

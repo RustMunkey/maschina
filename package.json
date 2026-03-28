@@ -185,6 +185,7 @@
     "@commitlint/cli": "^19.6.0",
     "@commitlint/config-conventional": "^19.6.0",
     "@discordjs/rest": "^2.6.1",
+    "@irys/sdk": "^0.2.11",
     "@semantic-release/changelog": "^6",
     "@semantic-release/github": "^10",
     "@types/node": "^22",

@@ -44,7 +44,7 @@ const MACH_TOKEN = {
   name: "Maschina",
   symbol: "MACH",
   decimals: 6, // Match USDC — makes on-chain math simpler
-  uri: "https://maschina.ai/token/mach-metadata.json", // TODO: host this
+  uri: "https://arweave.net/FSdeaS34qV2Z5ij95wcm9QdnSHkuyfRrsMhFGJ65yq8T",
   // Initial supply minted to authority — 0 for now (minted on demand per distribution schedule)
   initialSupply: 0n,
 } as const;
