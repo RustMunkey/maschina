@@ -186,7 +186,7 @@ pub async fn run(profile: &str, out: &Output) -> Result<()> {
     // 7. Save to config
     let node_cfg = NodeConfig {
         node_id: node_id.clone(),
-        signing_key: privkey_b64,
+        signing_key: Some(privkey_b64),
         runtime_url,
         nats_url,
         nats_ca_cert,

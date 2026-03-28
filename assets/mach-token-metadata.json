@@ -2,13 +2,13 @@
   "name": "Maschina",
   "symbol": "MACH",
   "description": "Maschina governance and utility token. Stake to participate in network governance, earn rewards, and access premium compute capacity on the agentic network.",
-  "image": "https://arweave.net/At45mjn2d5h2VqcYVGrc9xNf4YAtSuMcaN5qChaH2VsU",
+  "image": "https://raw.githubusercontent.com/RustMunkey/maschina/main/assets/mach-token.png",
   "external_url": "https://maschina.dev",
   "attributes": [],
   "properties": {
     "files": [
       {
-        "uri": "https://arweave.net/At45mjn2d5h2VqcYVGrc9xNf4YAtSuMcaN5qChaH2VsU",
+        "uri": "https://raw.githubusercontent.com/RustMunkey/maschina/main/assets/mach-token.png",
         "type": "image/png"
       }
     ],
