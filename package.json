@@ -187,6 +187,8 @@
     "@discordjs/rest": "^2.6.1",
     "@irys/sdk": "^0.2.11",
     "@semantic-release/changelog": "^6",
+    "@semantic-release/exec": "^6",
+    "@semantic-release/git": "^10",
     "@semantic-release/github": "^10",
     "@types/node": "^22",
     "@vitest/coverage-v8": "^4.0.18",
